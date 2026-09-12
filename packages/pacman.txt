@@ -45,11 +45,13 @@ cage
 cantarell-fonts
 cava
 chwd
+cliphist
 cpupower
 cryptsetup
 cups
 cups-filters
 cups-pdf
+ddcutil
 device-mapper
 diffutils
 discord
@@ -61,6 +63,7 @@ dosfstools
 duf
 dunst
 e2fsprogs
+easyeffects
 efibootmgr
 efitools
 egl-wayland
@@ -78,6 +81,7 @@ foomatic-db-nonfree
 foomatic-db-nonfree-ppds
 foomatic-db-ppds
 fsarchiver
+geoclue
 ghostscript
 git
 git-filter-repo
@@ -185,6 +189,7 @@ pipewire-pulse
 pkgfile
 plasma-nm
 plasma-systemmonitor
+playerctl
 plocate
 plymouth
 polkit-gnome
