@@ -1,39 +1,53 @@
 #!/usr/bin/env bash
 # Bootstrap this dotfiles repo on a fresh CachyOS/Arch install.
-# Safe to re-run.
-set -euo pipefail
+# Safe to re-run. Package installs are best-effort (one bad/renamed package
+# won't block the rest, or the config-linking step below) — failures are
+# collected and reported at the end.
+set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STOW_PACKAGES=$(find "$REPO_DIR" -maxdepth 1 -mindepth 1 -type d -not -name packages -not -name '.git' -printf '%f\n')
+FAILED_PACMAN=()
+FAILED_AUR=()
+FAILED_FLATPAK=()
 
 echo "==> Installing base tooling (stow, git)"
-sudo pacman -S --needed --noconfirm stow git base-devel
+sudo pacman -S --needed --noconfirm stow git base-devel || { echo "FATAL: couldn't install base tooling"; exit 1; }
 
 if ! command -v yay >/dev/null 2>&1; then
   echo "==> Installing yay (AUR helper)"
   tmpdir=$(mktemp -d)
-  git clone https://aur.archlinux.org/yay.git "$tmpdir/yay"
-  (cd "$tmpdir/yay" && makepkg -si --noconfirm)
+  git clone https://aur.archlinux.org/yay.git "$tmpdir/yay" && (cd "$tmpdir/yay" && makepkg -si --noconfirm)
   rm -rf "$tmpdir"
 fi
 
 echo "==> Installing pacman packages from packages/pacman.txt"
-sudo pacman -S --needed - < "$REPO_DIR/packages/pacman.txt"
+while read -r pkg; do
+  [ -z "$pkg" ] && continue
+  sudo pacman -S --needed --noconfirm "$pkg" || FAILED_PACMAN+=("$pkg")
+done < "$REPO_DIR/packages/pacman.txt"
 
-if [ -s "$REPO_DIR/packages/aur.txt" ]; then
+if [ -s "$REPO_DIR/packages/aur.txt" ] && command -v yay >/dev/null 2>&1; then
   echo "==> Installing AUR packages from packages/aur.txt"
-  yay -S --needed - < "$REPO_DIR/packages/aur.txt"
+  while read -r pkg; do
+    [ -z "$pkg" ] && continue
+    yay -S --needed --noconfirm "$pkg" || FAILED_AUR+=("$pkg")
+  done < "$REPO_DIR/packages/aur.txt"
 fi
 
 if [ -s "$REPO_DIR/packages/flatpak.txt" ]; then
   echo "==> Installing flatpak apps from packages/flatpak.txt"
   sudo pacman -S --needed --noconfirm flatpak
-  xargs -r -a "$REPO_DIR/packages/flatpak.txt" -I{} flatpak install -y flathub {}
+  while read -r app; do
+    [ -z "$app" ] && continue
+    flatpak install -y flathub "$app" || FAILED_FLATPAK+=("$app")
+  done < "$REPO_DIR/packages/flatpak.txt"
 fi
 
 echo "==> Stowing dotfile packages into \$HOME"
+FAILED_STOW=()
 for pkg in $STOW_PACKAGES; do
-  stow -d "$REPO_DIR" -t "$HOME" -R "$pkg"
+  stow -d "$REPO_DIR" -t "$HOME" -R "$pkg" || FAILED_STOW+=("$pkg")
 done
 
 echo "==> Enabling rice-critical user services"
@@ -46,3 +60,16 @@ echo "Note: qylock (lockscreen) is not vendored here — see README for how to f
 echo "Note: packages/systemd-system-enabled.txt lists system-level services (bluetooth, NetworkManager,"
 echo "      etc.) enabled on the source machine — most are CachyOS install defaults, but check that"
 echo "      file against 'systemctl list-unit-files --state=enabled' if something's not working."
+
+if [ ${#FAILED_PACMAN[@]} -gt 0 ]; then
+  echo "==> WARNING: pacman packages that failed to install: ${FAILED_PACMAN[*]}"
+fi
+if [ ${#FAILED_AUR[@]} -gt 0 ]; then
+  echo "==> WARNING: AUR packages that failed to install: ${FAILED_AUR[*]}"
+fi
+if [ ${#FAILED_FLATPAK[@]} -gt 0 ]; then
+  echo "==> WARNING: flatpak apps that failed to install: ${FAILED_FLATPAK[*]}"
+fi
+if [ ${#FAILED_STOW[@]} -gt 0 ]; then
+  echo "==> WARNING: stow packages that failed to link (likely conflicts with existing real files): ${FAILED_STOW[*]}"
+fi
