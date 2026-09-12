@@ -14,8 +14,24 @@ fish_add_path -g ~/.local/bin
 set -gx EDITOR nvim
 set -gx VISUAL nvim
 
+# Custom `less`/`man` page colors (ported from cachyos-config.zsh)
+set -gx LESS_TERMCAP_md (tput bold 2>/dev/null; tput setaf 2 2>/dev/null)
+set -gx LESS_TERMCAP_me (tput sgr0 2>/dev/null)
+
+# pkgfile "command not found" handler (fish-native version)
+source /usr/share/doc/pkgfile/command-not-found.fish
+
 # Commands to run in interactive sessions can go here
 if status is-interactive
+    # Auto-start Hyprland on a bare tty1 login (SDDM handles the normal
+    # graphical path; this is just the fallback if you ever land on a
+    # raw console). Ported from the old, never-actually-sourced
+    # zshrc.d/auto-Hypr.sh.
+    if test -z "$DISPLAY"; and test "$XDG_VTNR" = 1
+        mkdir -p ~/.cache
+        exec start-hyprland >~/.cache/hyprland.log 2>&1
+    end
+
     # No greeting
     set fish_greeting
 
@@ -46,6 +62,10 @@ if status is-interactive
 
     zoxide init fish | source
     fzf --fish | source
+
+    # Readline-ish keybindings (ported from zshrc.d/shortcuts.zsh)
+    bind \cH backward-kill-word
+    bind \cZ undo
 
     # yazi wrapper: cd to the directory you were browsing on exit
     function y
@@ -83,4 +103,20 @@ if status is-interactive
     # and being loaded unused was causing suspend/resume freezes - see
     # ~/.config/CLAUDE.md). Load it manually before launching a game.
     alias nvidia-on 'sudo modprobe nvidia_drm modeset=1 nvidia_modeset nvidia_uvm nvidia'
+
+    # Ported from cachyos-config.zsh
+    alias make 'make -j(nproc)'
+    alias ninja 'ninja -j(nproc)'
+    alias n ninja
+    alias c clear
+    alias rmpkg 'sudo pacman -Rsn'
+    alias cleanch 'sudo pacman -Scc'
+    alias fixpacman 'sudo rm /var/lib/pacman/db.lck'
+    alias update 'sudo pacman -Syu'
+    alias apt 'man pacman'
+    alias apt-get 'man pacman'
+    alias please sudo
+    alias tb 'nc termbin.com 9999'
+    alias jctl 'journalctl -p 3 -xb'
+    alias rip "expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
 end
