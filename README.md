@@ -22,10 +22,13 @@ Each top-level directory is a stow package mirroring its path under `$HOME`, e.g
 - **UI toolkit theming**: `gtk`, `qt`, `kde-misc`, `fontconfig`, `wal`, `nwg-look`
 - **Launcher/lock**: `fuzzel`, `wlogout`, `swaylock`, `satty`
 - **Terminal/CLI**: `zsh`, `shell` (bash), `kitty`, `ghostty`, `alacritty`, `fish`,
-  `lazygit`, `btop`, `cava`, `fastfetch`, `yazi`, `micro`, `qalculate`, `go`, `gh`, `yay`
+  `lazygit`, `btop`, `cava`, `fastfetch`, `yazi`, `micro`, `qalculate`, `gh`, `yay`
 - **Editors**: `nvim` (LazyVim-based), `vscode`, `vscodium`
-- **Misc**: `git` (`.gitconfig`), `nvidia`, `spicetify`, `cachyos`, `desktop-apps`,
-  `xdg-user-dirs`
+- **Misc**: `nvidia`, `spicetify`, `cachyos`, `desktop-apps`, `xdg-user-dirs`
+
+Note: no `git` package here on purpose — `.gitconfig` isn't tracked (it carried
+personal identity). Set your own `git config --global user.name/user.email`
+after installing.
 - **Wallpapers**: `wallpapers` (`~/Pictures/Wallpapers`, ~105MB — the pool `skwd-wall`
   rotates through and `illogical-impulse` themes off of)
 - **Theming state**: `local-share-theming` (KDE Material You `.colors` schemes,
