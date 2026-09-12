@@ -15,7 +15,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("$HOME/.config/hypr/custom/scripts/__restore_video_wallpaper.sh")
 
     -- Core components (authentication, lock screen, notification daemon)
-    hl.exec_cmd("hypridle")
+    -- hypridle is started from config/autostart.lua instead — don't duplicate here
     hl.exec_cmd("dbus-update-activation-environment --all")
     hl.exec_cmd("sleep 1 && dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP") -- Some fix idk
 

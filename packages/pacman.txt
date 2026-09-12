@@ -100,6 +100,7 @@ hdparm
 hplip
 hwdetect
 hwinfo
+hypridle
 hyprland
 hyprpicker
 hyprsunset
