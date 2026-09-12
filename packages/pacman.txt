@@ -180,6 +180,7 @@ pamixer
 perl
 perl-image-exiftool
 pipewire-alsa
+pipewire-pulse
 pkgfile
 plasma-nm
 plasma-systemmonitor

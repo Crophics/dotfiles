@@ -68,3 +68,16 @@ Wallpaper → `matugen` extracts a Material You palette → colors are templated
 to `hypr`, `gtk`, `qt`, `kitty`/`ghostty`/etc., and `kde-material-you-colors`
 syncs the palette into KDE/Qt apps. `wal` config is also tracked for tools that
 still read pywal-style palettes.
+
+## Troubleshooting
+
+- **No audio, `pactl` says "Connection refused"**: `pipewire.service` and
+  `wireplumber.service` can be active while the `pipewire-pulse` package is
+  missing, which silently breaks every app that talks to PulseAudio (Firefox/Zen
+  included) even though native PipeWire clients (`wpctl`) work fine. Fix:
+  ```sh
+  sudo pacman -S --needed pipewire-pulse
+  systemctl --user restart pipewire pipewire-pulse wireplumber
+  ```
+  `pipewire-pulse` is now in `packages/pacman.txt` so a fresh `install.sh` run
+  won't hit this.
