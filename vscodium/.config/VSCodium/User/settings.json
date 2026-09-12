@@ -1,0 +1,20 @@
+{
+  "python.languageServer": "Default",
+  "material-code.primaryColor": "#4783AE",
+  "material-code.colors": {
+    "background": "#1a1a1a",
+    "card": "#202020",
+    "popover": "#242424",
+    "syntax": {
+      "comment": "#6B7280",
+      "keyword": "#C678DD",
+      "variable": "#D6D4D5",
+      "attribute": "#E5C07B",
+      "property": "#56B6C2",
+      "function": "#61AFEF",
+      "string": "#98C379",
+      "constant": "#D19A66"
+    }
+  },
+  "workbench.colorTheme": "Material Code"
+}

@@ -1,0 +1,19 @@
+-- Formerly generated/managed by HyprMod (io.github.bluemancz.hyprmod), a
+-- third, independent GTK settings app that was silently overriding pC's
+-- own settings-panel-managed hyprland/shellOverrides/main.lua - this file
+-- loads unconditionally and dead last in hyprland.lua's require chain, so
+-- whatever it set here always won over everything else, including your
+-- own hand-tuned hyprland/general.lua. Specifically it had gaps_out = 8
+-- here, silently beating shellOverrides/main.lua's gaps_out = 6 set via
+-- pC's own panel - that's why gaps looked wrong after a "reload" even
+-- though the right value was already in the right file. It also set
+-- XCURSOR_THEME=Adwaita/XCURSOR_SIZE=24 via hl.env, which is almost
+-- certainly the real explanation for the old "cursor keeps reverting to
+-- Adwaita" mystery from an earlier session that never found this file.
+--
+-- HyprMod itself has been uninstalled (2026-09-11, user's choice - see
+-- CLAUDE.md) and this file emptied rather than deleted, since
+-- hyprland.lua's `require("hyprland-gui")` is unconditional (unlike the
+-- `custom/*.lua` requires, which check is_file_exists first) - deleting
+-- it outright would break every Hyprland launch. If HyprMod is ever
+-- reinstalled, expect it to regenerate real content here again.

@@ -1,0 +1,11 @@
+# Defense-in-depth: never track these even if accidentally copied in later
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+*_history
+.env
+*token*
+*secret*
+*password*
+.DS_Store

@@ -1,0 +1,70 @@
+# dotfiles
+
+Personal CachyOS + Hyprland rice, built on the illogical-impulse / end-4 quickshell
+shell with matugen-driven Material You theming. Managed as a set of
+[GNU Stow](https://www.gnu.org/software/stow/) packages so each app's config lives
+in its own directory and gets symlinked into `$HOME` on install.
+
+## Layout
+
+Each top-level directory is a stow package mirroring its path under `$HOME`, e.g.
+`hypr/.config/hypr/...` symlinks to `~/.config/hypr/...`.
+
+- **Shell core**: `hypr`, `illogical-impulse`, `quickshell`, `dankmaterialshell`,
+  `matugen`, `kde-material-you-colors`, `rice-cooker`, `skwd-wall`
+- **Session/login wiring**: `session` (systemd user units, autostart, uwsm,
+  xdg-desktop-portal, environment.d, mimeapps.list)
+- **UI toolkit theming**: `gtk`, `qt`, `kde-misc`, `fontconfig`, `wal`, `nwg-look`
+- **Launcher/lock**: `fuzzel`, `wlogout`, `swaylock`, `satty`
+- **Terminal/CLI**: `zsh`, `shell` (bash), `kitty`, `ghostty`, `alacritty`, `fish`,
+  `lazygit`, `btop`, `cava`, `fastfetch`, `yazi`, `micro`, `qalculate`, `go`, `gh`, `yay`
+- **Editors**: `nvim` (LazyVim-based), `vscode`, `vscodium`
+- **Misc**: `git` (`.gitconfig`), `nvidia`, `spicetify`, `cachyos`, `desktop-apps`,
+  `xdg-user-dirs`
+
+`packages/` holds package manifests, not stow packages:
+- `pacman.txt` — explicitly installed native packages (`pacman -Qqe`)
+- `aur.txt` — foreign/AUR packages (`pacman -Qqem`)
+- `flatpak.txt` — installed flatpak app IDs
+
+## Install on a new machine
+
+```sh
+git clone <this-repo-url> ~/git/dotfiles
+cd ~/git/dotfiles
+./install.sh
+```
+
+This installs `stow`/`yay` if missing, installs everything in `packages/`, then
+stows every package into `$HOME`. Re-run any time — it's idempotent
+(`stow -R`).
+
+To only (re)link configs without touching packages, run stow directly:
+
+```sh
+stow -d ~/git/dotfiles -t ~ hypr quickshell matugen   # etc.
+```
+
+## Not included, on purpose
+
+- `~/.config/quickshell/end4-pC` **is** included as plain files (it's a forked/
+  patched copy of the shell engine itself, not upstream-tracked here).
+- **qylock** (lockscreen) is *not* vendored — the working checkout is ~1.8GB
+  (mostly theme assets) and it's a separate forked/patched project. Clone and
+  build it separately:
+  ```sh
+  git clone https://github.com/Darkkal44/qylock.git ~/.config/qylock-src
+  ```
+  If you want your local qylock patches preserved on GitHub too, fork it under
+  your own account and push a branch there — that's a separate step from this repo.
+- Browser profiles, Discord/Vesktop, Spotify, LibreOffice, Bitwarden, and other
+  app-data-heavy directories are excluded — they're state/cache, not config, and
+  can contain sensitive data.
+- Secrets (`.ssh`, `.gnupg`, `.pki`, shell history, cookies) are never tracked here.
+
+## Theming pipeline
+
+Wallpaper → `matugen` extracts a Material You palette → colors are templated out
+to `hypr`, `gtk`, `qt`, `kitty`/`ghostty`/etc., and `kde-material-you-colors`
+syncs the palette into KDE/Qt apps. `wal` config is also tracked for tools that
+still read pywal-style palettes.

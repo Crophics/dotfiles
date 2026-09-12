@@ -1,0 +1,10 @@
+adwsteamgtk
+illogical-impulse-microtex-git
+kde-material-you-colors
+python-pywal16
+skwd-daemon-bin
+spotify
+spotx-linux
+upscayl-bin
+vmtouch
+vscodium-bin
