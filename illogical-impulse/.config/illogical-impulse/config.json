@@ -563,7 +563,7 @@
     },
     "regionSelector": {
         "annotation": {
-            "useSatty": false
+            "useSatty": true
         },
         "circle": {
             "padding": 10,
