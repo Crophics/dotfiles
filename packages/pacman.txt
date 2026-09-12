@@ -80,6 +80,7 @@ foomatic-db-ppds
 fsarchiver
 ghostscript
 git
+git-filter-repo
 github-cli
 glances
 gnome-calculator
@@ -175,6 +176,7 @@ openssh
 os-prober
 pacman-contrib
 pamixer
+passt
 perl
 perl-image-exiftool
 pipewire-alsa
@@ -213,9 +215,9 @@ snapper
 sof-firmware
 starship
 steam
+stow
 strace
 sudo
-swaylock-effects
 switcheroo-control
 sysfsutils
 system-config-printer
