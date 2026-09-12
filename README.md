@@ -19,8 +19,9 @@ Each top-level directory is a stow package mirroring its path under `$HOME`, e.g
   `matugen`, `kde-material-you-colors`, `skwd-wall` (installed but not
   autostarted — wallpaper handling reverted to `illogical-impulse`'s own
   native selector)
-- **Session/login wiring**: `session` (systemd user units, autostart, uwsm,
-  xdg-desktop-portal, environment.d, mimeapps.list)
+- **Session/login wiring**: `session` (systemd user units, autostart,
+  xdg-desktop-portal, environment.d, mimeapps.list) — SDDM launches Hyprland
+  directly via `start-hyprland`, no UWSM involved
 - **UI toolkit theming**: `gtk`, `qt`, `kde-misc`, `fontconfig`, `wal`, `nwg-look`
 - **Launcher/lock**: `fuzzel`, `wlogout`, `satty`
 - **Terminal/CLI**: `fish` (the actual default shell — `chsh -s /usr/bin/fish`;
