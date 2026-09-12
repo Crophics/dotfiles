@@ -36,5 +36,13 @@ for pkg in $STOW_PACKAGES; do
   stow -d "$REPO_DIR" -t "$HOME" -R "$pkg"
 done
 
+echo "==> Enabling rice-critical user services"
+for svc in skwd-daemon.service ydotool.service; do
+  systemctl --user enable --now "$svc" 2>/dev/null || echo "  (skipped $svc — not installed?)"
+done
+
 echo "==> Done. Log out/in (or restart Hyprland) for session-level changes to take effect."
 echo "Note: qylock (lockscreen) is not vendored here — see README for how to fetch/build it."
+echo "Note: packages/systemd-system-enabled.txt lists system-level services (bluetooth, NetworkManager,"
+echo "      etc.) enabled on the source machine — most are CachyOS install defaults, but check that"
+echo "      file against 'systemctl list-unit-files --state=enabled' if something's not working."

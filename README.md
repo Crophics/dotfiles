@@ -5,6 +5,11 @@ shell with matugen-driven Material You theming. Managed as a set of
 [GNU Stow](https://www.gnu.org/software/stow/) packages so each app's config lives
 in its own directory and gets symlinked into `$HOME` on install.
 
+**Goal: full-system recovery.** If this machine died today, `git clone` this repo
+onto a base CachyOS-Hyprland install and running `./install.sh` should get you
+back to (functionally) where you are now — packages, configs, wallpapers, and
+the services that make the rice actually run.
+
 ## Layout
 
 Each top-level directory is a stow package mirroring its path under `$HOME`, e.g.
@@ -21,11 +26,20 @@ Each top-level directory is a stow package mirroring its path under `$HOME`, e.g
 - **Editors**: `nvim` (LazyVim-based), `vscode`, `vscodium`
 - **Misc**: `git` (`.gitconfig`), `nvidia`, `spicetify`, `cachyos`, `desktop-apps`,
   `xdg-user-dirs`
+- **Wallpapers**: `wallpapers` (`~/Pictures/Wallpapers`, ~105MB — the pool `skwd-wall`
+  rotates through and `illogical-impulse` themes off of)
+- **Theming state**: `local-share-theming` (KDE Material You `.colors` schemes,
+  active cursor theme selector)
 
-`packages/` holds package manifests, not stow packages:
+`packages/` holds manifests, not stow packages:
 - `pacman.txt` — explicitly installed native packages (`pacman -Qqe`)
 - `aur.txt` — foreign/AUR packages (`pacman -Qqem`)
 - `flatpak.txt` — installed flatpak app IDs
+- `systemd-user-enabled.txt` / `systemd-system-enabled.txt` — reference snapshot
+  of what's enabled on the source machine. `install.sh` explicitly re-enables the
+  two that are actually rice-critical (`skwd-daemon`, `ydotool`); the rest are
+  mostly CachyOS install defaults (NetworkManager, bluetooth, cups, timers, etc.)
+  — cross-check the system-level file if something's missing after a fresh install.
 
 ## Install on a new machine
 
