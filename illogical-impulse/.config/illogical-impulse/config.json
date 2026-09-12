@@ -302,7 +302,7 @@
             "maxWidth": 280,
             "minWidth": 100,
             "onlyTitle": false,
-            "preferredPlayer": "zen-browser"
+            "preferredPlayer": ""
         },
         "resources": {
             "alwaysShowCpu": true,
