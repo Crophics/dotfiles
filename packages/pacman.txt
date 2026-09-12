@@ -99,6 +99,7 @@ hdparm
 hplip
 hwdetect
 hwinfo
+hyprland
 hyprpicker
 hyprsunset
 imv
