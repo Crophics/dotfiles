@@ -68,6 +68,28 @@ for pkg in $STOW_PACKAGES; do
   stow -d "$REPO_DIR" -t "$HOME" -R "$pkg" || FAILED_STOW+=("$pkg")
 done
 
+# These configs were captured with the source machine's literal /home/ryoku
+# path baked in (wallpaper path, qt settings, etc. — apps that don't expand
+# $HOME/~ themselves). Rewrite them for whoever's actually running this.
+# --follow-symlinks is required: plain `sed -i` replaces the symlink itself
+# with a new regular file, breaking the stow link.
+echo "==> Personalizing machine-specific paths"
+OLD_HOME="/home/ryoku"
+if [ "$HOME" != "$OLD_HOME" ]; then
+  for f in \
+    "$HOME/.nvidia-settings-rc" \
+    "$HOME/.config/hypr/hypridle.conf" \
+    "$HOME/.config/illogical-impulse/config.json" \
+    "$HOME/.config/illogical-impulse/config.json.ii-backup" \
+    "$HOME/.config/illogical-impulse/presets/my-dots.json" \
+    "$HOME/.config/skwd-wall/config.json" \
+    "$HOME/.config/QtProject.conf" \
+    "$HOME/.config/qt6ct/qt6ct.conf" \
+  ; do
+    [ -e "$f" ] && sed -i --follow-symlinks "s#$OLD_HOME#$HOME#g" "$f"
+  done
+fi
+
 echo "==> Enabling rice-critical user services"
 for svc in skwd-daemon.service ydotool.service; do
   systemctl --user enable --now "$svc" 2>/dev/null || echo "  (skipped $svc — not installed?)"
