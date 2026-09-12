@@ -95,6 +95,11 @@ for svc in skwd-daemon.service ydotool.service; do
   systemctl --user enable --now "$svc" 2>/dev/null || echo "  (skipped $svc — not installed?)"
 done
 
+echo "==> Setting fish as the default shell"
+if [ "$SHELL" != "$(command -v fish)" ]; then
+  chsh -s "$(command -v fish)" || echo "  (chsh failed — run it yourself: chsh -s /usr/bin/fish)"
+fi
+
 echo "==> Done. Log out/in (or restart Hyprland) for session-level changes to take effect."
 echo "Note: qylock (lockscreen) is not vendored here — see README for how to fetch/build it."
 echo "Note: packages/systemd-system-enabled.txt lists system-level services (bluetooth, NetworkManager,"
