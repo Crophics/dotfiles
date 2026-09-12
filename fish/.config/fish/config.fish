@@ -64,7 +64,7 @@ if status is-interactive
     alias claer "printf '\033[2J\033[3J\033[1;1H'"
     alias cl "printf '\033[2J\033[3J\033[1;1H'"
     alias pamcan pacman
-    alias q 'qs -c ii'
+    alias q 'qs -c end4-pC'
     alias g git
     alias gs 'git status'
     alias gp 'git pull'
