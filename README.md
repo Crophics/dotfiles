@@ -16,23 +16,28 @@ Each top-level directory is a stow package mirroring its path under `$HOME`, e.g
 `hypr/.config/hypr/...` symlinks to `~/.config/hypr/...`.
 
 - **Shell core**: `hypr`, `illogical-impulse`, `quickshell`, `dankmaterialshell`,
-  `matugen`, `kde-material-you-colors`, `rice-cooker`, `skwd-wall`
+  `matugen`, `kde-material-you-colors`, `skwd-wall` (installed but not
+  autostarted — wallpaper handling reverted to `illogical-impulse`'s own
+  native selector)
 - **Session/login wiring**: `session` (systemd user units, autostart, uwsm,
   xdg-desktop-portal, environment.d, mimeapps.list)
 - **UI toolkit theming**: `gtk`, `qt`, `kde-misc`, `fontconfig`, `wal`, `nwg-look`
-- **Launcher/lock**: `fuzzel`, `wlogout`, `swaylock`, `satty`
-- **Terminal/CLI**: `zsh`, `shell` (bash), `kitty`, `ghostty`, `alacritty`, `fish`,
-  `lazygit`, `btop`, `cava`, `fastfetch`, `yazi`, `micro`, `qalculate`, `gh`, `yay`
-- **Editors**: `nvim` (LazyVim-based), `vscode`, `vscodium`
-- **Misc**: `nvidia`, `spicetify`, `cachyos`, `desktop-apps`, `xdg-user-dirs`
+- **Launcher/lock**: `fuzzel`, `wlogout`, `satty`
+- **Terminal/CLI**: `fish` (the actual default shell — `chsh -s /usr/bin/fish`;
+  kitty always ran fish regardless of login shell), `zsh` (just `starship.toml`
+  now — fish reads the same file), `shell` (bash, kept as a fallback only),
+  `kitty`, `lazygit`, `btop`, `cava`, `fastfetch`, `yazi`, `micro`, `qalculate`,
+  `gh`, `yay`
+- **Editors**: `nvim` (LazyVim-based), `vscodium`
+- **Wallpapers**: `wallpapers` (`~/Pictures/Wallpapers`, ~105MB — the pool
+  `skwd-wall` was built to rotate through and `illogical-impulse` themes off of)
+- **Theming state**: `local-share-theming` (KDE Material You `.colors` schemes,
+  active cursor theme selector)
+- **Misc**: `nvidia`, `cachyos`, `desktop-apps`, `xdg-user-dirs`
 
 Note: no `git` package here on purpose — `.gitconfig` isn't tracked (it carried
 personal identity). Set your own `git config --global user.name/user.email`
 after installing.
-- **Wallpapers**: `wallpapers` (`~/Pictures/Wallpapers`, ~105MB — the pool `skwd-wall`
-  rotates through and `illogical-impulse` themes off of)
-- **Theming state**: `local-share-theming` (KDE Material You `.colors` schemes,
-  active cursor theme selector)
 
 `packages/` holds manifests, not stow packages:
 - `pacman.txt` — explicitly installed native packages (`pacman -Qqe`)
@@ -95,7 +100,7 @@ stow -d ~/git/dotfiles -t ~ hypr quickshell matugen   # etc.
 ## Theming pipeline
 
 Wallpaper → `matugen` extracts a Material You palette → colors are templated out
-to `hypr`, `gtk`, `qt`, `kitty`/`ghostty`/etc., and `kde-material-you-colors`
+to `hypr`, `gtk`, `qt`, `kitty`/etc., and `kde-material-you-colors`
 syncs the palette into KDE/Qt apps. `wal` config is also tracked for tools that
 still read pywal-style palettes.
 
