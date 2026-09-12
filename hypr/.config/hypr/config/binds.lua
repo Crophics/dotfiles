@@ -79,7 +79,7 @@ hl.bind(mainMod .. " + Z", hl.dsp.exec_cmd("qs ipc call controlcenter toggle"))
 -- hl.bind(mainMod .. " + X", hl.dsp.exec_cmd("qs ipc call controlcenter toggle"))
 hl.bind(mainMod .. " + Space",      hl.dsp.exec_cmd("rofi -show drun"))
 -- hl.bind(mainMod .. " + period",     hl.dsp.exec_cmd(noctCall .. "panel-toggle launcher /emo"))
-hl.bind("SUPER + L", hl.dsp.exec_cmd("quickshell -c mylock"))
+hl.bind("SUPER + L", hl.dsp.exec_cmd("$HOME/.local/share/quickshell-lockscreen/lock.sh"))
 hl.bind(mainMod .. " + ALT + C", hl.dsp.exec_cmd("wlogout"))
 
 ---------------------------
