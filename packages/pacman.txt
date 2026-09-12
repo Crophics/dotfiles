@@ -1,7 +1,6 @@
 7zip
 accountsservice
 adw-gtk-theme
-adwsteamgtk
 alsa-firmware
 alsa-plugins
 alsa-utils
@@ -92,9 +91,9 @@ grim
 gsfonts
 gst-libav
 gst-plugin-pipewire
-gst-plugin-va
 gst-plugins-bad
 gst-plugins-ugly
+gst-plugin-va
 gutenprint
 hdparm
 hplip
@@ -102,7 +101,6 @@ hwdetect
 hwinfo
 hyprpicker
 hyprsunset
-illogical-impulse-microtex-git
 imv
 inetutils
 inotify-tools
@@ -113,7 +111,6 @@ inter-font
 iwd
 jfsutils
 kde-cli-tools
-kde-material-you-colors
 kitty
 lazygit
 less
@@ -195,7 +192,6 @@ python-defusedxml
 python-packaging
 python-pyfiglet
 python-pyqt5
-python-pywal16
 python-reportlab
 python-sphinx
 python-sphinx-furo
@@ -205,18 +201,15 @@ quickshell
 realtime-privileges
 rebuild-detector
 reflector
-s-nail
 satty
 sddm
 sg3_utils
 shelly
-skwd-daemon-bin
 slurp
 smartmontools
+s-nail
 snapper
 sof-firmware
-spotify
-spotx-linux
 starship
 steam
 strace
@@ -238,7 +231,6 @@ ufw
 ufw-extras
 unrar
 unzip
-upscayl-bin
 usb_modeswitch
 usbmuxd
 usbutils
@@ -247,9 +239,7 @@ vim
 virt-manager
 virt-viewer
 vlc-plugins-all
-vmtouch
 vpl-gpu-rt
-vscodium-bin
 vulkan-icd-loader
 vulkan-intel
 which
