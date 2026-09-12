@@ -51,7 +51,20 @@ cd ~/git/dotfiles
 
 This installs `stow`/`yay` if missing, installs everything in `packages/`, then
 stows every package into `$HOME`. Re-run any time — it's idempotent
-(`stow -R`).
+(`stow -R`), and safe even if a graphical session already ran once and
+auto-generated its own default configs (Hyprland does this) — `install.sh`
+backs those up automatically before linking the real ones in.
+
+**Best order on a truly fresh install**: pick no desktop environment / a
+minimal profile in the installer, boot to a plain TTY, and run `install.sh`
+from there *before* ever starting Hyprland for the first time. That way
+nothing auto-generates a conflicting config and Hyprland's normal
+autostart (which launches quickshell itself, see `hypr/.config/hypr/hyprland/execs.lua`)
+just works on the very first login. If you do end up logging into a bare
+graphical session first (e.g. to get a terminal), that's fine too — just
+run `install.sh` and then fully restart Hyprland once (log out/in, or
+`hyprctl dispatch exit`) so it picks up the real config and autostarts
+quickshell.
 
 To only (re)link configs without touching packages, run stow directly:
 
