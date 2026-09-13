@@ -182,6 +182,7 @@ os-prober
 pacman-contrib
 pamixer
 passt
+pavucontrol-qt
 perl
 perl-image-exiftool
 pipewire-alsa
