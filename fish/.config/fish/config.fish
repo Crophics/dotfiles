@@ -112,7 +112,7 @@ if status is-interactive
     alias rmpkg 'sudo pacman -Rsn'
     alias cleanch 'sudo pacman -Scc'
     alias fixpacman 'sudo rm /var/lib/pacman/db.lck'
-    alias update 'sudo pacman -Syu'
+    alias update 'yay -Syu'
     alias apt 'man pacman'
     alias apt-get 'man pacman'
     alias please sudo
