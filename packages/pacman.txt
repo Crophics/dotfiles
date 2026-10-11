@@ -156,6 +156,7 @@ micro
 mkinitcpio
 modemmanager
 mpv
+mpvpaper
 mtools
 nano
 nano-syntax-highlighting
@@ -167,6 +168,7 @@ networkmanager-openvpn
 nfs-utils
 nilfs-utils
 nm-connection-editor
+noctalia
 noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
@@ -230,6 +232,7 @@ sysfsutils
 system-config-printer
 texinfo
 toilet
+tree-sitter-cli
 ttf-bitstream-vera
 ttf-dejavu
 ttf-jetbrains-mono
