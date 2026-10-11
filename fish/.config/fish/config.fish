@@ -44,11 +44,6 @@ if status is-interactive
         # enable_transience
     end
 
-    # Colors
-    if test -f ~/.local/state/quickshell/user/generated/terminal/sequences.txt
-        cat ~/.local/state/quickshell/user/generated/terminal/sequences.txt
-    end
-
     # System info on startup (kitty only)
     # Deferred to the first prompt (like kitty's own shell-integration setup)
     # so it isn't wiped by a startup window-resize clearing the screen before
@@ -120,3 +115,4 @@ if status is-interactive
     alias jctl 'journalctl -p 3 -xb'
     alias rip "expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
 end
+pyenv init - | source

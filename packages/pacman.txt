@@ -107,6 +107,7 @@ hwinfo
 hypridle
 hyprland
 hyprpicker
+hyprpolkitagent
 hyprsunset
 imv
 inetutils
@@ -156,10 +157,10 @@ micro
 mkinitcpio
 modemmanager
 mpv
-mpvpaper
 mtools
 nano
 nano-syntax-highlighting
+nautilus
 ncdu
 neovim
 netctl
@@ -222,6 +223,7 @@ smartmontools
 s-nail
 snapper
 sof-firmware
+spotify-launcher
 starship
 steam
 stow
@@ -233,6 +235,7 @@ system-config-printer
 texinfo
 toilet
 tree-sitter-cli
+ttf-0xproto-nerd
 ttf-bitstream-vera
 ttf-dejavu
 ttf-jetbrains-mono

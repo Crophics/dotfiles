@@ -1,4 +1,5 @@
 adwsteamgtk
+bibata-cursor-theme-bin
 illogical-impulse-microtex-git
 kde-material-you-colors
 python-pywal16

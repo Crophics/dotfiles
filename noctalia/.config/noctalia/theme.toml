@@ -1,0 +1,27 @@
+# Colors follow the wallpaper;
+# `noctalia msg color-scheme-set builtin Gruvbox` switches back to Gruvbox.
+# Builtin templates recolor GTK, Qt (qt6ct), btop and cava. Hyprland borders and kitty
+# use the user templates below instead of the builtin ones: those rewrite hyprland.lua /
+# kitty.conf, which would replace the stow symlinks.
+[theme]
+mode = "dark"
+source = "wallpaper"
+wallpaper_scheme = "m3-content"
+
+[theme.templates]
+enable_builtin_templates = true
+builtin_ids = ["gtk3", "gtk4", "qt", "btop", "cava"]
+
+[wallpaper]
+enabled = true
+directory = "/home/ryoku/Pictures/Wallpapers" # picker folder (Ctrl+Super+T)
+
+[theme.templates.user.hypr]
+input_path = "$XDG_CONFIG_HOME/noctalia/templates/hypr-colors.lua"
+output_path = "$XDG_DATA_HOME/noctalia-templates/hypr-colors.lua"
+post_hook = "hyprctl reload"
+
+[theme.templates.user.kitty]
+input_path = "$XDG_CONFIG_HOME/noctalia/templates/kitty-colors.conf"
+output_path = "$XDG_CONFIG_HOME/kitty/noctalia-colors.conf"
+post_hook = "pkill -USR1 -x kitty || true"

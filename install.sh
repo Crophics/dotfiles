@@ -6,7 +6,7 @@
 set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STOW_PACKAGES=$(find "$REPO_DIR" -maxdepth 1 -mindepth 1 -type d -not -name packages -not -name '.git' -printf '%f\n')
+STOW_PACKAGES=$(find "$REPO_DIR" -maxdepth 1 -mindepth 1 -type d -not -name packages -not -name archive -not -name '.git' -printf '%f\n')
 FAILED_PACMAN=()
 FAILED_AUR=()
 FAILED_FLATPAK=()
@@ -79,19 +79,16 @@ if [ "$HOME" != "$OLD_HOME" ]; then
   for f in \
     "$HOME/.nvidia-settings-rc" \
     "$HOME/.config/hypr/hypridle.conf" \
-    "$HOME/.config/illogical-impulse/config.json" \
-    "$HOME/.config/illogical-impulse/config.json.ii-backup" \
-    "$HOME/.config/illogical-impulse/presets/my-dots.json" \
-    "$HOME/.config/skwd-wall/config.json" \
     "$HOME/.config/QtProject.conf" \
     "$HOME/.config/qt6ct/qt6ct.conf" \
+    "$HOME/.config/noctalia/theme.toml" \
   ; do
     [ -e "$f" ] && sed -i --follow-symlinks "s#$OLD_HOME#$HOME#g" "$f"
   done
 fi
 
 echo "==> Enabling rice-critical user services"
-for svc in skwd-daemon.service ydotool.service; do
+for svc in hyprpolkitagent.service ydotool.service; do
   systemctl --user enable --now "$svc" 2>/dev/null || echo "  (skipped $svc — not installed?)"
 done
 

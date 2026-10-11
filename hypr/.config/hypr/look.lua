@@ -1,0 +1,101 @@
+-- Border colors come from Noctalia's palette (rendered from ~/.config/noctalia/templates/hypr-colors.lua);
+-- upstream's Gruvbox gradient is the fallback until Noctalia has rendered it.
+local ok, palette = pcall(dofile, os.getenv("HOME") .. "/.local/share/noctalia-templates/hypr-colors.lua")
+if not ok or type(palette) ~= "table" then
+	palette = {
+		active_border = { colors = { "rgba(d8a657ee)", "rgba(e78a4eee)" }, angle = 45 },
+		inactive_border = "rgba(5a524caa)",
+	}
+end
+
+hl.config({
+	general = {
+		gaps_in = 5,
+		gaps_out = 10,
+
+		border_size = 2,
+
+		col = {
+			active_border = palette.active_border,
+			inactive_border = palette.inactive_border,
+		},
+
+		-- Set to true to enable resizing windows by clicking and dragging on borders and gaps
+		resize_on_border = false,
+
+		-- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
+		allow_tearing = true,
+
+		layout = "scrolling",
+	},
+
+	scrolling = {
+		explicit_column_widths = "0.5, 1.0",
+	},
+
+	decoration = {
+		rounding = 20,
+		rounding_power = 2,
+
+		-- Change transparency of focused and unfocused windows
+		active_opacity = 1.0,
+		inactive_opacity = 1.0,
+
+		shadow = {
+			enabled = true,
+			range = 4,
+			render_power = 3,
+			color = 0xee1a1a1a,
+		},
+
+		blur = {
+			enabled = true,
+			size = 10,
+			passes = 1,
+			vibrancy = 0.1696,
+		},
+	},
+
+	animations = {
+		enabled = true,
+	},
+})
+
+-- Default curves and animations, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
+hl.curve("easeOutQuint", { type = "bezier", points = { { 0.23, 1 }, { 0.32, 1 } } })
+hl.curve("easeInOutCubic", { type = "bezier", points = { { 0.65, 0.05 }, { 0.36, 1 } } })
+hl.curve("linear", { type = "bezier", points = { { 0, 0 }, { 1, 1 } } })
+hl.curve("almostLinear", { type = "bezier", points = { { 0.5, 0.5 }, { 0.75, 1 } } })
+hl.curve("quick", { type = "bezier", points = { { 0.15, 0 }, { 0.1, 1 } } })
+
+-- Default springs
+hl.curve("easy", { type = "spring", mass = 1, stiffness = 238.1191, dampening = 24.21279333 })
+
+hl.curve("defaultSnappy", { type = "bezier", points = { { 0.25, 1 }, { 0.25, 1 } } })
+hl.curve("snappyOut", { type = "bezier", points = { { 0.05, 0.9 }, { 0.2, 0.95 } } })
+
+hl.animation({ leaf = "global", enabled = true, speed = 10, bezier = "defaultSnappy" })
+hl.animation({ leaf = "border", enabled = true, speed = 5.39, bezier = "defaultSnappy" })
+hl.animation({ leaf = "windows", enabled = true, speed = 5.79, bezier = "defaultSnappy" })
+hl.animation({ leaf = "windowsIn", enabled = true, speed = 5.5, bezier = "defaultSnappy", style = "slide" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 3, bezier = "snappyOut", style = "slide" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 5.79, bezier = "defaultSnappy" })
+hl.animation({ leaf = "fadeIn", enabled = true, speed = 5, bezier = "defaultSnappy" })
+hl.animation({ leaf = "fadeOut", enabled = true, speed = 3, bezier = "snappyOut" })
+hl.animation({ leaf = "fade", enabled = true, speed = 4, bezier = "defaultSnappy" })
+hl.animation({ leaf = "layers", enabled = true, speed = 5, bezier = "defaultSnappy" })
+hl.animation({ leaf = "layersIn", enabled = true, speed = 4, bezier = "defaultSnappy", style = "fade" })
+hl.animation({ leaf = "layersOut", enabled = true, speed = 2, bezier = "snappyOut", style = "fade" })
+hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 4, bezier = "defaultSnappy" })
+hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 3, bezier = "snappyOut" })
+hl.animation({ leaf = "workspaces", enabled = true, speed = 4, bezier = "defaultSnappy", style = "fade" })
+hl.animation({ leaf = "workspacesIn", enabled = true, speed = 3, bezier = "defaultSnappy", style = "fade" })
+hl.animation({ leaf = "workspacesOut", enabled = true, speed = 2, bezier = "snappyOut", style = "fade" })
+hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "snappyOut" })
+
+hl.config({
+	misc = {
+		force_default_wallpaper = 0,
+		disable_hyprland_logo = true,
+	},
+})
