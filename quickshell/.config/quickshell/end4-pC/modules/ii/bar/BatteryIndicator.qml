@@ -16,72 +16,81 @@ MouseArea {
     readonly property bool isLow: percentage <= Config.options.battery.low / 100
     readonly property string displayText: (root.vertical && root.percentage > 99) ? "" : batteryProgress.text
 
-    implicitWidth:  vertical ? Appearance.sizes.verticalBarWidth : batteryProgress.valueBarWidth + 8
+    readonly property bool showBolt: isCharging && percentage < 1 && !vertical
+    readonly property real boltSpace: showBolt ? 12 : 0
+
+    implicitWidth:  vertical ? Appearance.sizes.verticalBarWidth : batteryProgress.valueBarWidth + 8 + boltSpace
     implicitHeight: vertical ? batteryProgress.valueBarWidth + 8 : Appearance.sizes.barHeight
 
     hoverEnabled: !Config.options.bar.tooltips.clickToShow
 
-    ClippedProgressBar {
-        id: batteryProgress
+    // Charging bolt sits beside the pill so the digits keep the whole pill to themselves
+    Row {
         anchors.centerIn: parent
-        value: percentage
-        rotation: root.vertical ? -90 : 0
-        highlightColor: (isLow && !isCharging) ? Appearance.m3colors.m3error : Appearance.colors.colOnSecondaryContainer
-        Item {
-            anchors.centerIn: parent
-            width: batteryProgress.valueBarWidth
-            height: batteryProgress.valueBarHeight
-            // Horizontal
-            Loader {
-                id: rowLoader
-                active: !root.vertical
-                visible: active
+        spacing: 1
+
+        MaterialSymbol {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: 1
+            visible: root.showBolt
+            fill: 1
+            text: "bolt"
+            iconSize: 15
+            color: Appearance.colors.colOnLayer1
+        }
+
+        ClippedProgressBar {
+            id: batteryProgress
+            anchors.verticalCenter: parent.verticalCenter
+            value: percentage
+            rotation: root.vertical ? -90 : 0
+            highlightColor: (isLow && !isCharging) ? Appearance.m3colors.m3error : Appearance.colors.colOnSecondaryContainer
+            Item {
                 anchors.centerIn: parent
-                sourceComponent: RowLayout {
-                    spacing: 0
-                    MaterialSymbol {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.topMargin: 1
-                        Layout.leftMargin: -1
-                        Layout.rightMargin: -3
-                        fill: 1
-                        text: "bolt"
-                        iconSize: 13
-                        visible: root.isCharging && root.percentage < 1
-                    }
-                    StyledText {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.topMargin: 2
-                        font.pixelSize: batteryProgress.font.pixelSize
-                        font.weight: batteryProgress.font.weight
-                        text: batteryProgress.text
+                width: batteryProgress.valueBarWidth
+                height: batteryProgress.valueBarHeight
+                // Horizontal
+                Loader {
+                    id: rowLoader
+                    active: !root.vertical
+                    visible: active
+                    anchors.centerIn: parent
+                    sourceComponent: RowLayout {
+                        spacing: 0
+                        StyledText {
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.topMargin: 2
+                            font.pixelSize: batteryProgress.font.pixelSize
+                            font.weight: batteryProgress.font.weight
+                            text: batteryProgress.text
+                        }
                     }
                 }
-            }
-            // Vertical
-            Loader {
-                id: colLoader
-                active: root.vertical
-                visible: active
-                anchors.centerIn: parent
-                sourceComponent: ColumnLayout {
-                    rotation: 90
-                    spacing: -7
-                    MaterialSymbol {
-                        Layout.alignment: Qt.AlignHCenter
-                        fill: 1
-                        text: "bolt"
-                        Layout.topMargin: 4
-                        iconSize: Appearance.font.pixelSize.smaller
-                        visible: root.isCharging && root.percentage < 1
-                    }
-                    StyledText {
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.topMargin: root.isCharging ? 2 : 4
-                        font.pixelSize: batteryProgress.font.pixelSize
-                        font.weight: batteryProgress.font.weight
-                        text: root.percentage * 100 
-                        visible: root.percentage < 1
+                // Vertical
+                Loader {
+                    id: colLoader
+                    active: root.vertical
+                    visible: active
+                    anchors.centerIn: parent
+                    sourceComponent: ColumnLayout {
+                        rotation: 90
+                        spacing: -7
+                        MaterialSymbol {
+                            Layout.alignment: Qt.AlignHCenter
+                            fill: 1
+                            text: "bolt"
+                            Layout.topMargin: 4
+                            iconSize: Appearance.font.pixelSize.smaller
+                            visible: root.isCharging && root.percentage < 1
+                        }
+                        StyledText {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: root.isCharging ? 2 : 4
+                            font.pixelSize: batteryProgress.font.pixelSize
+                            font.weight: batteryProgress.font.weight
+                            text: root.percentage * 100 
+                            visible: root.percentage < 1
+                        }
                     }
                 }
             }
