@@ -14,7 +14,7 @@ Scope {
     // Single source of truth for defaults (used by the adapter AND reset).
     readonly property var defaults: ({
         position: "top", style: "joined", thickness: 20, margin: 4,
-        scale: 1.0, bgOpacity: 0.7, border: false,
+        scale: 1.0, bgOpacity: 1.0, border: false,
         statsMode: "compact", tooltips: true, tooltipHints: true,
         hidden: "stats,wall,settings",
         startMods: "stats,ws",

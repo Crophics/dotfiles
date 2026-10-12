@@ -26,6 +26,8 @@ hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("qs ipc call todo toggle")) -- To-do
 hl.bind(mainMod .. " + J", hl.dsp.exec_cmd("qs ipc call bar toggle")) -- Toggle bar
 hl.bind("CTRL + " .. mainMod .. " + T", hl.dsp.exec_cmd("qs -n -p ~/.config/quickshell/hyprquickpaper")) -- Wallpapers
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/opacity.sh")) -- Opacity
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("qs ipc call mediaosd media")) -- Music popup
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("qs ipc call mediaosd settings")) -- Music popup settings
 
 -- Session
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock")) -- Lock screen
