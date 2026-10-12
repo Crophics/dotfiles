@@ -13,3 +13,6 @@ id_ed25519*
 # Python bytecode (e.g. from kitty kittens)
 __pycache__/
 *.pyc
+# generated at runtime by 43pr theme.py
+quickshell/.config/quickshell/Theme.qml
+hypr/.config/hypr/hyprlock-colors.conf
