@@ -43,7 +43,7 @@ MouseArea {
             id: batteryProgress
             anchors.verticalCenter: parent.verticalCenter
             solidText: !root.vertical // vertical bars keep the cut-out digits
-            font.weight: root.vertical ? Font.Bold : Font.DemiBold
+            font.weight: Font.Bold
             value: percentage
             rotation: root.vertical ? -90 : 0
             highlightColor: (isLow && !isCharging) ? Appearance.m3colors.m3error : Appearance.colors.colOnSecondaryContainer

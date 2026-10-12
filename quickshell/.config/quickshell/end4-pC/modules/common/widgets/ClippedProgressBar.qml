@@ -14,7 +14,7 @@ ProgressBar {
     property real valueBarWidth: 30
     property real valueBarHeight: 18
     property color highlightColor: Appearance?.colors.colOnSecondaryContainer ?? "#685496"
-    property color trackColor: ColorUtils.transparentize(highlightColor, 0.5) ?? "#F1D3F9"
+    property color trackColor: ColorUtils.transparentize(highlightColor, solidText ? 0.82 : 0.5) ?? "#F1D3F9"
     property alias radius: contentItem.radius
     property string text
     property bool showTip: true 
@@ -92,7 +92,7 @@ ProgressBar {
                     }
                 }
                 radius: Appearance.rounding.unsharpen
-                color: root.solidText ? ColorUtils.transparentize(root.highlightColor, 0.3) : root.highlightColor
+                color: root.solidText ? ColorUtils.transparentize(root.highlightColor, 0.58) : root.highlightColor
             }
         }
         
