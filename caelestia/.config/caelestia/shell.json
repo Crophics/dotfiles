@@ -1,8 +1,40 @@
 {
     "bar": {
         "position": "top",
-        "activeWindow": {
-            "showOnHover": false
+        "entries": {
+            "start": [
+                {
+                    "id": "logo",
+                    "enabled": true
+                },
+                {
+                    "id": "workspaces",
+                    "enabled": true
+                },
+                {
+                    "id": "activeWindow",
+                    "enabled": true
+                }
+            ],
+            "center": [],
+            "end": [
+                {
+                    "id": "tray",
+                    "enabled": true
+                },
+                {
+                    "id": "clock",
+                    "enabled": true
+                },
+                {
+                    "id": "statusIcons",
+                    "enabled": true
+                },
+                {
+                    "id": "power",
+                    "enabled": true
+                }
+            ]
         }
     },
     "sidebar": {
