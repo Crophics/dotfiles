@@ -1,6 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Quickshell
-Exec=quickshell
-Terminal=false
-X-GNOME-Autostart-enabled=true
