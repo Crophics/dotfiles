@@ -64,7 +64,7 @@ Scope {
     readonly property int effEdge: strip ? 0 : cfg.margin
     readonly property int effGap: strip ? 0 : 6
     readonly property real barRadius: strip ? 0 : Theme.radius
-    readonly property color bgColor: Qt.alpha(Theme.bg, cfg.bgOpacity)
+    readonly property color bgColor: Qt.alpha(Theme._bgBase, cfg.bgOpacity * Theme.bgAlpha)
     readonly property color borderColor: Qt.alpha(Theme.accent, 0.25)
 
     function s(n) { return Math.round(n * cfg.scale); }
@@ -837,31 +837,63 @@ Scope {
     Component {
         id: wsC
         Item {
-            implicitWidth: root.vertical ? root.panelThick : wsLane.implicitWidth + 12
+            id: wsRoot
+            // The delegate of the focused workspace; the pill slides to it.
+            property Item focusItem: null
+
+            implicitWidth: root.vertical ? root.panelThick : wsLane.implicitWidth + 8
             implicitHeight: wsLane.implicitHeight + (root.vertical ? 12 : 0)
+
+            // Sliding highlight behind the numbers (drawn first, so it sits under them).
+            Rectangle {
+                id: wsPill
+                visible: wsRoot.focusItem !== null
+                radius: Math.min(width, height) / 2
+                color: Theme.accent
+                x: wsRoot.focusItem ? wsLane.x + wsRoot.focusItem.x : 0
+                y: wsRoot.focusItem ? wsLane.y + wsRoot.focusItem.y : 0
+                width: wsRoot.focusItem ? wsRoot.focusItem.width : 0
+                height: wsRoot.focusItem ? wsRoot.focusItem.height : 0
+                Behavior on x { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
+                Behavior on y { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
+                Behavior on width { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
+                Behavior on height { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
+            }
 
             Lane {
                 id: wsLane
                 anchors.centerIn: parent
-                gap: 8
+                gap: 2
 
                 Repeater {
                     model: Hyprland.workspaces
-                    delegate: Rectangle {
+                    delegate: Item {
                         id: dot
                         required property var modelData
                         visible: modelData.id > 0
                         Layout.alignment: Qt.AlignCenter
-                        implicitWidth: root.vertical ? 10 : (modelData.focused ? 32 : 10)
-                        implicitHeight: root.vertical ? (modelData.focused ? 24 : 10) : 10
-                        radius: 5
-                        color: modelData.urgent ? Theme.danger
-                             : modelData.focused ? Qt.alpha(Theme.accent, 0.2)
-                             : dotMa.containsMouse ? Theme.accent2
-                             : Qt.alpha(Theme.textFaint, 0.5)
+                        readonly property bool occupied: modelData.toplevels !== undefined && modelData.toplevels.values.length > 0
+                        readonly property bool isFocused: modelData.focused
+                        implicitWidth: root.vertical ? root.panelThick - 8 : Math.max(22, wsText.implicitWidth + 12)
+                        implicitHeight: 20
 
-                        Behavior on implicitWidth { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutQuad } }
-                        Behavior on implicitHeight { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutQuad } }
+                        onIsFocusedChanged: if (isFocused) wsRoot.focusItem = dot
+                        Component.onCompleted: if (isFocused) wsRoot.focusItem = dot
+
+                        Text {
+                            id: wsText
+                            anchors.centerIn: parent
+                            text: String(dot.modelData.id)
+                            color: dot.modelData.urgent ? Theme.danger
+                                 : dot.isFocused ? Theme.bgPanel
+                                 : dotMa.containsMouse ? Theme.accent2
+                                 : dot.occupied ? Theme.text
+                                 : Qt.alpha(Theme.textFaint, 0.7)
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 12
+                            font.bold: dot.isFocused
+                            Behavior on color { ColorAnimation { duration: Theme.animFast } }
+                        }
 
                         MouseArea {
                             id: dotMa
