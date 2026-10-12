@@ -2,9 +2,5 @@
 -- The file name is for the sake of organization and does not matter
 -- See the corresponding files in ~/.config/hypr/hyprland for examples
 
-if desktopShell == "noctalia" then
-	hl.on("hyprland.start", function()
-		hl.exec_cmd("noctalia")
-	end)
-	require("custom.wallpaper")
-end
+-- Default to the Playback (per-application) tab instead of Output Devices
+volumeMixer = "~/.config/hypr/hyprland/scripts/launch_first_available.sh 'pavucontrol-qt --tab 1' 'pavucontrol'"

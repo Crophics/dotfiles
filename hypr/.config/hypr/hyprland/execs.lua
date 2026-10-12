@@ -1,13 +1,5 @@
-require("hyprland.lib")
-require("hyprland.variables")
-if is_file_exists(HOME .. "/.config/hypr/custom/variables.lua") then
-	require("custom.variables")
-end
-
 -- put former exec-once commands inside the func and former exec commands outside
 hl.on("hyprland.start", function ()
-  -- ii (end-4 quickshell) only; Noctalia mode starts its own stuff in custom/execs.lua
-  if desktopShell == "ii" then
 
     -- Bar, wallpaper
     hl.exec_cmd("$HOME/.config/hypr/hyprland/scripts/start_geoclue_agent.sh")
@@ -21,14 +13,6 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("$HOME/.config/matugen/templates/kde/watch-and-fix-selection-contrast.sh")
     hl.exec_cmd("vmtouch -t /usr/lib/firefox")
     hl.exec_cmd("$HOME/.config/hypr/custom/scripts/__restore_video_wallpaper.sh")
-    hl.exec_cmd("wl-paste --type text --watch bash -c 'cliphist store && qs -c $qsConfig ipc call cliphistService update'")
-    hl.exec_cmd("wl-paste --type image --watch bash -c 'cliphist store && qs -c $qsConfig ipc call cliphistService update'")
-  else
-    hl.exec_cmd("$HOME/.config/matugen/templates/kde/watch-and-fix-selection-contrast.sh")
-    hl.exec_cmd("vmtouch -t /usr/lib/firefox")
-    -- lock on login, same as ii did (hypridle's lock_cmd -> qylock)
-    hl.exec_cmd("sleep 2 && loginctl lock-session")
-  end
 
     -- Core components (authentication, lock screen, notification daemon)
     hl.exec_cmd("hypridle")
@@ -40,6 +24,8 @@ hl.on("hyprland.start", function ()
 
     -- Clipboard: history
     --hl.exec_cmd("wl-paste --watch cliphist store")
+    hl.exec_cmd("wl-paste --type text --watch bash -c 'cliphist store && qs -c $qsConfig ipc call cliphistService update'")
+    hl.exec_cmd("wl-paste --type image --watch bash -c 'cliphist store && qs -c $qsConfig ipc call cliphistService update'")
 
     -- Cursor
     hl.exec_cmd("hyprctl setcursor Adwaita 24")
