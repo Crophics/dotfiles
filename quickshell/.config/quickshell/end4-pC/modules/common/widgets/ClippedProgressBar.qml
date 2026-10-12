@@ -18,6 +18,9 @@ ProgressBar {
     property alias radius: contentItem.radius
     property string text
     property bool showTip: true 
+    // Solid digits over a softened fill instead of digits cut out of the pill
+    property bool solidText: false
+    property color solidTextColor: Appearance?.m3colors.m3onSurface ?? "white"
     property real tipWidth: 2   
     property real tipHeight: 10  
     
@@ -89,7 +92,7 @@ ProgressBar {
                     }
                 }
                 radius: Appearance.rounding.unsharpen
-                color: root.highlightColor
+                color: root.solidText ? ColorUtils.transparentize(root.highlightColor, 0.3) : root.highlightColor
             }
         }
         
@@ -118,7 +121,7 @@ ProgressBar {
     
     OpacityMask {
         id: roundingMask
-        visible: false
+        visible: root.solidText
         anchors.fill: parent
         source: contentItem
         maskSource: Item {
@@ -143,7 +146,19 @@ ProgressBar {
         }
     }
     
+    StyledText {
+        visible: root.solidText
+        anchors.centerIn: parent
+        anchors.horizontalCenterOffset: -(root.showTip ? (root.tipWidth + 1) / 2 : 0)
+        anchors.verticalCenterOffset: 1
+        font.pixelSize: root.font.pixelSize
+        font.weight: root.font.weight
+        color: root.solidTextColor
+        text: root.text
+    }
+
     OpacityMask {
+        visible: !root.solidText
         anchors.fill: parent
         source: roundingMask
         invert: true

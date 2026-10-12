@@ -42,7 +42,8 @@ MouseArea {
         ClippedProgressBar {
             id: batteryProgress
             anchors.verticalCenter: parent.verticalCenter
-            font.weight: Font.Bold // the digits are cut out of the pill, so they read thinner than normal text
+            solidText: !root.vertical // vertical bars keep the cut-out digits
+            font.weight: root.vertical ? Font.Bold : Font.DemiBold
             value: percentage
             rotation: root.vertical ? -90 : 0
             highlightColor: (isLow && !isCharging) ? Appearance.m3colors.m3error : Appearance.colors.colOnSecondaryContainer
