@@ -52,7 +52,8 @@ MouseArea {
                     StyledText {
                         Layout.alignment: Qt.AlignVCenter
                         Layout.topMargin: 2
-                        font: batteryProgress.font
+                        font.pixelSize: batteryProgress.font.pixelSize
+                        font.weight: batteryProgress.font.weight
                         text: batteryProgress.text
                     }
                 }
@@ -77,7 +78,8 @@ MouseArea {
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: root.isCharging ? 2 : 4
-                        font: batteryProgress.font
+                        font.pixelSize: batteryProgress.font.pixelSize
+                        font.weight: batteryProgress.font.weight
                         text: root.percentage * 100 
                         visible: root.percentage < 1
                     }
