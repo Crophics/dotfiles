@@ -1,0 +1,16 @@
+{
+  "bgOpacity": 0.7,
+  "border": false,
+  "centerMods": "clock",
+  "endMods": "media,volume,battery,net,notif,wall,settings,power",
+  "hidden": "wall,settings",
+  "margin": 4,
+  "position": "top",
+  "scale": 1,
+  "startMods": "stats,ws",
+  "statsMode": "compact",
+  "style": "floating",
+  "thickness": 20,
+  "tooltipHints": true,
+  "tooltips": true
+}

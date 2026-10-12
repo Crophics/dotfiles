@@ -1,62 +1,52 @@
 -- ~/.config/hypr/keybinds.lua
--- Migrated from keybinds.conf
+-- 43PR keybinds, remapped toward the old illogical-impulse layout.
 -- Docs: https://wiki.hypr.land/Configuring/Basics/Binds/
 --       https://wiki.hypr.land/Configuring/Basics/Dispatchers/
 
 local home = os.getenv("HOME")
 local menu = "rofi -show drun"
 
-hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal)) 
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("pgrep -x rofi >/dev/null && pkill -x rofi || " .. menu)) -- Toggle launcher
-hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("qs ipc call wheel toggle")) -- Wheel launcher
+-- Apps
+hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
-hl.bind(mainMod .. " + Q", hl.dsp.window.close())
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("spotify"))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("bitwarden-desktop"))
+hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a")) -- Color picker
+hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("kitty btop")) -- Task manager
+hl.bind("CTRL + " .. mainMod .. " + V", hl.dsp.exec_cmd("pavucontrol")) -- Volume mixer
 
-hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd("hyprlock")) -- Lock screen
-
-hl.bind(mainMod .. " + GRAVE", hl.dsp.exec_cmd("qs ipc call powermenu toggle")) -- Power menu
-
+-- Launcher and shell panels
+hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("pgrep -x rofi >/dev/null && pkill -x rofi || " .. menu)) -- Toggle launcher
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("pgrep -x rofi >/dev/null && pkill -x rofi || cliphist list | rofi -dmenu -p '' | cliphist decode | wl-copy")) -- Clipboard history
+hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("qs ipc call powermenu toggle")) -- Power menu
 hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("qs ipc call settings toggle")) -- Settings
-
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("qs -n -p ~/.config/quickshell/hyprquickpaper")) -- Wallpapers
-
-hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = 0 })) -- Fullscreen
-
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs ipc call notifications toggle")) -- Notifications
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("qs ipc call todo toggle")) -- To-do
+hl.bind(mainMod .. " + J", hl.dsp.exec_cmd("qs ipc call bar toggle")) -- Toggle bar
+hl.bind("CTRL + " .. mainMod .. " + T", hl.dsp.exec_cmd("qs -n -p ~/.config/quickshell/hyprquickpaper")) -- Wallpapers
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/opacity.sh")) -- Opacity
 
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("python3 " .. home .. "/.config/43pr/bin/theme.py toggle")) -- Light/dark toggle
+-- Session
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock")) -- Lock screen
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("systemctl suspend || loginctl suspend")) -- Suspend
 
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs ipc call notifications toggle")) -- Notifications
+-- Windows
+hl.bind(mainMod .. " + Q", hl.dsp.window.close())
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = 0 })) -- Fullscreen
 
-hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("qs ipc call todo toggle"))  -- To-do
-
--- Mouse move/resize window
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
-hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs ipc call bar toggle")) -- Toggle bar
-
--- Clipboard
-hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("pgrep -x rofi >/dev/null && pkill -x rofi || cliphist list | rofi -dmenu -p '' | cliphist decode | wl-copy"))
-
--- Screenshot fullscreen
-hl.bind("Delete", hl.dsp.exec_cmd("sh -c 'file=" .. home .. "/Pictures/$(date +%s).png; grim \"$file\"; wl-copy < \"$file\"; qs ipc call screenshot notify \"$file\"'"))
--- Screenshot area select
-hl.bind("SHIFT + Delete", hl.dsp.exec_cmd("sh -c 'file=" .. home .. "/Pictures/$(date +%s).png; grim -g \"$(slurp)\" \"$file\"; wl-copy < \"$file\"; qs ipc call screenshot notify \"$file\"'"))
-
--- Keyboard layout
-hl.bind(mainMod .. " + X", hl.dsp.exec_cmd("hyprctl switchxkblayout current next"))
-
--- Toggle float window, center and rezise
-hl.bind(mainMod .. " + Space", function()
+-- Toggle float window, center and resize
+hl.bind(mainMod .. " + ALT + Space", function()
     hl.dispatch(hl.dsp.window.float({ action = "toggle" }))
 
     local w = hl.get_active_window()
     if w ~= nil and w.floating then
         local mon = hl.get_active_monitor()
         if mon ~= nil then
-            local target_w = math.floor(mon.width * 0.7) 
+            local target_w = math.floor(mon.width * 0.7)
             local target_h = math.floor(mon.height * 0.7)
 
             -- absolute resize (relative = false), not a delta
@@ -73,9 +63,37 @@ hl.bind(mainMod .. " + Space", function()
     end
 end)
 
--- Gpu screen recorder
+-- Focus and move with the arrow keys
+hl.bind(mainMod .. " + Left", hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + Down", hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + Up", hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + Right", hl.dsp.focus({ direction = "right" }))
+
+hl.bind(mainMod .. " + SHIFT + Left", hl.dsp.window.move({ direction = "left" }))
+hl.bind(mainMod .. " + SHIFT + Down", hl.dsp.window.move({ direction = "down" }))
+hl.bind(mainMod .. " + SHIFT + Up", hl.dsp.window.move({ direction = "up" }))
+hl.bind(mainMod .. " + SHIFT + Right", hl.dsp.window.move({ direction = "right" }))
+
+-- Resize by pixel delta, repeating while held
+hl.bind(mainMod .. " + CTRL + Left", hl.dsp.window.resize({ x = -40, y = 0 }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + Right", hl.dsp.window.resize({ x = 40, y = 0 }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + Up", hl.dsp.window.resize({ x = 0, y = -40 }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + Down", hl.dsp.window.resize({ x = 0, y = 40 }), { repeating = true })
+
+-- Workspaces 1-10, and move-to-workspace with SHIFT
+for i = 1, 10 do
+    local key = i % 10 -- 10 maps to key 0
+    hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+end
+
+-- Screenshots
+hl.bind("Print", hl.dsp.exec_cmd("sh -c 'file=" .. home .. "/Pictures/$(date +%s).png; grim -g \"$(slurp)\" \"$file\"; wl-copy < \"$file\"; qs ipc call screenshot notify \"$file\"'")) -- Area
+hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("sh -c 'file=" .. home .. "/Pictures/$(date +%s).png; grim \"$file\"; wl-copy < \"$file\"; qs ipc call screenshot notify \"$file\"'")) -- Full screen
+
+-- GPU screen recorder (built-in display)
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(
-    "bash -c 'PIDFILE=/tmp/osu-gsr.pid; if [ -f \"$PIDFILE\" ] && kill -0 \"$(cat \"$PIDFILE\")\" 2>/dev/null; then kill -INT \"$(cat \"$PIDFILE\")\"; rm -f \"$PIDFILE\"; else mkdir -p ~/Videos; gpu-screen-recorder -w HDMI-A-1 -f 60 -a default_output -o ~/Videos/$(date +%Y-%m-%d_%H-%M-%S).mp4 & echo $! > \"$PIDFILE\"; fi'"
+    "bash -c 'PIDFILE=/tmp/osu-gsr.pid; if [ -f \"$PIDFILE\" ] && kill -0 \"$(cat \"$PIDFILE\")\" 2>/dev/null; then kill -INT \"$(cat \"$PIDFILE\")\"; rm -f \"$PIDFILE\"; else mkdir -p ~/Videos; gpu-screen-recorder -w eDP-1 -f 60 -a default_output -o ~/Videos/$(date +%Y-%m-%d_%H-%M-%S).mp4 & echo $! > \"$PIDFILE\"; fi'"
 ))
 
 -- Zoom
@@ -91,49 +109,20 @@ local function zoomfunction(value)
 end
 hl.bind(mainMod .. " + mouse_down", function() zoomfunction(-0.5) end, { repeating = true })
 hl.bind(mainMod .. " + mouse_up", function() zoomfunction(0.5) end, { repeating = true })
-
---# Zoom with keypad
+hl.bind(mainMod .. " + Minus", function() zoomfunction(-0.3) end, { repeating = true })
+hl.bind(mainMod .. " + Equal", function() zoomfunction(0.3) end, { repeating = true })
+-- Zoom with keypad
 hl.bind(mainMod .. " + code:82", function() zoomfunction(-0.3) end, { repeating = true })
 hl.bind(mainMod .. " + code:86", function() zoomfunction(0.3) end, { repeating = true })
 
--- VERIFY: exit dispatcher. Docs explicitly say to double check the exit
--- dispatcher call when moving to Lua.
-hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exit())
-
--- Focus (H/J/K/L = left/down/up/right, vim-style, matching your original)
-hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
-hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "right" }))
-
--- VERIFY: move active window within layout (old `movewindow` dispatcher).
--- Confirmed pattern is hl.dsp.window.move({ workspace = N }) for sending to a
--- workspace (used below) - the direction-swap variant isn't shown in the
--- official example, so double check this fires like the old movewindow did.
-hl.bind(mainMod .. " + SHIFT + H", hl.dsp.window.move({ direction = "left" }))
-hl.bind(mainMod .. " + SHIFT + J", hl.dsp.window.move({ direction = "down" }))
-hl.bind(mainMod .. " + SHIFT + K", hl.dsp.window.move({ direction = "up" }))
-hl.bind(mainMod .. " + SHIFT + L", hl.dsp.window.move({ direction = "right" }))
-
--- VERIFY: resize active window by pixel delta (old `resizeactive`, repeating
--- while held via `binde`). Param names guessed as x/y - confirm with hyprctl eval.
-hl.bind(mainMod .. " + CTRL + H", hl.dsp.window.resize({ x = -40, y = 0 }), { repeating = true })
-hl.bind(mainMod .. " + CTRL + L", hl.dsp.window.resize({ x = 40, y = 0 }), { repeating = true })
-hl.bind(mainMod .. " + CTRL + K", hl.dsp.window.resize({ x = 0, y = -40 }), { repeating = true })
-hl.bind(mainMod .. " + CTRL + J", hl.dsp.window.resize({ x = 0, y = 40 }), { repeating = true })
-
--- Workspaces 1-10, and move-to-workspace with SHIFT (confirmed pattern from
--- the official example config)
-for i = 1, 10 do
-    local key = i % 10 -- 10 maps to key 0
-    hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }))
-    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
-end
-
--- Media keys (confirmed pattern from the official example config)
+-- Media, volume, brightness and mic keys
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
+hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
+
+hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl s 5%+"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl s 5%-"), { locked = true, repeating = true })
 
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
