@@ -9,3 +9,7 @@ id_ed25519*
 *secret*
 *password*
 .DS_Store
+
+# Python bytecode (e.g. from kitty kittens)
+__pycache__/
+*.pyc
