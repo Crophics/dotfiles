@@ -1,57 +1,65 @@
 # dotfiles
 
-Personal CachyOS laptop running [Ryoku](https://ryoku.dev) (a Hyprland + Quickshell
-desktop layered on Arch/CachyOS). Ryoku owns the desktop's base configs; this repo
-holds the personal layer on top, as [GNU Stow](https://www.gnu.org/software/stow/)
-packages symlinked into `$HOME`, plus everything Ryoku doesn't manage.
+Personal CachyOS laptop running Hyprland with the **Caelestia** shell: the
+[midnight-shell](https://github.com/dim-ghub/midnight-shell) fork of
+[caelestia-dots/shell](https://github.com/caelestia-dots/shell) and its
+[midnight-cli](https://github.com/dim-ghub/midnight-cli). Everything is managed as
+[GNU Stow](https://www.gnu.org/software/stow/) packages symlinked into `$HOME`.
 
-Branches: `ryoku` (this), `noctalia` (Luke Elrod-based Hyprland + Noctalia),
-`ii` (end-4 illogical-impulse, the original setup).
+Branches: `caelestia` (this), `ryoku` ([Ryoku](https://ryoku.dev) desktop),
+`noctalia` (Luke Elrod-based Hyprland + Noctalia), `ii` (end-4 illogical-impulse).
+
+> The fork's author says midnight-shell/-cli are no longer maintained (they track
+> upstream for now). If they break, the upstream `caelestia-shell-git` +
+> `caelestia-cli` packages drop in (same config files).
 
 ## Fresh machine
 
-1. Base CachyOS install, then Ryoku's in-place converter — **turn the NVIDIA toggle
-   off** (see below):
-   `curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/ryoku-shell-installer/install.sh | bash`
-2. `git clone` this repo to `~/git/dotfiles`, `git checkout ryoku`, `./install.sh`.
+1. Base CachyOS install (SDDM). `git clone` this repo to `~/git/dotfiles`,
+   `git checkout caelestia`, run `./install.sh`.
+2. Prompts to expect from the AUR installs:
+   - `midnight-cli-git` asks "Are you currently using CachyOS?" and a support-waiver
+     agreement: answer `y` to both (it only asks).
+   - the fork replaces the repo `quickshell` with AUR `quickshell-git` and removes
+     `polkit-gnome` (it ships its own polkit agent): answer `y`.
+   - `install.sh` installs `quickshell-git` first, by explicit AUR name. Otherwise yay
+     resolves midnight-shell-git's `quickshell-git` dependency to CachyOS's
+     `noctalia-qs`, which it conflicts with.
+3. Reboot; pick Hyprland at the SDDM login. Hyprland's autostart runs `caelestia shell -d`.
 
-## How the personal layer sits on Ryoku
+## How it is put together
 
-Ryoku's `ryoku materialize` (run by `ryoku update`) re-lays every config it ships, so
-personal changes live only in the override files it never touches:
-
-- `hypr/.config/hypr/user.lua` — the old illogical-impulse keybind layout ported to
-  Ryoku (unbinds a Ryoku default first where keys collide). Loaded last by Hyprland.
-- `fish/.config/fish/user.fish` — aliases, `y`, `nvidia-on`, pyenv; sourced last by
-  Ryoku's `config.fish`.
-- `kitty/.config/kitty/user.conf` — font and margin; colors stay Ryoku's.
-- `zsh/.config/starship.toml` — the pill prompt (ANSI colors, follows the palette).
-  Ryoku ships its own `starship.toml`, so this is also linked from
-  `~/.config/ryoku/user_edits/starship.toml`, Ryoku's whole-file override
-  folder, which wins on every update.
-- `local-bin/` — `fuzzel-emoji` (Super+Period) and `scratchpad-focus`.
-- `nvim` — Luke Elrod's config. Ryoku seeds missing files into `~/.config/nvim` on
-  update, so its LazyVim plugin files are kept but neutralized (`return {}`) in
-  `lua/plugins/ryoku*.lua` rather than deleted.
-- Not tracked here because Ryoku generates them from the wallpaper: GTK `gtk.css`,
-  yazi `theme.toml`, kitty `current-theme.conf`, qt6ct.
-
-**NVIDIA:** the T550 dGPU must not load at boot (it freezes suspend/resume); load it
-for games with `nvidia-on`. Ryoku's NVIDIA step / `ryoku doctor` add
-`/etc/mkinitcpio.conf.d/nvidia.conf` and enable `nvidia-{suspend,hibernate,resume}`
-whenever they see the module loaded — reboot before `ryoku update` after gaming.
+- **Hyprland config** = the official [caelestia-dots](https://github.com/caelestia-dots/caelestia)
+  `hypr/` tree, deployed by `local-bin/.local/bin/caelestia-dots-sync` into the real
+  folder `~/.config/hypr` (not tracked here; rerun the script to update). `caelestia
+  install` is deliberately not used: it would overwrite fish/starship/fastfetch/btop,
+  install `polkit-gnome` (conflicts with the fork), and run a Firefox profile script.
+- **Personal overrides** (stowed from `caelestia/.config/caelestia/`, read by the dots'
+  `hyprland.lua` and untouched by updates): `hypr-vars.lua` (apps = kitty/Zen/Nautilus/
+  VSCodium, cursor, Super+Return/Space aliases) and `hypr-user.lua` (the fork's
+  clipboard/emoji pickers, workspace overview, window switcher, keybind sheet, OCR,
+  Bitwarden).
+- The shell itself is installed system-wide under `/etc/xdg/quickshell/caelestia`;
+  its settings go in `~/.config/caelestia/shell.json` (not created by default).
+- Everything else is an ordinary stow package: fish (`config.fish`), kitty
+  (Gruvbox), starship (ANSI colors), fastfetch, nvim (Luke Elrod's config), tmux, ...
+- **NVIDIA:** the T550 dGPU must not load (it freezes suspend/resume); load it for
+  games with `nvidia-on`. Quickshell shells load libcuda at login, which makes
+  `nvidia-modprobe` load the module by name past the blacklist, so
+  `/etc/modprobe.d/nvidia-lockout.conf` (`install nvidia /usr/bin/false`) blocks
+  that and `nvidia-on` moves it aside just long enough to load the module.
 
 ## Layout
 
 Each top-level directory is a stow package mirroring its path under `$HOME`.
-Besides the personal layer above: `fastfetch`, `cava`, `lazygit`, `micro`, `gh`,
+Besides the Caelestia layer above: `fastfetch`, `cava`, `lazygit`, `micro`, `gh`,
 `qalculate`, `satty`, `tmux`, `shell` (bash fallback), `gtk`/`qt`/`kde-misc`/
 `fontconfig`/`local-share-theming` (KDE app settings, cursor), `session`
 (environment.d, mimeapps.list), `desktop-apps`, `wallpapers`, `nvim-lazyvim`
 (`NVIM_APPNAME=nvim-lazyvim nvim`), `nvidia`, `cachyos`, `xdg-user-dirs`.
 
-`archive/` (never stowed): `noctalia-era/` (that branch's Hyprland/Noctalia configs
-and the files Ryoku took over), plus the illogical-impulse setup.
+`archive/` (never stowed): `ryoku-era/` and `noctalia-era/` (those branches' Hyprland
+configs and the files Ryoku took over), plus the illogical-impulse setup.
 
 Note: no `git` package here on purpose — `.gitconfig` isn't tracked (it carried
 personal identity). Set your own `git config --global user.name/user.email`
@@ -69,24 +77,15 @@ after installing.
 
 ## Install on a new machine
 
-After Ryoku is installed (see "Fresh machine" above):
-
-```sh
-git clone <this-repo-url> ~/git/dotfiles
-cd ~/git/dotfiles && git checkout ryoku
-./install.sh
-```
-
-This installs `stow`/`yay` if missing, installs everything in `packages/`, then
-stows every package into `$HOME` (backing up any file already in the way, e.g.
-Ryoku's seeded `hypr/user.lua`), and links the starship prompt into Ryoku's
-`user_edits` override folder. Re-run any time — it's idempotent. Then
-`ryoku reload` (or log out/in).
+See "Fresh machine" above. `./install.sh` installs `stow`/`yay` if missing, installs
+everything in `packages/`, stows every package into `$HOME` (backing up any real file
+already in the way), then deploys the Caelestia Hyprland config. Re-run any time; it
+is idempotent.
 
 To only (re)link configs without touching packages, run stow directly:
 
 ```sh
-stow -d ~/git/dotfiles -t ~ hypr nvim kitty   # etc.
+stow -d ~/git/dotfiles -t ~ caelestia nvim kitty   # etc.
 ```
 
 ## Not included, on purpose
@@ -106,11 +105,12 @@ stow -d ~/git/dotfiles -t ~ hypr nvim kitty   # etc.
   can contain sensitive data.
 - Secrets (`.ssh`, `.gnupg`, `.pki`, shell history, cookies) are never tracked here.
 
-## Theming pipeline
+## Theming
 
-Ryoku's: matugen derives the palette from the wallpaper (Super+W / Ctrl+Super+T)
-and recolors the shell, Hyprland, kitty, GTK, Qt and yazi. The starship prompt uses
-the 16 ANSI colors, so it follows along. Neovim stays Gruvbox.
+Caelestia's scheme (`caelestia scheme set -n caelestia|dynamic`; `dynamic` follows the
+wallpaper) colors the shell and Hyprland borders (`~/.config/hypr/scheme/current.lua`,
+generated, not tracked). kitty keeps its own Gruvbox theme and Neovim is Gruvbox. The
+starship prompt uses the 16 ANSI colors, so it follows the terminal.
 
 ## Troubleshooting
 

@@ -147,6 +147,8 @@ libopenraw
 libreoffice-fresh
 libva-nvidia-driver
 limine
+limine-mkinitcpio-hook
+limine-snapper-sync
 linux-cachyos
 linux-cachyos-headers
 linux-cachyos-lts
@@ -197,6 +199,7 @@ nvidia-utils
 nwg-look
 nyancat
 obsidian
+oh-my-zsh-git
 openbsd-netcat
 opencl-nvidia
 openrgb
@@ -219,7 +222,6 @@ plasma-systemmonitor
 playerctl
 plocate
 plymouth
-polkit-gnome
 poppler-glib
 power-profiles-daemon
 pv
@@ -236,7 +238,6 @@ python-sphinx-furo
 qemu-full
 qt5-wayland
 qt6ct
-quickshell
 realtime-privileges
 rebuild-detector
 reflector
@@ -309,6 +310,7 @@ xdg-desktop-portal-hyprland
 xfsprogs
 xl2tpd
 xorg-xhost
+xpadneo-dkms
 yay
 yazi
 ydotool

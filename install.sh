@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bootstrap this dotfiles repo on a fresh CachyOS/Arch install.
-# On the ryoku branch: run Ryoku's converter first (see README), then this.
+# Caelestia setup: see the README (AUR order and prompts matter).
 # Safe to re-run. Package installs are best-effort (one bad/renamed package
 # won't block the rest, or the config-linking step below) — failures are
 # collected and reported at the end.
@@ -30,7 +30,14 @@ done < "$REPO_DIR/packages/pacman.txt"
 
 if [ -s "$REPO_DIR/packages/aur.txt" ] && command -v yay >/dev/null 2>&1; then
   echo "==> Installing AUR packages from packages/aur.txt"
+  # quickshell-git first and by explicit AUR name: otherwise yay resolves midnight-shell-git's
+  # quickshell-git dependency to noctalia-qs (CachyOS repo), which it conflicts with.
+  # (If the repo `quickshell` is installed, answer y to "Remove quickshell?".)
+  if grep -qx quickshell-git "$REPO_DIR/packages/aur.txt"; then
+    yay -S --needed aur/quickshell-git || FAILED_AUR+=("quickshell-git")
+  fi
   while read -r pkg; do
+    [ "$pkg" = "quickshell-git" ] && continue
     [ -z "$pkg" ] && continue
     yay -S --needed --noconfirm "$pkg" || FAILED_AUR+=("$pkg")
   done < "$REPO_DIR/packages/aur.txt"
@@ -74,12 +81,11 @@ done
 # $HOME/~ themselves). Rewrite them for whoever's actually running this.
 # --follow-symlinks is required: plain `sed -i` replaces the symlink itself
 # with a new regular file, breaking the stow link.
-# Ryoku re-lays its own starship.toml on update; a file in its user_edits
-# overlay wins instead (see README).
-if [ -d "$HOME/.config/ryoku" ]; then
-  echo "==> Linking the starship prompt into Ryoku's user_edits overlay"
-  mkdir -p "$HOME/.config/ryoku/user_edits"
-  ln -sfn "$REPO_DIR/zsh/.config/starship.toml" "$HOME/.config/ryoku/user_edits/starship.toml"
+# Official Caelestia dots: refresh ~/.config/hypr (needs network). Personal overrides are the
+# stowed caelestia/ package.
+if command -v caelestia >/dev/null 2>&1 && [ -x "$HOME/.local/bin/caelestia-dots-sync" ]; then
+  echo "==> Deploying the Caelestia Hyprland config"
+  "$HOME/.local/bin/caelestia-dots-sync" || echo "  (caelestia-dots-sync failed - run it yourself later)"
 fi
 
 echo "==> Personalizing machine-specific paths"
