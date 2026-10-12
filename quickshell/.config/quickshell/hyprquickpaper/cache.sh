@@ -23,7 +23,7 @@ mkdir -p "$cache_path"
 echo "Wallpaper path: $wallpaper_path"
 echo "Cache path: $cache_path"
 
-find "$wallpaper_path" -type f \( \
+find -L "$wallpaper_path" -type f \( \
     -iname "*.jpg" -o \
     -iname "*.jpeg" -o \
     -iname "*.png" \
