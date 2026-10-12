@@ -41,12 +41,12 @@ MouseArea {
                     spacing: 0
                     MaterialSymbol {
                         Layout.alignment: Qt.AlignVCenter
-                        Layout.topMargin: 2
-                        Layout.leftMargin: -2
-                        Layout.rightMargin: -2
+                        Layout.topMargin: 1
+                        Layout.leftMargin: -1
+                        Layout.rightMargin: -3
                         fill: 1
                         text: "bolt"
-                        iconSize: Appearance.font.pixelSize.smaller
+                        iconSize: 13
                         visible: root.isCharging && root.percentage < 1
                     }
                     StyledText {
