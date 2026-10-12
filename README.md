@@ -36,9 +36,12 @@ Branches: `caelestia` (this), `ryoku` ([Ryoku](https://ryoku.dev) desktop),
   install `polkit-gnome` (conflicts with the fork), and run a Firefox profile script.
 - **Personal overrides** (stowed from `caelestia/.config/caelestia/`, read by the dots'
   `hyprland.lua` and untouched by updates): `hypr-vars.lua` (apps = kitty/Zen/Nautilus/
-  VSCodium, cursor, Super+Return/Space aliases) and `hypr-user.lua` (the fork's
-  clipboard/emoji pickers, workspace overview, window switcher, keybind sheet, OCR,
-  Bitwarden).
+  VSCodium, cursor, touchpad, the old keys that collide with Caelestia's, and where the
+  displaced Caelestia actions moved) and `hypr-user.lua` (everything ported from the old
+  setups: input/XWayland settings, window rules, the remaining old binds, plus the
+  fork's pickers, workspace overview, window switcher and keybind sheet). Old layout wins
+  on collisions; Caelestia's special workspace moved to Super+`, panels to Super+Shift+K,
+  chat workspace to Super+Shift+D, resize mode to Super+Shift+X, pin to Super+Alt+P.
 - The shell itself is installed system-wide under `/etc/xdg/quickshell/caelestia`;
   its settings go in `~/.config/caelestia/shell.json` (not created by default).
 - Everything else is an ordinary stow package: fish (`config.fish`), kitty
