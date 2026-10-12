@@ -21,6 +21,7 @@ parser.add_argument('--transparency', type=str, choices=['opaque', 'transparent'
 parser.add_argument('--termscheme', type=str, default=None, help='JSON file containg the terminal scheme for generating term colors')
 parser.add_argument('--harmony', type=float , default=0.8, help='(0-1) Color hue shift towards accent')
 parser.add_argument('--harmonize_threshold', type=float , default=100, help='(0-180) Max threshold angle to limit color hue shift')
+parser.add_argument('--semantic_threshold', type=float, default=12, help='(0-180) Separate, smaller threshold for red/green/yellow (term1-3, 9-11) so error/success/warning colors stay recognizable while the other terminal colors follow --harmonize_threshold')
 parser.add_argument('--term_fg_boost', type=float , default=0.35, help='Make terminal foreground more different from the background')
 parser.add_argument('--blend_bg_fg', action='store_true', default=False, help='Shift terminal background or foreground towards accent')
 parser.add_argument('--cache', type=str, default=None, help='file path to store the generated color')
@@ -138,6 +139,8 @@ if args.termscheme is not None:
     term_source_colors = json.loads(json_termscheme)['dark' if darkmode else 'light']
 
     primary_color_argb = hex_to_argb(material_colors['primary_paletteKeyColor'])
+    # red, green, yellow and their bright variants: keep near their real hue (see --semantic_threshold)
+    SEMANTIC_TERM_COLORS = {'term1', 'term2', 'term3', 'term9', 'term10', 'term11'}
     for color, val in term_source_colors.items():
         if(args.scheme == 'monochrome') :
             term_colors[color] = val
@@ -147,7 +150,8 @@ if args.termscheme is not None:
         elif args.blend_bg_fg and color == "term15":
             harmonized = boost_chroma_tone(hex_to_argb(material_colors['onSurface']), 3, 1)
         else:
-            harmonized = harmonize(hex_to_argb(val), primary_color_argb, args.harmonize_threshold, args.harmony)
+            threshold = args.semantic_threshold if color in SEMANTIC_TERM_COLORS else args.harmonize_threshold
+            harmonized = harmonize(hex_to_argb(val), primary_color_argb, threshold, args.harmony)
             harmonized = boost_chroma_tone(harmonized, 1, 1 + (args.term_fg_boost * (1 if darkmode else -1)))
         term_colors[color] = argb_to_hex(harmonized)
 

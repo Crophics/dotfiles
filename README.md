@@ -29,6 +29,13 @@ license alongside as `kitty-kitten-search.LICENSE`), reviewed before adding. Ctr
 opens the search box (Up/Down = previous/next match, Tab = literal/regex, Enter keeps the position, Esc
 returns to the bottom). Note Ctrl+F no longer reaches the shell or editors inside kitty.
 
+**Terminal colors:** ii's color generator pulls every ANSI color toward the wallpaper's hue
+(`appearance.wallpaperTheming.terminalGenerationProps` in the shell config). With the default
+threshold that turns red violet and green/yellow teal, so `quickshell/.../end4-pC/scripts/colors/
+generate_colors_material.py` has a local patch: red/green/yellow (term1-3, 9-11) get their own cap,
+`--semantic_threshold` (default 12 degrees), while blue/magenta/cyan keep following the wallpaper
+(`harmonizeThreshold` 100). Re-apply it if that script is ever replaced from upstream.
+
 **Python environment:** the shell's color scripts need `~/.local/state/quickshell/.venv`
 (`ILLOGICAL_IMPULSE_VIRTUAL_ENV`); `install.sh` builds it from `packages/ii-python-requirements.txt`
 (end-4's pinned list, Python 3.12 via uv) and generates the first palette with `switchwall.sh`.

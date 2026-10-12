@@ -45,7 +45,7 @@
       "enableTerminal": true,
       "terminalGenerationProps": {
         "forceDarkMode": false,
-        "harmonizeThreshold": 12,
+        "harmonizeThreshold": 100,
         "harmony": 0.6,
         "termFgBoost": 0.35
       }
@@ -94,7 +94,7 @@
     "splitSide": "left",
     "thumbnailPath": "",
     "wallpaperAnimation": "magic",
-    "wallpaperPath": "/home/ryoku/Pictures/Wallpapers/trees.jpg",
+    "wallpaperPath": "/home/ryoku/Pictures/Wallpapers/sunset beach.jpg",
     "widgets": {
       "blurRadius": 32,
       "blurWidgets": false,
