@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bootstrap this dotfiles repo on a fresh CachyOS/Arch install.
-# Caelestia setup: see the README (AUR order and prompts matter).
+# illogical-impulse (end4-pC) setup: see the README.
 # Safe to re-run. Package installs are best-effort (one bad/renamed package
 # won't block the rest, or the config-linking step below) — failures are
 # collected and reported at the end.
@@ -30,14 +30,7 @@ done < "$REPO_DIR/packages/pacman.txt"
 
 if [ -s "$REPO_DIR/packages/aur.txt" ] && command -v yay >/dev/null 2>&1; then
   echo "==> Installing AUR packages from packages/aur.txt"
-  # quickshell-git first and by explicit AUR name: otherwise yay resolves midnight-shell-git's
-  # quickshell-git dependency to noctalia-qs (CachyOS repo), which it conflicts with.
-  # (If the repo `quickshell` is installed, answer y to "Remove quickshell?".)
-  if grep -qx quickshell-git "$REPO_DIR/packages/aur.txt"; then
-    yay -S --needed aur/quickshell-git || FAILED_AUR+=("quickshell-git")
-  fi
   while read -r pkg; do
-    [ "$pkg" = "quickshell-git" ] && continue
     [ -z "$pkg" ] && continue
     yay -S --needed --noconfirm "$pkg" || FAILED_AUR+=("$pkg")
   done < "$REPO_DIR/packages/aur.txt"
@@ -81,13 +74,6 @@ done
 # $HOME/~ themselves). Rewrite them for whoever's actually running this.
 # --follow-symlinks is required: plain `sed -i` replaces the symlink itself
 # with a new regular file, breaking the stow link.
-# Official Caelestia dots: refresh ~/.config/hypr (needs network). Personal overrides are the
-# stowed caelestia/ package.
-if command -v caelestia >/dev/null 2>&1 && [ -x "$HOME/.local/bin/caelestia-dots-sync" ]; then
-  echo "==> Deploying the Caelestia Hyprland config"
-  "$HOME/.local/bin/caelestia-dots-sync" || echo "  (caelestia-dots-sync failed - run it yourself later)"
-fi
-
 echo "==> Personalizing machine-specific paths"
 OLD_HOME="/home/ryoku"
 if [ "$HOME" != "$OLD_HOME" ]; then
@@ -98,6 +84,22 @@ if [ "$HOME" != "$OLD_HOME" ]; then
   ; do
     [ -e "$f" ] && sed -i --follow-symlinks "s#$OLD_HOME#$HOME#g" "$f"
   done
+fi
+
+echo "==> Python environment for the shell's color scripts (ILLOGICAL_IMPULSE_VIRTUAL_ENV)"
+VENV="$HOME/.local/state/quickshell/.venv"
+if command -v uv >/dev/null 2>&1 && [ ! -x "$VENV/bin/python" ]; then
+  mkdir -p "$(dirname "$VENV")"
+  { uv venv -p 3.12 --prompt .venv "$VENV" \
+      && uv pip install -p "$VENV/bin/python" -r "$REPO_DIR/packages/ii-python-requirements.txt"; } \
+    || echo "  (venv build failed - see README)"
+fi
+# first palette (colors.json, kitty theme, terminal sequences), from the wallpaper in the shell config
+GEN="$HOME/.local/state/quickshell/user/generated/colors.json"
+SW="$HOME/.config/quickshell/end4-pC/scripts/colors/switchwall.sh"
+if [ ! -f "$GEN" ] && [ -x "$SW" ] && [ -x "$VENV/bin/python" ]; then
+  WP=$(grep -oP '"wallpaperPath": *"\K[^"]+' "$HOME/.config/illogical-impulse/config.json" 2>/dev/null | head -1)
+  [ -n "$WP" ] && ILLOGICAL_IMPULSE_VIRTUAL_ENV="$VENV" bash "$SW" "$WP" || true
 fi
 
 echo "==> Enabling rice-critical user services"

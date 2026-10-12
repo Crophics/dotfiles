@@ -1,68 +1,58 @@
 # dotfiles
 
-Personal CachyOS laptop running Hyprland with the **Caelestia** shell: the
-[midnight-shell](https://github.com/dim-ghub/midnight-shell) fork of
-[caelestia-dots/shell](https://github.com/caelestia-dots/shell) and its
-[midnight-cli](https://github.com/dim-ghub/midnight-cli). Everything is managed as
-[GNU Stow](https://www.gnu.org/software/stow/) packages symlinked into `$HOME`.
+Personal CachyOS + Hyprland rice, built on the illogical-impulse / end-4 quickshell
+shell with matugen-driven Material You theming. Managed as a set of
+[GNU Stow](https://www.gnu.org/software/stow/) packages so each app's config lives
+in its own directory and gets symlinked into `$HOME` on install.
 
-Branches: `caelestia` (this), `ryoku` ([Ryoku](https://ryoku.dev) desktop),
-`noctalia` (Luke Elrod-based Hyprland + Noctalia), `ii` (end-4 illogical-impulse).
+**Goal: full-system recovery.** If this machine died today, `git clone` this repo
+onto a base CachyOS-Hyprland install and running `./install.sh` should get you
+back to (functionally) where you are now — packages, configs, wallpapers, and
+the services that make the rice actually run.
 
-> The fork's author says midnight-shell/-cli are no longer maintained (they track
-> upstream for now). If they break, the upstream `caelestia-shell-git` +
-> `caelestia-cli` packages drop in (same config files).
+> **Branch `ii-return`** — back on this setup after trying Noctalia, Ryoku and Caelestia (their
+> branches are `noctalia`, `ryoku`, `caelestia`). Differences from the `ii` branch:
+> Luke Elrod's Neovim config (the old LazyVim one is `nvim-lazyvim`, `NVIM_APPNAME=nvim-lazyvim nvim`),
+> an ANSI-color starship prompt that follows the terminal palette, `tmux`, `local-bin` helpers
+> (`fuzzel-emoji`, `scratchpad-focus`), a `systemd-user` ydotool drop-in, Spotify Wayland flags,
+> and the NVIDIA lockout below. `archive/` (never stowed) holds the Noctalia/Ryoku/Caelestia-era configs.
 
-## Fresh machine
+**NVIDIA:** the T550 dGPU must not load (it freezes suspend/resume); load it for games with
+`nvidia-on`. The blacklist only stops hardware-ID autoload — a Quickshell shell loads libcuda at
+login, which makes `nvidia-modprobe` load the module by name — so
+`/etc/modprobe.d/nvidia-lockout.conf` (`install nvidia /usr/bin/false`) blocks that and `nvidia-on`
+moves it aside just long enough to load the module.
 
-1. Base CachyOS install (SDDM). `git clone` this repo to `~/git/dotfiles`,
-   `git checkout caelestia`, run `./install.sh`.
-2. Prompts to expect from the AUR installs:
-   - `midnight-cli-git` asks "Are you currently using CachyOS?" and a support-waiver
-     agreement: answer `y` to both (it only asks).
-   - the fork replaces the repo `quickshell` with AUR `quickshell-git` and removes
-     `polkit-gnome` (it ships its own polkit agent): answer `y`.
-   - `install.sh` installs `quickshell-git` first, by explicit AUR name. Otherwise yay
-     resolves midnight-shell-git's `quickshell-git` dependency to CachyOS's
-     `noctalia-qs`, which it conflicts with.
-3. Reboot; pick Hyprland at the SDDM login. Hyprland's autostart runs `caelestia shell -d`.
+**Python environment:** the shell's color scripts need `~/.local/state/quickshell/.venv`
+(`ILLOGICAL_IMPULSE_VIRTUAL_ENV`); `install.sh` builds it from `packages/ii-python-requirements.txt`
+(end-4's pinned list, Python 3.12 via uv) and generates the first palette with `switchwall.sh`.
 
-## How it is put together
-
-- **Hyprland config** = the official [caelestia-dots](https://github.com/caelestia-dots/caelestia)
-  `hypr/` tree, deployed by `local-bin/.local/bin/caelestia-dots-sync` into the real
-  folder `~/.config/hypr` (not tracked here; rerun the script to update). `caelestia
-  install` is deliberately not used: it would overwrite fish/starship/fastfetch/btop,
-  install `polkit-gnome` (conflicts with the fork), and run a Firefox profile script.
-- **Personal overrides** (stowed from `caelestia/.config/caelestia/`, read by the dots'
-  `hyprland.lua` and untouched by updates): `hypr-vars.lua` (apps = kitty/Zen/Nautilus/
-  VSCodium, cursor, touchpad, the old keys that collide with Caelestia's, and where the
-  displaced Caelestia actions moved) and `hypr-user.lua` (everything ported from the old
-  setups: input/XWayland settings, window rules, the remaining old binds, plus the
-  fork's pickers, workspace overview, window switcher and keybind sheet). Old layout wins
-  on collisions; Caelestia's special workspace moved to Super+`, panels to Super+Shift+K,
-  chat workspace to Super+Shift+D, resize mode to Super+Shift+X, pin to Super+Alt+P.
-- The shell itself is installed system-wide under `/etc/xdg/quickshell/caelestia`;
-  its settings go in `~/.config/caelestia/shell.json` (not created by default).
-- Everything else is an ordinary stow package: fish (`config.fish`), kitty
-  (Gruvbox), starship (ANSI colors), fastfetch, nvim (Luke Elrod's config), tmux, ...
-- **NVIDIA:** the T550 dGPU must not load (it freezes suspend/resume); load it for
-  games with `nvidia-on`. Quickshell shells load libcuda at login, which makes
-  `nvidia-modprobe` load the module by name past the blacklist, so
-  `/etc/modprobe.d/nvidia-lockout.conf` (`install nvidia /usr/bin/false`) blocks
-  that and `nvidia-on` moves it aside just long enough to load the module.
 
 ## Layout
 
-Each top-level directory is a stow package mirroring its path under `$HOME`.
-Besides the Caelestia layer above: `fastfetch`, `cava`, `lazygit`, `micro`, `gh`,
-`qalculate`, `satty`, `tmux`, `shell` (bash fallback), `gtk`/`qt`/`kde-misc`/
-`fontconfig`/`local-share-theming` (KDE app settings, cursor), `session`
-(environment.d, mimeapps.list), `desktop-apps`, `wallpapers`, `nvim-lazyvim`
-(`NVIM_APPNAME=nvim-lazyvim nvim`), `nvidia`, `cachyos`, `xdg-user-dirs`.
+Each top-level directory is a stow package mirroring its path under `$HOME`, e.g.
+`hypr/.config/hypr/...` symlinks to `~/.config/hypr/...`.
 
-`archive/` (never stowed): `ryoku-era/` and `noctalia-era/` (those branches' Hyprland
-configs and the files Ryoku took over), plus the illogical-impulse setup.
+- **Shell core**: `hypr`, `illogical-impulse`, `quickshell`, `dankmaterialshell`,
+  `matugen`, `kde-material-you-colors`, `skwd-wall` (installed but not
+  autostarted — wallpaper handling reverted to `illogical-impulse`'s own
+  native selector)
+- **Session/login wiring**: `session` (systemd user units, autostart,
+  xdg-desktop-portal, environment.d, mimeapps.list) — SDDM launches Hyprland
+  directly via `start-hyprland`, no UWSM involved
+- **UI toolkit theming**: `gtk`, `qt`, `kde-misc`, `fontconfig`, `wal`, `nwg-look`
+- **Launcher/lock**: `fuzzel`, `wlogout`, `satty`
+- **Terminal/CLI**: `fish` (the actual default shell — `chsh -s /usr/bin/fish`;
+  kitty always ran fish regardless of login shell), `zsh` (just `starship.toml`
+  now — fish reads the same file), `shell` (bash, kept as a fallback only),
+  `kitty`, `lazygit`, `btop`, `cava`, `fastfetch`, `yazi`, `micro`, `qalculate`,
+  `gh`, `yay`
+- **Editors**: `nvim` (LazyVim-based), `vscodium`
+- **Wallpapers**: `wallpapers` (`~/Pictures/Wallpapers`, ~105MB — the pool
+  `skwd-wall` was built to rotate through and `illogical-impulse` themes off of)
+- **Theming state**: `local-share-theming` (KDE Material You `.colors` schemes,
+  active cursor theme selector)
+- **Misc**: `nvidia`, `cachyos`, `desktop-apps`, `xdg-user-dirs`
 
 Note: no `git` package here on purpose — `.gitconfig` isn't tracked (it carried
 personal identity). Set your own `git config --global user.name/user.email`
@@ -74,26 +64,44 @@ after installing.
 - `flatpak.txt` — installed flatpak app IDs
 - `systemd-user-enabled.txt` / `systemd-system-enabled.txt` — reference snapshot
   of what's enabled on the source machine. `install.sh` explicitly re-enables the
-  two that are actually rice-critical (`hyprpolkitagent`, `ydotool`); the rest are
+  two that are actually rice-critical (`skwd-daemon`, `ydotool`); the rest are
   mostly CachyOS install defaults (NetworkManager, bluetooth, cups, timers, etc.)
   — cross-check the system-level file if something's missing after a fresh install.
 
 ## Install on a new machine
 
-See "Fresh machine" above. `./install.sh` installs `stow`/`yay` if missing, installs
-everything in `packages/`, stows every package into `$HOME` (backing up any real file
-already in the way), then deploys the Caelestia Hyprland config. Re-run any time; it
-is idempotent.
+```sh
+git clone <this-repo-url> ~/git/dotfiles
+cd ~/git/dotfiles
+./install.sh
+```
+
+This installs `stow`/`yay` if missing, installs everything in `packages/`, then
+stows every package into `$HOME`. Re-run any time — it's idempotent
+(`stow -R`), and safe even if a graphical session already ran once and
+auto-generated its own default configs (Hyprland does this) — `install.sh`
+backs those up automatically before linking the real ones in.
+
+**Best order on a truly fresh install**: pick no desktop environment / a
+minimal profile in the installer, boot to a plain TTY, and run `install.sh`
+from there *before* ever starting Hyprland for the first time. That way
+nothing auto-generates a conflicting config and Hyprland's normal
+autostart (which launches quickshell itself, see `hypr/.config/hypr/hyprland/execs.lua`)
+just works on the very first login. If you do end up logging into a bare
+graphical session first (e.g. to get a terminal), that's fine too — just
+run `install.sh` and then fully restart Hyprland once (log out/in, or
+`hyprctl dispatch exit`) so it picks up the real config and autostarts
+quickshell.
 
 To only (re)link configs without touching packages, run stow directly:
 
 ```sh
-stow -d ~/git/dotfiles -t ~ caelestia nvim kitty   # etc.
+stow -d ~/git/dotfiles -t ~ hypr quickshell matugen   # etc.
 ```
 
 ## Not included, on purpose
 
-- `archive/quickshell` (`~/.config/quickshell/end4-pC`) **is** included as plain files (it's a forked/
+- `~/.config/quickshell/end4-pC` **is** included as plain files (it's a forked/
   patched copy of the shell engine itself, not upstream-tracked here).
 - **qylock** (lockscreen) is *not* vendored — the working checkout is ~1.8GB
   (mostly theme assets) and it's a separate forked/patched project. Clone and
@@ -108,12 +116,12 @@ stow -d ~/git/dotfiles -t ~ caelestia nvim kitty   # etc.
   can contain sensitive data.
 - Secrets (`.ssh`, `.gnupg`, `.pki`, shell history, cookies) are never tracked here.
 
-## Theming
+## Theming pipeline
 
-Caelestia's scheme (`caelestia scheme set -n caelestia|dynamic`; `dynamic` follows the
-wallpaper) colors the shell and Hyprland borders (`~/.config/hypr/scheme/current.lua`,
-generated, not tracked). kitty keeps its own Gruvbox theme and Neovim is Gruvbox. The
-starship prompt uses the 16 ANSI colors, so it follows the terminal.
+Wallpaper → `matugen` extracts a Material You palette → colors are templated out
+to `hypr`, `gtk`, `qt`, `kitty`/etc., and `kde-material-you-colors`
+syncs the palette into KDE/Qt apps. `wal` config is also tracked for tools that
+still read pywal-style palettes.
 
 ## Troubleshooting
 

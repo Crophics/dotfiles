@@ -120,7 +120,6 @@ hwinfo
 hypridle
 hyprland
 hyprpicker
-hyprpolkitagent
 hyprsunset
 ifuse
 imv
@@ -222,6 +221,7 @@ plasma-systemmonitor
 playerctl
 plocate
 plymouth
+polkit-gnome
 poppler-glib
 power-profiles-daemon
 pv
@@ -238,6 +238,8 @@ python-sphinx-furo
 qemu-full
 qt5-wayland
 qt6ct
+qt6-wayland
+quickshell
 realtime-privileges
 rebuild-detector
 reflector
@@ -304,6 +306,7 @@ wf-recorder
 which
 wl-clipboard
 wl-clip-persist
+wlogout
 wpa_supplicant
 wtype
 xdg-desktop-portal-hyprland

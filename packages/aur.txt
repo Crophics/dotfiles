@@ -7,15 +7,13 @@ cool-retro-term-git
 cxxmatrix-git
 game-devices-udev
 hollywood
+kde-material-you-colors
 localsend-bin
-midnight-cli-git
-midnight-shell-git
 no-more-secrets
 otf-space-grotesk
 peaclock
 pipes.sh
 python-pywal16
-quickshell-git
 spotify
 ttf-maple-mono-nf
 unimatrix-git
