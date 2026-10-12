@@ -23,6 +23,12 @@ login, which makes `nvidia-modprobe` load the module by name — so
 `/etc/modprobe.d/nvidia-lockout.conf` (`install nvidia /usr/bin/false`) blocks that and `nvidia-on`
 moves it aside just long enough to load the module.
 
+**Kitty search:** `kitty/.config/kitty/search.py` and `scroll_mark.py` are unmodified copies of
+[trygveaa/kitty-kitten-search](https://github.com/trygveaa/kitty-kitten-search) @ `992c1f3` (GPL-3.0,
+license alongside as `kitty-kitten-search.LICENSE`), reviewed before adding. Ctrl+F / Ctrl+Shift+F in kitty
+opens the search box (Up/Down = previous/next match, Tab = literal/regex, Enter keeps the position, Esc
+returns to the bottom). Note Ctrl+F no longer reaches the shell or editors inside kitty.
+
 **Python environment:** the shell's color scripts need `~/.local/state/quickshell/.venv`
 (`ILLOGICAL_IMPULSE_VIRTUAL_ENV`); `install.sh` builds it from `packages/ii-python-requirements.txt`
 (end-4's pinned list, Python 3.12 via uv) and generates the first palette with `switchwall.sh`.
