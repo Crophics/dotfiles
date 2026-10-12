@@ -59,11 +59,19 @@ if status is-interactive
         alias ssh 'kitten ssh'
     end
 
-    # NVIDIA is kept from auto-loading at boot (only needed for games; loaded
-    # unused it caused suspend/resume freezes). Load it before a game, and
-    # reboot before `ryoku update`/`ryoku doctor`, which re-add boot-time
+    # NVIDIA is kept from loading at all (only needed for games; loaded unused it
+    # caused suspend/resume freezes). The blacklist only stops hardware-ID autoload;
+    # Ryoku's shell (qs) loads libcuda at login, which asks nvidia-modprobe to load the
+    # module by name. /etc/modprobe.d/nvidia-lockout.conf (`install nvidia /usr/bin/false`)
+    # stops that, so this moves it aside just long enough to load the module for a game.
+    # Reboot before `ryoku update`/`ryoku doctor` afterwards: they re-add boot-time
     # loading when they see the module loaded.
-    alias nvidia-on 'sudo modprobe nvidia_drm modeset=1 nvidia_modeset nvidia_uvm nvidia'
+    function nvidia-on
+        set -l lock /etc/modprobe.d/nvidia-lockout.conf
+        test -f $lock; and sudo mv $lock $lock.off
+        sudo modprobe nvidia_drm modeset=1 nvidia_modeset nvidia_uvm nvidia
+        test -f $lock.off; and sudo mv $lock.off $lock
+    end
 
     # Ported from cachyos-config.zsh
     alias make 'make -j(nproc)'
