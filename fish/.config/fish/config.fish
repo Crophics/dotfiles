@@ -44,10 +44,8 @@ if status is-interactive
         # enable_transience
     end
 
-    # Colors
-    if test -f ~/.local/state/quickshell/user/generated/terminal/sequences.txt
-        cat ~/.local/state/quickshell/user/generated/terminal/sequences.txt
-    end
+    # Colors: kitty gets its theme from matugen.conf (43pr theme.py), so don't
+    # override it with the old illogical-impulse sequences.txt.
 
     # System info on startup (kitty only)
     # Deferred to the first prompt (like kitty's own shell-integration setup)
