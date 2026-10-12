@@ -36,6 +36,12 @@ generate_colors_material.py` has a local patch: red/green/yellow (term1-3, 9-11)
 `--semantic_threshold` (default 12 degrees), while blue/magenta/cyan keep following the wallpaper
 (`harmonizeThreshold` 100). Re-apply it if that script is ever replaced from upstream.
 
+**Neovim colors:** the config follows the shell's palette. `nvim/.config/nvim/lua/ii_palette.lua` reads
+`colors.json` + `terminal/kitty-theme.conf` from the generated palette dir and watches it, and
+`colors/ii.lua` builds the colorscheme (interface from the Material roles, syntax from the same 16 ANSI colors
+as kitty), so Neovim recolors itself when the wallpaper/palette changes. gruvbox-material remains the fallback
+when no palette exists; lualine uses its `auto` theme. Test against a copy with `II_PALETTE_DIR=/some/dir nvim`.
+
 **Python environment:** the shell's color scripts need `~/.local/state/quickshell/.venv`
 (`ILLOGICAL_IMPULSE_VIRTUAL_ENV`); `install.sh` builds it from `packages/ii-python-requirements.txt`
 (end-4's pinned list, Python 3.12 via uv) and generates the first palette with `switchwall.sh`.

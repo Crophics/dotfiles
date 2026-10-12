@@ -23,15 +23,6 @@ local function get_floating_term(cmd)
 			cmd = cmd,
 			direction = "float",
 			hidden = true,
-			highlights = {
-				NormalFloat = {
-					guibg = "#101014",
-				},
-				FloatBorder = {
-					guifg = "#101014",
-					guibg = "#101014",
-				},
-			},
 		})
 	end
 	return floating_terms[cmd]
