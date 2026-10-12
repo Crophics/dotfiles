@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Bootstrap this dotfiles repo on a fresh CachyOS/Arch install.
+# On the ryoku branch: run Ryoku's converter first (see README), then this.
 # Safe to re-run. Package installs are best-effort (one bad/renamed package
 # won't block the rest, or the config-linking step below) — failures are
 # collected and reported at the end.
@@ -73,22 +74,28 @@ done
 # $HOME/~ themselves). Rewrite them for whoever's actually running this.
 # --follow-symlinks is required: plain `sed -i` replaces the symlink itself
 # with a new regular file, breaking the stow link.
+# Ryoku re-lays its own starship.toml on update; a file in its user_edits
+# overlay wins instead (see README).
+if [ -d "$HOME/.config/ryoku" ]; then
+  echo "==> Linking the starship prompt into Ryoku's user_edits overlay"
+  mkdir -p "$HOME/.config/ryoku/user_edits"
+  ln -sfn "$REPO_DIR/zsh/.config/starship.toml" "$HOME/.config/ryoku/user_edits/starship.toml"
+fi
+
 echo "==> Personalizing machine-specific paths"
 OLD_HOME="/home/ryoku"
 if [ "$HOME" != "$OLD_HOME" ]; then
   for f in \
     "$HOME/.nvidia-settings-rc" \
-    "$HOME/.config/hypr/hypridle.conf" \
     "$HOME/.config/QtProject.conf" \
     "$HOME/.config/qt6ct/qt6ct.conf" \
-    "$HOME/.config/noctalia/theme.toml" \
   ; do
     [ -e "$f" ] && sed -i --follow-symlinks "s#$OLD_HOME#$HOME#g" "$f"
   done
 fi
 
 echo "==> Enabling rice-critical user services"
-for svc in hyprpolkitagent.service ydotool.service; do
+for svc in ydotool.service; do
   systemctl --user enable --now "$svc" 2>/dev/null || echo "  (skipped $svc — not installed?)"
 done
 
