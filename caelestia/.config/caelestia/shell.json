@@ -1,6 +1,9 @@
 {
     "bar": {
-        "position": "top"
+        "position": "top",
+        "activeWindow": {
+            "showOnHover": false
+        }
     },
     "sidebar": {
         "enabled": true
