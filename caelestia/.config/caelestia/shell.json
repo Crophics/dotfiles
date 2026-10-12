@@ -1,0 +1,8 @@
+{
+    "bar": {
+        "position": "top"
+    },
+    "sidebar": {
+        "enabled": true
+    }
+}
