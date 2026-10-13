@@ -148,6 +148,9 @@ PanelWindow {
         readonly property real sideMargin: Math.max(0, viewportCenterX - tileWidth / 2)
         property bool ready: false
         property bool userMoved: false
+        property bool kbd: false          // true while navigating with the keyboard
+        property real lastPx: -1
+        property real lastPy: -1
 
         leftMargin: sideMargin
         rightMargin: sideMargin
@@ -282,15 +285,41 @@ PanelWindow {
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: list.ready
-                onEntered: { list.userMoved = true; list.selectedIndex = index }
+                // Select on real pointer movement only. Tiles sliding under a still pointer (keyboard
+                // navigation, scrolling) must not change the selection.
+                onPositionChanged: function(mouse) {
+                    var p = mapToItem(null, mouse.x, mouse.y)
+                    if (Math.abs(p.x - list.lastPx) < 3 && Math.abs(p.y - list.lastPy) < 3) return
+                    list.lastPx = p.x
+                    list.lastPy = p.y
+                    list.kbd = false
+                    list.userMoved = true
+                    list.selectedIndex = index
+                }
                 onClicked: list.activateCurrent()
                 onWheel: function(wheel) { list.flick(-wheel.angleDelta.y * 8, 0); wheel.accepted = true }
             }
         }
 
         Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Space) {
+            if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 activateCurrent()
+            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) {
+                userMoved = true
+                kbd = true
+                moveSelection(1, 1)
+            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) {
+                userMoved = true
+                kbd = true
+                moveSelection(-1, 1)
+            } else if (event.key === Qt.Key_Home) {
+                userMoved = true
+                kbd = true
+                moveSelection(-count, 3)
+            } else if (event.key === Qt.Key_End) {
+                userMoved = true
+                kbd = true
+                moveSelection(count, 3)
             } else if (event.key === Qt.Key_W || event.key === Qt.Key_Escape) {
                 Qt.quit()
             } else {
