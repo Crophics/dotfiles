@@ -43,3 +43,12 @@ output = "~/.local/state/quickshell/user/generated/colors.json"
 [nvim-terminal]
 input  = "~/.config/43pr/templates/kitty.conf"
 output = "~/.local/state/quickshell/user/generated/terminal/kitty-theme.conf"
+
+# Zen browser: accent pref (applied at next launch) and a small stylesheet imported from userChrome.css.
+[zen-userjs]
+input  = "~/.config/43pr/templates/zen-user.js"
+output = "~/.config/zen/bscizgd2.Default (release)/user.js"
+
+[zen-palette]
+input  = "~/.config/43pr/templates/zen-palette.css"
+output = "~/.config/zen/bscizgd2.Default (release)/chrome/zen-palette.css"
