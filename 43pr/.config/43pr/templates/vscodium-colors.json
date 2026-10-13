@@ -4,7 +4,7 @@
     "background": "{{bg}}",
     "card": "{{bg_panel}}",
     "popover": "{{bg_card}}",
-    "foreground": "#ffffff",
+    "foreground": "{{fg}}",
     "syntax": {
       "comment": "{{fg_muted}}",
       "keyword": "{{danger}}",
@@ -13,7 +13,7 @@
       "constant": "{{term5}}",
       "property": "{{term6}}",
       "attribute": "{{term3}}",
-      "variable": "#ffffff"
+      "variable": "{{fg}}"
     }
   },
   "editor.tokenColorCustomizations": {
@@ -27,7 +27,7 @@
             "meta.function.parameters variable"
           ],
           "settings": {
-            "foreground": "#ffffff"
+            "foreground": "{{fg}}"
           }
         }
       ]
@@ -36,8 +36,8 @@
   "editor.semanticTokenColorCustomizations": {
     "[Material Code]": {
       "rules": {
-        "variable": "#ffffff",
-        "parameter": "#ffffff"
+        "variable": "{{fg}}",
+        "parameter": "{{fg}}"
       }
     }
   }
