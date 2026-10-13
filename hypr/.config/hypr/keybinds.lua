@@ -30,7 +30,7 @@ hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("qs ipc call mediaosd setting
 
 -- Session
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock")) -- Lock screen
-hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("systemctl suspend || loginctl suspend")) -- Suspend
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/suspend.sh")) -- Suspend
 
 -- Windows
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
