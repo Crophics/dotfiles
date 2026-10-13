@@ -883,7 +883,7 @@ PanelWindow {
                     anchors.centerIn: parent
                     width: 36; height: 4; radius: 2
                     color: Theme.text
-                    opacity: (dragArea.containsMouse || root.dragging) ? 1 : 0.3
+                    opacity: (dragArea.containsMouse || root.dragging) ? 1 : 0.6
                     Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
 
@@ -905,7 +905,7 @@ PanelWindow {
                 label: "\uDB81\uDC03"
                 fontSize: 13
                 active: root.pinned
-                opacity: (hovered || root.pinned) ? 1 : 0.3
+                opacity: (hovered || root.pinned) ? 1 : 0.7
                 onClicked: root.togglePinned()
             }
 
@@ -919,7 +919,7 @@ PanelWindow {
                 label: "󰒓"
                 fontSize: 13
                 active: root.settingsOpen
-                opacity: (hovered || root.settingsOpen) ? 1 : 0.3
+                opacity: (hovered || root.settingsOpen) ? 1 : 0.7
                 onClicked: root.toggleSettings()
             }
         }

@@ -116,7 +116,7 @@ PanelWindow {
         signal reset()
 
         spacing: 4
-        opacity: scHover.hovered ? 0.9 : 0.35
+        opacity: scHover.hovered ? 1 : 0.7
         Behavior on opacity { NumberAnimation { duration: 150 } }
         HoverHandler { id: scHover }
 
@@ -448,7 +448,7 @@ PanelWindow {
                         anchors.centerIn: parent
                         width: 36; height: 4; radius: 2
                         color: Theme.bg
-                        opacity: (dragArea.containsMouse || root.dragging) ? 1 : 0.1
+                        opacity: (dragArea.containsMouse || root.dragging) ? 1 : 0.5
                         Behavior on opacity { NumberAnimation { duration: 150 } }
                     }
 
@@ -585,7 +585,7 @@ PanelWindow {
                             label: "󰒓"
                             fontSize: 12
                             textColor: Theme.textDim
-                            opacity: hovered ? 1 : 0.1
+                            opacity: hovered ? 1 : 0.7
                             onClicked: {
                                 root.settingsOpen = true
                                 root.dragging = false

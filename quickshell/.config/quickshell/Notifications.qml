@@ -465,7 +465,7 @@ PanelWindow {
             height: root.px(4)
             radius: height / 2
             color: Theme.text
-            opacity: (dragArea.containsMouse || root.dragging) ? 0.35 : 0.1
+            opacity: (dragArea.containsMouse || root.dragging) ? 0.8 : 0.4
             Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
@@ -688,7 +688,7 @@ PanelWindow {
         width: root.panelOpen ? implicitWidth : 0
         height: root.panelOpen ? implicitHeight : 0
         visible: root.panelOpen
-        opacity: sizeHover.hovered ? 0.9 : 0.18
+        opacity: sizeHover.hovered ? 1 : 0.7
 
         Behavior on opacity { NumberAnimation { duration: 150 } }
         HoverHandler { id: sizeHover }
