@@ -21,6 +21,7 @@
       "textMateRules": [
         {
           "scope": [
+            "source",
             "variable.other.readwrite",
             "variable.parameter",
             "meta.function.parameters variable"
