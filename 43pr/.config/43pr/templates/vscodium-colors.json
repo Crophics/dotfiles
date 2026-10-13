@@ -5,21 +5,39 @@
     "card": "{{bg_panel}}",
     "popover": "{{bg_card}}",
     "foreground": "#ffffff",
-    "syntax.variable": "#ffffff"
+    "syntax": {
+      "comment": "#6B7280",
+      "keyword": "#C678DD",
+      "variable": "#ffffff",
+      "attribute": "#E5C07B",
+      "property": "#56B6C2",
+      "function": "#61AFEF",
+      "string": "#98C379",
+      "constant": "#D19A66"
+    }
   },
   "editor.tokenColorCustomizations": {
     "[Material Code]": {
       "textMateRules": [
         {
-          "scope": ["variable.other.readwrite", "variable.parameter", "meta.function.parameters variable"],
-          "settings": { "foreground": "#ffffff" }
+          "scope": [
+            "variable.other.readwrite",
+            "variable.parameter",
+            "meta.function.parameters variable"
+          ],
+          "settings": {
+            "foreground": "#ffffff"
+          }
         }
       ]
     }
   },
   "editor.semanticTokenColorCustomizations": {
     "[Material Code]": {
-      "rules": { "variable": "#ffffff", "parameter": "#ffffff" }
+      "rules": {
+        "variable": "#ffffff",
+        "parameter": "#ffffff"
+      }
     }
   }
 }
