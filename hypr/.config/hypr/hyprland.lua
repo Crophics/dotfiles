@@ -17,6 +17,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("/usr/lib/hyprpolkitagent/hyprpolkitagent")
+    hl.exec_cmd("hyprctl setcursor Adwaita 24")
     hl.exec_cmd("hypridle")
 
     hl.exec_cmd("awww-daemon")
@@ -27,7 +28,7 @@ end)
 ---- ENVIRONMENT VARIABLES ----
 
 hl.env("XCURSOR_THEME", "Adwaita")
-hl.env("XCURSOR_SIZE", "14")
+hl.env("XCURSOR_SIZE", "24")
 hl.env("QT_QPA_PLATFORM", "wayland")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 hl.env("MOZ_ENABLE_WAYLAND", "1")

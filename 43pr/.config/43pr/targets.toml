@@ -58,3 +58,8 @@ output = "~/.config/zen/bscizgd2.Default (release)/chrome/zen-palette.css"
 input  = "~/.config/43pr/templates/vscodium-colors.json"
 output = "~/.cache/43pr/vscodium-colors.json"
 reload = ["python3", "/home/ryoku/.config/43pr/bin/vscodium-merge.py"]
+
+[hypr]
+input  = "~/.config/43pr/templates/hypr-colors.lua"
+output = "~/.config/hypr/colors.lua"
+reload = ["hyprctl", "reload"]
