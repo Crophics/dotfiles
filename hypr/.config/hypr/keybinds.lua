@@ -11,6 +11,7 @@ hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("spotify"))
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("codium")) -- VSCodium
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("bitwarden-desktop"))
 hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("hyprpicker -a")) -- Color picker
 hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("kitty btop")) -- Task manager
