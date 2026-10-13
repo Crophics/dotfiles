@@ -14,18 +14,6 @@ SetPage {
     property string pendingLocation: ""
     Timer { id: locationTimer; interval: 900; onTriggered: page.cfg.weatherLocation = page.pendingLocation }
 
-    readonly property var clockPresets: [
-        { name: "time", fmt: "HH:mm" },
-        { name: "date + time", fmt: "ddd d MMM  HH:mm" },
-        { name: "long", fmt: "dddd d MMMM  HH:mm" },
-        { name: "numeric", fmt: "dd/MM  HH:mm" },
-        { name: "12-hour", fmt: "ddd d MMM  h:mm AP" }
-    ]
-    function presetFor(fmt) {
-        var p = clockPresets.find(x => x.fmt === fmt)
-        return p ? p.name : "custom"
-    }
-
     SetSection { text: "Layout" }
     SetRow {
         label: "Position"
@@ -88,15 +76,6 @@ SetPage {
     }
 
     SetSection { text: "Clock" }
-    SetRow {
-        label: "Style"
-        hint: "Pick a preset, or write your own format below"
-        SetSeg {
-            options: page.clockPresets.map(p => p.name).concat(["custom"])
-            current: page.presetFor(page.cfg?.clockFormat ?? "")
-            onPicked: v => { if (v !== "custom") page.cfg.clockFormat = page.clockPresets.find(p => p.name === v).fmt }
-        }
-    }
     SetRow {
         label: "Format"
         hint: "HH hour  mm min  ss sec  ddd/dddd weekday  d/dd day  MMM/MMMM month  yy/yyyy year  AP am/pm  'text'"
