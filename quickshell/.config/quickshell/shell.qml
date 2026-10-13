@@ -8,6 +8,5 @@ ShellRoot {
     Notifications {}
     PowerMenu {}
     Bar {}
-    Todo {}
     Wheel {}
 }

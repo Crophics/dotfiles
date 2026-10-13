@@ -22,7 +22,6 @@ hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("pgrep -x rofi >/dev/null && pkill -x
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("qs ipc call powermenu toggle")) -- Power menu
 hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("qs ipc call settings toggle")) -- Settings
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs ipc call notifications toggle")) -- Notifications
-hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("qs ipc call todo toggle")) -- To-do
 hl.bind(mainMod .. " + J", hl.dsp.exec_cmd("qs ipc call bar toggle")) -- Toggle bar
 hl.bind("CTRL + " .. mainMod .. " + T", hl.dsp.exec_cmd("qs -n -p ~/.config/quickshell/hyprquickpaper")) -- Wallpapers
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/opacity.sh")) -- Opacity
@@ -77,10 +76,10 @@ hl.bind(mainMod .. " + SHIFT + Up", hl.dsp.window.move({ direction = "up" }))
 hl.bind(mainMod .. " + SHIFT + Right", hl.dsp.window.move({ direction = "right" }))
 
 -- Resize by pixel delta, repeating while held
-hl.bind(mainMod .. " + CTRL + Left", hl.dsp.window.resize({ x = -40, y = 0 }), { repeating = true })
-hl.bind(mainMod .. " + CTRL + Right", hl.dsp.window.resize({ x = 40, y = 0 }), { repeating = true })
-hl.bind(mainMod .. " + CTRL + Up", hl.dsp.window.resize({ x = 0, y = -40 }), { repeating = true })
-hl.bind(mainMod .. " + CTRL + Down", hl.dsp.window.resize({ x = 0, y = 40 }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + Left", hl.dsp.window.resize({ x = -40, y = 0, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + Right", hl.dsp.window.resize({ x = 40, y = 0, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + Up", hl.dsp.window.resize({ x = 0, y = -40, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + CTRL + Down", hl.dsp.window.resize({ x = 0, y = 40, relative = true }), { repeating = true })
 
 -- Workspaces 1-10, and move-to-workspace with SHIFT
 for i = 1, 10 do

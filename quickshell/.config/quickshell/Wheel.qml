@@ -25,7 +25,6 @@ PanelWindow {
         { icon: "\uf125", name: "Area",      cmd: ["sh", "-c", "sleep 0.15; f=$HOME/Pictures/$(date +%s).png; grim -g \"$(slurp)\" \"$f\"; wl-copy < \"$f\"; qs ipc call screenshot notify \"$f\""] },
         { icon: "\uf03e", name: "Wallpaper", cmd: ["sh", "-c", "qs -n -p ~/.config/quickshell/hyprquickpaper"] },
         { icon: "\uf0f3", name: "Notifs",    cmd: ["qs", "ipc", "call", "notifications", "toggle"] },
-        { icon: "\uf0ae", name: "To-do",     cmd: ["qs", "ipc", "call", "todo", "toggle"] },
         { icon: "\udb80\udd68", name: "Opacity",   cmd: ["sh", "-c", "$HOME/.config/hypr/scripts/opacity.sh"] }
     ]
 
