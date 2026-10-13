@@ -4,15 +4,22 @@
     "background": "{{bg}}",
     "card": "{{bg_panel}}",
     "popover": "{{bg_card}}",
-    "syntax": {
-      "comment": "{{fg_muted}}",
-      "keyword": "{{term5}}",
-      "variable": "{{fg}}",
-      "attribute": "{{term3}}",
-      "property": "{{term6}}",
-      "function": "{{accent}}",
-      "string": "{{term2}}",
-      "constant": "{{danger}}"
+    "foreground": "#ffffff",
+    "syntax.variable": "#ffffff"
+  },
+  "editor.tokenColorCustomizations": {
+    "[Material Code]": {
+      "textMateRules": [
+        {
+          "scope": ["variable.other.readwrite", "variable.parameter", "meta.function.parameters variable"],
+          "settings": { "foreground": "#ffffff" }
+        }
+      ]
+    }
+  },
+  "editor.semanticTokenColorCustomizations": {
+    "[Material Code]": {
+      "rules": { "variable": "#ffffff", "parameter": "#ffffff" }
     }
   }
 }

@@ -24,13 +24,17 @@ def ensure_rebuild(settings):
     marker it keeps: it then rebuilds on the next launch. Does nothing while VSCodium is running."""
     if codium_running() or not STORAGE.exists():
         return
-    want = settings.get("material-code.colors", {}).get("background", "").lower()
+    cols = settings.get("material-code.colors", {})
+    want_bg = cols.get("background", "").lower()
+    want_fg = cols.get("foreground", "").lower()
     for f in glob.glob(EXT_GLOB):
         try:
-            built = json.loads(Path(f).read_text()).get("colors", {}).get("editor.background", "").lower()
+            built = json.loads(Path(f).read_text()).get("colors", {})
         except Exception:
             continue
-        if want and built and built != want:
+        stale = (want_bg and built.get("editor.background", "").lower() != want_bg) or \
+                (want_fg and built.get("editor.foreground", "").lower() != want_fg)
+        if stale:
             try:
                 st = json.loads(STORAGE.read_text())
             except Exception:
