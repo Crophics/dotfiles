@@ -20,3 +20,7 @@ output = "~/.config/gtk-4.0/colors.css"
 [quickshell]
 input  = "~/.config/43pr/templates/quickshell-theme.json"
 output = "~/.cache/43pr/quickshell-theme.json"
+
+[qt6ct]
+input  = "~/.config/43pr/templates/qt6ct-colors.conf"
+output = "~/.config/qt6ct/colors/43pr.conf"

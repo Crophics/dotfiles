@@ -6,7 +6,7 @@
 mainMod    = "SUPER"
 terminal   = "kitty"
 menu       = "rofi -show drun"
-fileManager = "thunar"
+fileManager = "nautilus"
 browser    = "zen-browser"
 
 ---- AUTOSTART ----
@@ -28,6 +28,7 @@ end)
 hl.env("XCURSOR_THEME", "Adwaita")
 hl.env("XCURSOR_SIZE", "14")
 hl.env("QT_QPA_PLATFORM", "wayland")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 
 ---- INPUT ----
