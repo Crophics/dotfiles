@@ -77,7 +77,7 @@ SetPage {
     SetSection { text: "Notifications" }
     SetRow {
         label: "Do Not Disturb"
-        hint: "Hides notification popups. Critical ones still show. Right-click the bell in the bar does the same"
+        hint: "Hides notification popups. Critical ones still show. The bell in the bar shows when it is on"
         wrapHint: true
         SetToggle {
             checked: page.nt?.dnd ?? false

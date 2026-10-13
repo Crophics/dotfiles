@@ -694,8 +694,6 @@ Scope {
             text: isNet ? root.netGlyph : (mid === "notif" && root.dnd ? "\uDB80\uDC9B" : (def.g ?? ""))   // bell, or bell-off in Do Not Disturb
             tip: isNet ? root.netTip : mid === "notif" ? root.notifTip : (def.tip ?? "")
             primaryHint: def.hint ?? ""
-            secondaryHint: mid === "notif" ? (root.dnd ? "Turn Do Not Disturb off" : "Turn Do Not Disturb on") : ""
-            onSecondary: if (mid === "notif" && Refs.notifications) Refs.notifications.toggleDnd()
             warning: isNet && root.netState === "disconnected"
             onPrimary: if (def.cmd) root.run(def.cmd)
         }
