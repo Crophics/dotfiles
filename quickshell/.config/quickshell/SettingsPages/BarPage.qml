@@ -10,6 +10,18 @@ SetPage {
     readonly property var bar: Refs.bar
     readonly property var cfg: bar ? bar.config : null
 
+    readonly property var clockPresets: [
+        { name: "time", fmt: "HH:mm" },
+        { name: "date + time", fmt: "ddd d MMM  HH:mm" },
+        { name: "long", fmt: "dddd d MMMM  HH:mm" },
+        { name: "numeric", fmt: "dd/MM  HH:mm" },
+        { name: "12-hour", fmt: "ddd d MMM  h:mm AP" }
+    ]
+    function presetFor(fmt) {
+        var p = clockPresets.find(x => x.fmt === fmt)
+        return p ? p.name : "custom"
+    }
+
     SetSection { text: "Layout" }
     SetRow {
         label: "Position"
@@ -69,6 +81,37 @@ SetPage {
         hint: "The \"Left click: ...\" lines"
         enabled: page.cfg?.tooltips ?? true
         SetToggle { checked: page.cfg?.tooltipHints ?? true; onToggled: v => page.cfg.tooltipHints = v }
+    }
+
+    SetSection { text: "Clock" }
+    SetRow {
+        label: "Style"
+        hint: "Pick a preset, or write your own format below"
+        SetSeg {
+            options: page.clockPresets.map(p => p.name).concat(["custom"])
+            current: page.presetFor(page.cfg?.clockFormat ?? "")
+            onPicked: v => { if (v !== "custom") page.cfg.clockFormat = page.clockPresets.find(p => p.name === v).fmt }
+        }
+    }
+    SetRow {
+        label: "Format"
+        hint: "HH hour  mm min  ss sec  ddd/dddd weekday  d/dd day  MMM/MMMM month  yy/yyyy year  AP am/pm  'text'"
+        wrapHint: true
+        SetTextField {
+            text: page.cfg?.clockFormat ?? ""
+            placeholder: "HH:mm"
+            onEdited: v => { if (v.trim() !== "") page.cfg.clockFormat = v }
+        }
+    }
+    SetRow {
+        label: "Preview"
+        Text {
+            text: Qt.formatDateTime(new Date(), page.cfg?.clockFormat ?? "HH:mm")
+            color: Theme.accent
+            font.family: Theme.fontFamily
+            font.pixelSize: 13
+            font.bold: true
+        }
     }
 
     SetSection { text: "Modules" }

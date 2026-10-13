@@ -8,9 +8,10 @@ Rectangle {
     property string hint: ""
     default property alias controls: ctl.data
     property real controlWidth: 0     // 0 = size to the controls
+    property bool wrapHint: false     // let a long hint use more lines instead of eliding
 
     width: parent ? parent.width : 0
-    height: hint !== "" ? 52 : 44
+    height: Math.max(hint !== "" ? 52 : 44, labels.implicitHeight + 24)
     radius: Theme.radius
     color: hover.hovered ? Theme.alpha(Theme.accent, 0.05) : "transparent"
     border.width: 1
@@ -20,6 +21,7 @@ Rectangle {
     HoverHandler { id: hover }
 
     Column {
+        id: labels
         anchors.left: parent.left
         anchors.leftMargin: 14
         anchors.right: ctl.left
@@ -43,7 +45,8 @@ Rectangle {
             color: Theme.textDim
             font.family: Theme.fontFamily
             font.pixelSize: 10
-            elide: Text.ElideRight
+            wrapMode: row.wrapHint ? Text.WordWrap : Text.NoWrap
+            elide: row.wrapHint ? Text.ElideNone : Text.ElideRight
         }
     }
 

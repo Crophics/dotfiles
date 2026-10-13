@@ -15,7 +15,7 @@ Scope {
     readonly property var defaults: ({
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
-        statsMode: "compact", showTemp: true, tooltips: true, tooltipHints: true,
+        statsMode: "compact", showTemp: true, clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
         hidden: "stats,wall,settings",
         startMods: "stats,ws",
         centerMods: "clock",
@@ -43,6 +43,7 @@ Scope {
             property real bgOpacity: root.defaults.bgOpacity
             property bool border: root.defaults.border
             property string statsMode: root.defaults.statsMode   // "default" | "compact"
+            property string clockFormat: root.defaults.clockFormat   // Qt date/time format (Settings > Bar > Clock)
             property bool showTemp: root.defaults.showTemp       // CPU temperature next to CPU / RAM
             property bool tooltips: root.defaults.tooltips
             property bool tooltipHints: root.defaults.tooltipHints // show "Left click: ..." lines in tooltips
@@ -995,14 +996,18 @@ Scope {
                     property bool calOpen: false
                     property int monthOffset: 0
 
-                    SystemClock { id: clk; precision: SystemClock.Minutes }
+                    // Tick every second only when the format shows seconds (letters outside 'quoted text').
+                    SystemClock {
+                        id: clk
+                        precision: /s/.test(cfg.clockFormat.replace(/'[^']*'/g, "")) ? SystemClock.Seconds : SystemClock.Minutes
+                    }
 
                     Component {
                         id: clockC
                         Mod {
                             bold: true
                             baseSize: root.sz.clock
-                            text: Qt.formatDateTime(clk.date, "HH:mm")
+                            text: Qt.formatDateTime(clk.date, cfg.clockFormat || "HH:mm")
                             vtext: Qt.formatDateTime(clk.date, "HH") + "\n" + Qt.formatDateTime(clk.date, "mm")
                             active: clockPanel.calOpen
                             tip: Qt.formatDate(clk.date, "dddd, d MMMM yyyy")
