@@ -52,3 +52,9 @@ output = "~/.config/zen/bscizgd2.Default (release)/user.js"
 [zen-palette]
 input  = "~/.config/43pr/templates/zen-palette.css"
 output = "~/.config/zen/bscizgd2.Default (release)/chrome/zen-palette.css"
+
+# VSCodium: the Material Code theme reads its colors from settings.json; the hook merges just those keys.
+[vscodium]
+input  = "~/.config/43pr/templates/vscodium-colors.json"
+output = "~/.cache/43pr/vscodium-colors.json"
+reload = ["python3", "/home/ryoku/.config/43pr/bin/vscodium-merge.py"]
