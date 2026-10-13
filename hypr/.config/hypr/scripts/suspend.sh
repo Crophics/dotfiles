@@ -5,7 +5,7 @@
 # turned on only for this sleep and restored afterwards.
 EC=/sys/module/acpi/parameters/ec_no_wakeup
 OK=/sys/power/suspend_stats/success
-pidof hyprlock >/dev/null || { hyprlock & sleep 1; }
+pidof hyprlock >/dev/null || { hyprlock & sleep 1.5; }
 [ -w "$EC" ] && echo 1 > "$EC"
 before=$(cat $OK)
 systemctl suspend   # returns before the machine actually sleeps
