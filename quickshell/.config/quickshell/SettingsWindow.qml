@@ -245,6 +245,7 @@ PanelWindow {
         { name: "Bar", icon: "󰕮", page: "BarPage" },
         { name: "Popups", icon: "󰍡", page: "PopupsPage" },
         { name: "Windows", icon: "󰖲", page: "WindowsPage" },
+        { name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
         { name: "Configs", icon: "󰧮",  page: "ConfigsPage" },
         { name: "Themes", icon: "󰉼",  page: "ThemesPage" }
     ]

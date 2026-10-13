@@ -1,0 +1,428 @@
+[
+ {
+  "id": "terminal",
+  "group": "Apps",
+  "label": "Terminal",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Return"
+ },
+ {
+  "id": "files",
+  "group": "Apps",
+  "label": "File manager",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "E"
+ },
+ {
+  "id": "browser",
+  "group": "Apps",
+  "label": "Browser",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "W"
+ },
+ {
+  "id": "spotify",
+  "group": "Apps",
+  "label": "Spotify",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "S"
+ },
+ {
+  "id": "code",
+  "group": "Apps",
+  "label": "VSCodium",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "C"
+ },
+ {
+  "id": "bitwarden",
+  "group": "Apps",
+  "label": "Bitwarden",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "B"
+ },
+ {
+  "id": "picker",
+  "group": "Apps",
+  "label": "Color picker",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "P"
+ },
+ {
+  "id": "taskmgr",
+  "group": "Apps",
+  "label": "Task manager",
+  "mods": [
+   "CTRL",
+   "SHIFT"
+  ],
+  "key": "Escape"
+ },
+ {
+  "id": "mixer",
+  "group": "Apps",
+  "label": "Volume mixer",
+  "mods": [
+   "CTRL",
+   "SUPER"
+  ],
+  "key": "V"
+ },
+ {
+  "id": "launcher",
+  "group": "Panels",
+  "label": "App launcher",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Space"
+ },
+ {
+  "id": "clipboard",
+  "group": "Panels",
+  "label": "Clipboard history",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "V"
+ },
+ {
+  "id": "powermenu",
+  "group": "Panels",
+  "label": "Power menu",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Escape"
+ },
+ {
+  "id": "settings",
+  "group": "Panels",
+  "label": "Settings",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "I"
+ },
+ {
+  "id": "notifications",
+  "group": "Panels",
+  "label": "Notifications",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "N"
+ },
+ {
+  "id": "togglebar",
+  "group": "Panels",
+  "label": "Toggle the bar",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "J"
+ },
+ {
+  "id": "wallpapers",
+  "group": "Panels",
+  "label": "Wallpaper picker",
+  "mods": [
+   "CTRL",
+   "SUPER"
+  ],
+  "key": "T"
+ },
+ {
+  "id": "windowsettings",
+  "group": "Panels",
+  "label": "Window settings",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "O"
+ },
+ {
+  "id": "popupsettings",
+  "group": "Panels",
+  "label": "Popup settings",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "M"
+ },
+ {
+  "id": "lock",
+  "group": "Session",
+  "label": "Lock screen",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "L"
+ },
+ {
+  "id": "suspend",
+  "group": "Session",
+  "label": "Lock and suspend",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "L"
+ },
+ {
+  "id": "close",
+  "group": "Windows",
+  "label": "Close window",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Q"
+ },
+ {
+  "id": "fullscreen",
+  "group": "Windows",
+  "label": "Fullscreen",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "F"
+ },
+ {
+  "id": "floatcenter",
+  "group": "Windows",
+  "label": "Float and center",
+  "mods": [
+   "SUPER",
+   "ALT"
+  ],
+  "key": "Space"
+ },
+ {
+  "id": "scratch-toggle",
+  "group": "Scratchpad",
+  "label": "Show or hide the scratchpad",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Grave"
+ },
+ {
+  "id": "scratch-send",
+  "group": "Scratchpad",
+  "label": "Send window to the scratchpad",
+  "mods": [
+   "SUPER",
+   "ALT"
+  ],
+  "key": "Up"
+ },
+ {
+  "id": "scratch-return",
+  "group": "Scratchpad",
+  "label": "Bring window back",
+  "mods": [
+   "SUPER",
+   "ALT"
+  ],
+  "key": "Down"
+ },
+ {
+  "id": "scratch-send-follow",
+  "group": "Scratchpad",
+  "label": "Send window and follow it",
+  "mods": [
+   "SUPER",
+   "CTRL",
+   "SHIFT"
+  ],
+  "key": "Up"
+ },
+ {
+  "id": "scratch-return-follow",
+  "group": "Scratchpad",
+  "label": "Bring back and follow it",
+  "mods": [
+   "SUPER",
+   "CTRL",
+   "SHIFT"
+  ],
+  "key": "Down"
+ },
+ {
+  "id": "focus-left",
+  "group": "Focus",
+  "label": "Focus left",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Left"
+ },
+ {
+  "id": "focus-down",
+  "group": "Focus",
+  "label": "Focus down",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Down"
+ },
+ {
+  "id": "focus-up",
+  "group": "Focus",
+  "label": "Focus up",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Up"
+ },
+ {
+  "id": "focus-right",
+  "group": "Focus",
+  "label": "Focus right",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Right"
+ },
+ {
+  "id": "move-left",
+  "group": "Move windows",
+  "label": "Move window left",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "Left"
+ },
+ {
+  "id": "move-down",
+  "group": "Move windows",
+  "label": "Move window down",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "Down"
+ },
+ {
+  "id": "move-up",
+  "group": "Move windows",
+  "label": "Move window up",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "Up"
+ },
+ {
+  "id": "move-right",
+  "group": "Move windows",
+  "label": "Move window right",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "Right"
+ },
+ {
+  "id": "resize-left",
+  "group": "Resize windows",
+  "label": "Make window narrower",
+  "mods": [
+   "SUPER",
+   "CTRL"
+  ],
+  "key": "Left"
+ },
+ {
+  "id": "resize-right",
+  "group": "Resize windows",
+  "label": "Make window wider",
+  "mods": [
+   "SUPER",
+   "CTRL"
+  ],
+  "key": "Right"
+ },
+ {
+  "id": "resize-up",
+  "group": "Resize windows",
+  "label": "Make window shorter",
+  "mods": [
+   "SUPER",
+   "CTRL"
+  ],
+  "key": "Up"
+ },
+ {
+  "id": "resize-down",
+  "group": "Resize windows",
+  "label": "Make window taller",
+  "mods": [
+   "SUPER",
+   "CTRL"
+  ],
+  "key": "Down"
+ },
+ {
+  "id": "ws-focus",
+  "group": "Workspaces",
+  "label": "Go to workspace (with keys 1 to 0)",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "1-0",
+  "modsOnly": true
+ },
+ {
+  "id": "ws-move",
+  "group": "Workspaces",
+  "label": "Send window to workspace (with keys 1 to 0)",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "1-0",
+  "modsOnly": true
+ },
+ {
+  "id": "shot-area",
+  "group": "Capture",
+  "label": "Screenshot, select area",
+  "mods": [],
+  "key": "Print"
+ },
+ {
+  "id": "shot-full",
+  "group": "Capture",
+  "label": "Screenshot, full screen",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "Print"
+ },
+ {
+  "id": "record",
+  "group": "Capture",
+  "label": "Start or stop screen recording",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "R"
+ }
+]
