@@ -371,8 +371,8 @@ Item {
                             },
                             {
                                 key: "pacman", label: "PACMAN CACHE", action: "CLEAN", title: "CLEAN PACMAN CACHE?",
-                                message: "paccache will remove old package versions while keeping the currently installed packages.",
-                                command: "pkexec paccache -r"
+                                message: "Keeps only the newest cached version of each package and removes packages that are no longer installed. Snapper snapshots still cover rollbacks.",
+                                command: "pkexec sh -c 'paccache -rk1; paccache -ruk0'"
                             },
                             {
                                 key: "journal", label: "JOURNAL", action: "7 DAYS", title: "VACUUM JOURNAL?",
