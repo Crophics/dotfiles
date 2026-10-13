@@ -7,6 +7,7 @@ EC=/sys/module/acpi/parameters/ec_no_wakeup
 OK=/sys/power/suspend_stats/success
 pidof hyprlock >/dev/null || { hyprlock & sleep 1.5; }
 [ -w "$EC" ] && echo 1 > "$EC"
+touch "${XDG_RUNTIME_DIR:-/tmp}/sleep-manual"   # deliberate suspend: always stay locked
 before=$(cat $OK)
 systemctl suspend   # returns before the machine actually sleeps
 # Wait for the sleep to finish. sleep() does not count time spent suspended,
