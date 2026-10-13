@@ -10,9 +10,6 @@ SetPage {
     readonly property var bar: Refs.bar
     readonly property var cfg: bar ? bar.config : null
 
-    // The location is applied once typing pauses, not on every key.
-    property string pendingLocation: ""
-    Timer { id: locationTimer; interval: 900; onTriggered: page.cfg.weatherLocation = page.pendingLocation }
 
     SetSection { text: "Layout" }
     SetRow {
@@ -90,33 +87,6 @@ SetPage {
             font.pixelSize: 13
             font.bold: true
         }
-    }
-
-    SetSection { text: "Weather" }
-    SetRow {
-        label: "Location"
-        hint: "A city name. Leave empty to use the place your connection is in (looked up by IP)"
-        wrapHint: true
-        SetTextField {
-            text: page.cfg?.weatherLocation ?? ""
-            placeholder: "Automatic"
-            onEdited: v => { page.pendingLocation = v.trim(); locationTimer.restart() }
-        }
-    }
-    SetRow {
-        label: "Units"
-        SetSeg {
-            options: ["metric", "imperial"]
-            current: page.cfg?.weatherUnits ?? "metric"
-            onPicked: v => page.cfg.weatherUnits = v
-        }
-    }
-    SetRow {
-        label: "Now"
-        hint: page.bar && page.bar.weather
-              ? page.bar.weather.city + ": " + page.bar.weather.temp + "°, feels like " + page.bar.weather.feels + "°"
-              : "No data yet"
-        SetButton { label: "Refresh"; onClicked: page.bar.refreshWeather() }
     }
 
     SetSection { text: "Modules" }

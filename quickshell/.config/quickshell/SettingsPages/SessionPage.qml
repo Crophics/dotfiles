@@ -14,6 +14,7 @@ SetPage {
     property int graceSec: 60
 
     readonly property string home: Quickshell.env("HOME")
+    readonly property var nt: Refs.notifications
 
     FileView {
         id: file
@@ -71,6 +72,44 @@ SetPage {
             displayText: value === 0 ? "Always lock" : value + " s"
             onMoved: v => page.graceSec = v
             onCommitted: page.commit()
+        }
+    }
+
+    SetSection { text: "Battery" }
+    SetRow {
+        label: "Low battery warning"
+        hint: "A notification when the charge falls to this level on battery"
+        SetSlider {
+            from: 10; to: 50; step: 5; unit: "%"
+            value: page.nt?.warnPct ?? 20
+            onMoved: v => {
+                page.nt.warnPct = v
+                if (page.nt.critPct > v) page.nt.critPct = v      // keep critical at or below the warning
+                page.nt.saveSettings()
+            }
+        }
+    }
+    SetRow {
+        label: "Critical warning"
+        hint: "A second, urgent notification"
+        SetSlider {
+            from: 5; to: 40; step: 5; unit: "%"
+            value: page.nt?.critPct ?? 15
+            onMoved: v => {
+                page.nt.critPct = Math.min(v, page.nt.warnPct)
+                if (page.nt.suspendPct > page.nt.critPct) page.nt.suspendPct = page.nt.critPct
+                page.nt.saveSettings()
+            }
+        }
+    }
+    SetRow {
+        label: "Suspend at"
+        hint: "Lock and sleep by itself to protect your work. Off by default"
+        SetSlider {
+            from: 0; to: 20; step: 1
+            value: page.nt?.suspendPct ?? 0
+            displayText: value === 0 ? "Off" : value + "%"
+            onMoved: v => { page.nt.suspendPct = Math.min(v, page.nt.critPct); page.nt.saveSettings() }
         }
     }
 

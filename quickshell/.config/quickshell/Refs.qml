@@ -9,5 +9,6 @@ QtObject {
     property var volumeOsd: null
     property var brightnessOsd: null
     property var powerMenu: null
+    property var notifications: null
     property var settings: null
 }

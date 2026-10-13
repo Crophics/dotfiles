@@ -6,7 +6,7 @@ ShellRoot {
     BrightnessOsd { id: brightnessOsd }
     ScreenshotOsd {}
     SettingsWindow { id: settingsWindow }
-    Notifications {}
+    Notifications { id: notifications }
     PowerMenu { id: powerMenu }
     Bar { id: bar }
     Wheel {}
@@ -17,6 +17,7 @@ ShellRoot {
         Refs.volumeOsd = volumeOsd
         Refs.brightnessOsd = brightnessOsd
         Refs.powerMenu = powerMenu
+        Refs.notifications = notifications
         Refs.settings = settingsWindow
     }
 

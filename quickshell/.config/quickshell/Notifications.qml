@@ -15,6 +15,11 @@ PanelWindow {
     property int maxHistory: 100
 
     property bool dnd: false
+
+    // Battery warnings (Settings > Session). suspendPct 0 = never suspend by itself.
+    property int warnPct: 20
+    property int critPct: 15
+    property int suspendPct: 0
     property bool panelOpen: false
     property bool stateReady: false
     property bool historyReady: false
@@ -155,6 +160,7 @@ PanelWindow {
         stateTimer.restart();
     }
     function toggleDnd() { dnd = !dnd; stateTimer.restart(); }
+    function saveSettings() { stateTimer.restart(); }
 
     function setPosition(x, y) {
         if (root.width <= 0 || root.height <= 0) {
@@ -193,6 +199,9 @@ PanelWindow {
             try {
                 const s = JSON.parse(text());
                 if (typeof s.dnd === "boolean") root.dnd = s.dnd;
+                if (typeof s.warnPct === "number") root.warnPct = Math.max(5, Math.min(50, Math.round(s.warnPct)));
+                if (typeof s.critPct === "number") root.critPct = Math.max(3, Math.min(40, Math.round(s.critPct)));
+                if (typeof s.suspendPct === "number") root.suspendPct = Math.max(0, Math.min(20, Math.round(s.suspendPct)));
                 if (typeof s.menuSize === "number") root.menuSize = Math.max(60, Math.min(200, Math.round(s.menuSize)));
                 if (typeof s.offsetX === "number") root.offsetX = s.offsetX;
                 if (typeof s.offsetY === "number") root.offsetY = s.offsetY;
@@ -206,6 +215,9 @@ PanelWindow {
         interval: 300
         onTriggered: if (root.stateReady) stateFile.setText(JSON.stringify({
             dnd: root.dnd,
+            warnPct: root.warnPct,
+            critPct: root.critPct,
+            suspendPct: root.suspendPct,
             menuSize: root.menuSize,
             offsetX: root.offsetX,
             offsetY: root.offsetY
@@ -269,6 +281,7 @@ PanelWindow {
     property real lastBat: -1
     property bool bat20: false
     property bool bat15: false
+    property bool batSus: false
 
     function notifyBat(urgency, icon, title, pct) {
         Quickshell.execDetached(["notify-send", "-a", "Battery", "-u", urgency, "-i", icon, title, "Battery is at " + Math.round(pct) + "%"]);
@@ -281,16 +294,26 @@ PanelWindow {
         if (!UPower.onBattery) {
             bat20 = false;
             bat15 = false;
+            batSus = false;
             lastBat = p;
             return;
         }
         if (lastBat < 0) { lastBat = p; return; }
 
-        if (p > 20) bat20 = false;
-        if (p > 15) bat15 = false;
+        // `p` is 0..1, the thresholds are percent. Each warning fires once, when the level crosses it.
+        const pct = p * 100, last = lastBat * 100;
+        if (pct > warnPct) bat20 = false;
+        if (pct > critPct) bat15 = false;
+        if (pct > suspendPct) batSus = false;
 
-        if (!bat20 && lastBat > 20 && p <= 20) { bat20 = true; notifyBat("normal", "battery-caution", "Battery Low", p); }
-        if (!bat15 && lastBat > 15 && p <= 15) { bat15 = true; notifyBat("critical", "battery-empty", "Battery Critical", p); }
+        if (!bat20 && last > warnPct && pct <= warnPct) { bat20 = true; notifyBat("normal", "battery-caution", "Battery Low", p * 100); }
+        if (!bat15 && last > critPct && pct <= critPct) { bat15 = true; notifyBat("critical", "battery-empty", "Battery Critical", p * 100); }
+        if (suspendPct > 0 && !batSus && last > suspendPct && pct <= suspendPct) {
+            batSus = true;
+            notifyBat("critical", "battery-empty", "Battery very low, suspending", p * 100);
+            // Give the notification a moment to show, then lock and sleep like Super+Shift+L.
+            Quickshell.execDetached(["sh", "-c", "sleep 8; ~/.config/hypr/scripts/suspend.sh"]);
+        }
         lastBat = p;
     }
 

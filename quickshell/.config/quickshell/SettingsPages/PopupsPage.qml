@@ -10,6 +10,7 @@ SetPage {
     readonly property var vol: Refs.volumeOsd ? Refs.volumeOsd.osd : null
     readonly property var bri: Refs.brightnessOsd
     readonly property var pm: Refs.powerMenu
+    readonly property var nt: Refs.notifications
 
     function seconds(ms) { return (ms / 1000).toFixed(1) + " s" }
 
@@ -70,6 +71,18 @@ SetPage {
     SetRow {
         label: "Preview"
         SetButton { label: "Show popup"; onClicked: page.bri.refresh() }
+    }
+
+    // ── Notifications ──
+    SetSection { text: "Notifications" }
+    SetRow {
+        label: "Do Not Disturb"
+        hint: "Hides notification popups. Critical ones still show. Right-click the bell in the bar does the same"
+        wrapHint: true
+        SetToggle {
+            checked: page.nt?.dnd ?? false
+            onToggled: v => { if (page.nt && v !== page.nt.dnd) page.nt.toggleDnd() }
+        }
     }
 
     // ── Power menu ──
