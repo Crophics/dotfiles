@@ -60,11 +60,6 @@ SetPage {
         SetToggle { checked: page.cfg?.border ?? false; onToggled: v => page.cfg.border = v }
     }
     SetRow {
-        label: "CPU temperature"
-        hint: "Shown between CPU and RAM"
-        SetToggle { checked: page.cfg?.showTemp ?? true; onToggled: v => page.cfg.showTemp = v }
-    }
-    SetRow {
         label: "Tooltips"
         SetToggle { checked: page.cfg?.tooltips ?? true; onToggled: v => page.cfg.tooltips = v }
     }

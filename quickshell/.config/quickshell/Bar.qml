@@ -15,7 +15,7 @@ Scope {
     readonly property var defaults: ({
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
-        statsMode: "compact", showTemp: true, weatherLocation: "", weatherUnits: "metric", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
+        statsMode: "compact", weatherLocation: "", weatherUnits: "metric", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
         hidden: "stats,wall,settings",
         startMods: "stats,ws",
         centerMods: "clock",
@@ -46,7 +46,6 @@ Scope {
             property string clockFormat: root.defaults.clockFormat   // Qt date/time format (Settings > Bar > Clock)
             property string weatherLocation: root.defaults.weatherLocation   // empty = from this connection's IP
             property string weatherUnits: root.defaults.weatherUnits         // "metric" | "imperial"
-            property bool showTemp: root.defaults.showTemp       // CPU temperature next to CPU / RAM
             property bool tooltips: root.defaults.tooltips
             property bool tooltipHints: root.defaults.tooltipHints // show "Left click: ..." lines in tooltips
             property string hidden: root.defaults.hidden         // comma list of disabled modules
@@ -750,7 +749,7 @@ Scope {
         id: statsC
         Lane {
             Repeater {
-                model: (cfg.showTemp && root.cpuTemp > 0) ? ["CPU", "TEMP", "RAM"] : ["CPU", "RAM"]
+                model: root.cpuTemp > 0 ? ["CPU", "TEMP", "RAM"] : ["CPU", "RAM"]   // temperature is part of the module; skipped only if no sensor
                 delegate: Mod {
                     required property string modelData
                     readonly property bool isCpu: modelData === "CPU"
