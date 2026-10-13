@@ -11,6 +11,7 @@ application/x-extension-xhtml=zen.desktop;
 application/x-extension-xht=zen.desktop;
 
 [Default Applications]
+x-scheme-handler/mailto=zen.desktop
 inode/directory=org.gnome.Nautilus.desktop
 text/plain=org.gnome.TextEditor.desktop;
 x-scheme-handler/http=zen.desktop
