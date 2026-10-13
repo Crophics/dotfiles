@@ -58,9 +58,3 @@ output = "~/.config/zen/bscizgd2.Default (release)/chrome/zen-palette.css"
 input  = "~/.config/43pr/templates/vscodium-colors.json"
 output = "~/.cache/43pr/vscodium-colors.json"
 reload = ["python3", "/home/ryoku/.config/43pr/bin/vscodium-merge.py"]
-
-# Spotify (Spicetify): the "text" theme with a color scheme generated from the palette.
-[spicetify]
-input  = "~/.config/43pr/templates/spicetify-color.ini"
-output = "~/.config/spicetify/Themes/text-43pr/color.ini"
-reload = ["/home/ryoku/.config/43pr/bin/spicetify-refresh.sh"]
