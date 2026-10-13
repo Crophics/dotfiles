@@ -34,3 +34,12 @@ reload = ["pkill", "-USR2", "-x", "btop"]
 input  = "~/.config/43pr/templates/cava-theme"
 output = "~/.config/cava/themes/43pr"
 reload = ["pkill", "-USR2", "-x", "cava"]
+
+# Neovim reads these two files (its ii_palette.lua loader and watcher), so no nvim config changes are needed.
+[nvim-colors]
+input  = "~/.config/43pr/templates/nvim-colors.json"
+output = "~/.local/state/quickshell/user/generated/colors.json"
+
+[nvim-terminal]
+input  = "~/.config/43pr/templates/kitty.conf"
+output = "~/.local/state/quickshell/user/generated/terminal/kitty-theme.conf"
