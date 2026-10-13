@@ -24,3 +24,13 @@ output = "~/.cache/43pr/quickshell-theme.json"
 [qt6ct]
 input  = "~/.config/43pr/templates/qt6ct-colors.conf"
 output = "~/.config/qt6ct/colors/43pr.conf"
+
+[btop]
+input  = "~/.config/43pr/templates/btop.theme"
+output = "~/.config/btop/themes/43pr.theme"
+reload = ["pkill", "-USR2", "-x", "btop"]
+
+[cava]
+input  = "~/.config/43pr/templates/cava-theme"
+output = "~/.config/cava/themes/43pr"
+reload = ["pkill", "-USR2", "-x", "cava"]

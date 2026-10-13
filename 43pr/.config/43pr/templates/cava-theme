@@ -1,0 +1,12 @@
+[color]
+foreground = '{{accent}}'
+
+gradient = 1
+gradient_color_1 = '{{selection_bg}}'
+gradient_color_2 = '{{accent}}'
+gradient_color_3 = '{{fg}}'
+
+horizontal_gradient = 0
+horizontal_gradient_color_1 = '{{selection_bg}}'
+horizontal_gradient_color_2 = '{{accent}}'
+horizontal_gradient_color_3 = '{{fg}}'

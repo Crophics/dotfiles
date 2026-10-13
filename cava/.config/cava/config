@@ -15,6 +15,7 @@ source = auto
 method = noncurses
 
 [color]
+theme = '43pr'
 gradient = 1
 gradient_color_1 = '#111111'
 gradient_color_2 = '#222222'
