@@ -6,6 +6,9 @@ import QtQuick
 import QtQuick.Effects
 
 Scope {
+    // Exposed so shell.qml can make this popup and the brightness popup replace each other.
+    property alias showing: root.showing
+    function dismiss() { root.dismiss() }
 
 PanelWindow {
     id: root
@@ -126,6 +129,12 @@ PanelWindow {
         settingsTab = tab
         hideTimer.restart()
         Qt.callLater(reposition)
+    }
+
+    // Hide the plain popup (used when the brightness popup takes its place).
+    function dismiss() {
+        if (!settingsOpen && !dragging)
+            showing = false
     }
 
     function closeAll() {

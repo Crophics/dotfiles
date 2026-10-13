@@ -13,7 +13,6 @@ Scope {
 
     property real level: 0
     property bool showing: false
-    property var queue: []
 
     readonly property int step: 5
     readonly property int timeout: 1200
@@ -30,30 +29,35 @@ Scope {
         hideTimer.restart()
     }
 
-    function run(args) {
-        if (proc.running) {
-            queue.push(args)
-            return
-        }
-        proc.command = args
+    // Key repeat can fire faster than brightnessctl returns. Instead of queueing one
+    // process per key press, add up the presses made meanwhile and apply them in one go.
+    property int pending: 0
+
+    function flush() {
+        if (proc.running || pending === 0) return
+        var n = pending
+        pending = 0
+        proc.command = ["brightnessctl", "-m", "-n", "set", (Math.abs(n) * step) + "%" + (n > 0 ? "+" : "-")]
         proc.running = true
     }
 
-    function adjust(arg) { run(["brightnessctl", "-m", "-n", "set", arg]) }
-    function refresh() { run(["brightnessctl", "-m"]) }
+    function adjust(dir) {
+        pending += dir
+        flush()
+    }
+
+    function refresh() {
+        if (proc.running) return
+        proc.command = ["brightnessctl", "-m"]
+        proc.running = true
+    }
 
     Process {
         id: proc
         stdout: StdioCollector {
             onStreamFinished: root.parse(text)
         }
-        onExited: {
-            if (root.queue.length > 0) {
-                var next = root.queue.shift()
-                proc.command = next
-                proc.running = true
-            }
-        }
+        onExited: root.flush()
     }
 
     Timer {
@@ -64,8 +68,8 @@ Scope {
 
     IpcHandler {
         target: "brightness"
-        function up(): void { root.adjust(root.step + "%+") }
-        function down(): void { root.adjust(root.step + "%-") }
+        function up(): void { root.adjust(1) }
+        function down(): void { root.adjust(-1) }
         function show(): void { root.refresh() }
     }
 
