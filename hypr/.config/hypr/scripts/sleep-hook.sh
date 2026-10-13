@@ -1,28 +1,30 @@
 #!/usr/bin/env bash
-# hypridle sleep hooks. `before`: lock so the lock screen is up when waking.
-# `after`: if the lid was closed and reopened within GRACE seconds, unlock again
-# (no lock for a quick close/open). Skipped when the screen was already locked
-# or the suspend was started on purpose (suspend.sh touches the manual marker).
+# hypridle sleep hooks for lid-close / system-started sleep.
+# before: keep the screen blank, so the wake never shows the desktop first.
+# after:  lid reopened within GRACE seconds -> just show the desktop (no lock);
+#         longer -> lock first, then turn the screen on. Skipped locking when the
+#         screen was already locked or the suspend was deliberate (suspend.sh
+#         locks itself and touches the sleep-manual marker).
 GRACE=60
 D=${XDG_RUNTIME_DIR:-/tmp}
+dpms() { hyprctl dispatch "hl.dsp.dpms({action=\"$1\"})" >/dev/null; }
 case "$1" in
 before)
     date +%s > "$D/sleep-start"
-    if pidof hyprlock >/dev/null; then touch "$D/sleep-keep-locked"; else rm -f "$D/sleep-keep-locked"; fi
-    loginctl lock-session
-    sleep 1
+    pidof hyprlock >/dev/null && touch "$D/sleep-keep-locked" || rm -f "$D/sleep-keep-locked"
+    # Locked before sleeping when the stay-away time is unknown to us would flash
+    # the desktop on wake; instead lock on wake (below). Blank the screen now.
+    dpms off
     ;;
 after)
     start=$(cat "$D/sleep-start" 2>/dev/null || echo 0)
     if [ -e "$D/sleep-manual" ] || [ -e "$D/sleep-keep-locked" ]; then
-        rm -f "$D/sleep-manual" "$D/sleep-keep-locked"; exit 0
+        rm -f "$D/sleep-manual" "$D/sleep-keep-locked"
+    elif [ $(( $(date +%s) - start )) -ge "$GRACE" ]; then
+        pidof hyprlock >/dev/null || { hyprlock & }
+        for _ in $(seq 20); do pidof hyprlock >/dev/null && break; sleep 0.1; done
+        sleep 0.6   # let the lock surface draw before the screen comes back
     fi
-    if [ $(( $(date +%s) - start )) -lt "$GRACE" ]; then
-        for _ in 1 2 3 4 5 6 7 8 9 10; do
-            pidof hyprlock >/dev/null || break
-            pkill -USR1 -x hyprlock
-            sleep 0.3
-        done
-    fi
+    dpms on
     ;;
 esac
