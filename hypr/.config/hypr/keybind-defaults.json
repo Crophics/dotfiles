@@ -156,16 +156,6 @@
   "key": "O"
  },
  {
-  "id": "windowsettings",
-  "group": "Panels",
-  "label": "Window settings (Settings > Windows)",
-  "mods": [
-   "SUPER",
-   "SHIFT"
-  ],
-  "key": "O"
- },
- {
   "id": "popupsettings",
   "group": "Panels",
   "label": "Popup settings",

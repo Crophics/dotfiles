@@ -17,7 +17,6 @@ return {
     { id = "togglebar", mods = {"SUPER"}, key = "J", enabled = true },
     { id = "wallpapers", mods = {"CTRL", "SUPER"}, key = "T", enabled = true },
     { id = "opacity", mods = {"SUPER"}, key = "O", enabled = true },
-    { id = "windowsettings", mods = {"SUPER", "SHIFT"}, key = "O", enabled = true },
     { id = "popupsettings", mods = {"SUPER", "SHIFT"}, key = "M", enabled = true },
     { id = "lock", mods = {"SUPER"}, key = "L", enabled = true },
     { id = "suspend", mods = {"SUPER", "SHIFT"}, key = "L", enabled = true },
