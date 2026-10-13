@@ -147,11 +147,21 @@
   "key": "T"
  },
  {
-  "id": "windowsettings",
+  "id": "opacity",
   "group": "Panels",
-  "label": "Window settings",
+  "label": "Window opacity menu",
   "mods": [
    "SUPER"
+  ],
+  "key": "O"
+ },
+ {
+  "id": "windowsettings",
+  "group": "Panels",
+  "label": "Window settings (Settings > Windows)",
+  "mods": [
+   "SUPER",
+   "SHIFT"
   ],
   "key": "O"
  },
