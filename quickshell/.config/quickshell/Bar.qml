@@ -15,7 +15,7 @@ Scope {
     readonly property var defaults: ({
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
-        statsMode: "compact", tooltips: true, tooltipHints: true,
+        statsMode: "compact", showTemp: true, tooltips: true, tooltipHints: true,
         hidden: "stats,wall,settings",
         startMods: "stats,ws",
         centerMods: "clock",
@@ -43,6 +43,7 @@ Scope {
             property real bgOpacity: root.defaults.bgOpacity
             property bool border: root.defaults.border
             property string statsMode: root.defaults.statsMode   // "default" | "compact"
+            property bool showTemp: root.defaults.showTemp       // CPU temperature next to CPU / RAM
             property bool tooltips: root.defaults.tooltips
             property bool tooltipHints: root.defaults.tooltipHints // show "Left click: ..." lines in tooltips
             property string hidden: root.defaults.hidden         // comma list of disabled modules
@@ -238,6 +239,7 @@ Scope {
     property int memPercent: 0
     property real memUsedG: 0
     property real memTotalG: 0
+    property int cpuTemp: 0          // package temperature in °C (0 = unknown)
     property string netState: "disconnected"
     property real _prevTotal: 0
     property real _prevIdle: 0
@@ -274,6 +276,22 @@ Scope {
         }
     }
 
+    // CPU package temperature. The hwmon number changes between boots, so look up the
+    // "coretemp" sensor once and read its first input (millidegrees) from then on.
+    Process {
+        id: tempFinder
+        running: true
+        command: ["sh", "-c", "for h in /sys/class/hwmon/hwmon*; do [ \"$(cat $h/name 2>/dev/null)\" = coretemp ] && echo $h/temp1_input && break; done"]
+        stdout: StdioCollector {
+            onStreamFinished: if (text.trim() !== "") tempFile.path = text.trim()
+        }
+    }
+    FileView {
+        id: tempFile
+        printErrors: false
+        onLoaded: root.cpuTemp = Math.round(Number(text()) / 1000)
+    }
+
     // Notification count: the notifications panel persists its history here
     property int notifCount: 0
     readonly property string notifTip: notifCount > 0 ? "Notifications: " + notifCount : "No notifications"
@@ -308,7 +326,7 @@ Scope {
 
     Timer {
         interval: 2000; running: root.barVisible; repeat: true; triggeredOnStart: true
-        onTriggered: { statFile.reload(); memFile.reload(); }
+        onTriggered: { statFile.reload(); memFile.reload(); if (tempFile.path !== "") tempFile.reload(); }
     }
     Timer {
         interval: 10000; running: root.barVisible; repeat: true; triggeredOnStart: true
@@ -685,23 +703,26 @@ Scope {
         id: statsC
         Lane {
             Repeater {
-                model: ["CPU", "RAM"]
+                model: (cfg.showTemp && root.cpuTemp > 0) ? ["CPU", "TEMP", "RAM"] : ["CPU", "RAM"]
                 delegate: Mod {
                     required property string modelData
                     readonly property bool isCpu: modelData === "CPU"
+                    readonly property bool isTemp: modelData === "TEMP"
                     readonly property bool compact: cfg.statsMode === "compact"
-                    readonly property int val: isCpu ? root.cpuUsage : root.memPercent
+                    readonly property int val: isCpu ? root.cpuUsage : isTemp ? root.cpuTemp : root.memPercent
+                    readonly property string unit: isTemp ? "°" : "%"
 
                     baseSize: root.sz.stat
                     glyphSize: root.sz.stat + 2
-                    glyph: compact ? (isCpu ? "\uDB81\uDE1A" : "\uDB80\uDF5B") : ""
-                    text: compact ? val + "%" : modelData + " " + val + "%"
+                    glyph: compact ? (isCpu ? "\uDB81\uDE1A" : isTemp ? "\uDB81\uDD0F" : "\uDB80\uDF5B") : ""
+                    text: compact ? val + unit : modelData + " " + val + unit
                     spacing: compact ? 4 : root.sizeIconGap
                     padX: compact ? 12 : 20
 
                     interactive: false
                     warning: val >= 85
                     tip: isCpu ? "CPU usage: " + val + "%"
+                         : isTemp ? "CPU temperature: " + val + " °C"
                                : "Memory: " + root.memUsedG.toFixed(1) + " / " + root.memTotalG.toFixed(1)
                                  + " GiB (" + val + "%)"
                 }
