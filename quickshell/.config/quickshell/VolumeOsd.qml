@@ -26,191 +26,35 @@ PanelWindow {
 
     readonly property var numSpec: ({
         osdScale:      { min: 70,   max: 160,   def: 100,  step: 10,  unit: "%" },
-        mediaWidth:    { min: 300,  max: 600,   def: 420,  step: 20,  unit: "px" },
-        portraitWidth: { min: 200,  max: 400,   def: 260,  step: 20,  unit: "px" },
         flyoutWidth:   { min: 200,  max: 500,   def: 320,  step: 20,  unit: "px" },
-        barCount:      { min: 8,    max: 48,    def: 24,   step: 4,   unit: "" },
-        barRadius:     { min: 0,    max: 20,    def: 20,   step: 2,   unit: "px", full: true },
-        mediaTimeout:  { min: 1000, max: 10000, def: 3000, step: 500, unit: "s" },
         volTimeout:    { min: 600,  max: 5000,  def: 1200, step: 200, unit: "s" }
     })
     readonly property var numKeys: Object.keys(numSpec)
 
-    readonly property var boolDefaults: ({
-        showVisualizer: true,
-        trackChangeOsd: true,
-        showArt: true,
-        musicOnly: true,
-        artistBelow: false,
-        portrait: true
-    })
+    readonly property var boolDefaults: ({})
     readonly property var boolKeys: Object.keys(boolDefaults)
 
-    readonly property var posKeys: ["offsetX", "offsetY", "volOffsetX", "volOffsetY"]
+    readonly property var posKeys: ["volOffsetX", "volOffsetY"]
 
-    property real offsetX: 0
-    property real offsetY: 0
     property real volOffsetX: 0
     property real volOffsetY: 0
 
     property int osdScale: numSpec.osdScale.def
-    property int mediaWidth: numSpec.mediaWidth.def
-    property int portraitWidth: numSpec.portraitWidth.def
     property int flyoutWidth: numSpec.flyoutWidth.def
-    property int barCount: numSpec.barCount.def
-    property int barRadius: numSpec.barRadius.def
-    property int mediaTimeout: numSpec.mediaTimeout.def
     property int volTimeout: numSpec.volTimeout.def
 
-    property bool showVisualizer: boolDefaults.showVisualizer
-    property bool trackChangeOsd: boolDefaults.trackChangeOsd
-    property bool showArt: boolDefaults.showArt
-    property bool musicOnly: boolDefaults.musicOnly
-    property bool artistBelow: boolDefaults.artistBelow
-    property bool portrait: boolDefaults.portrait
-
     readonly property real scaleFactor: osdScale / 100
-    readonly property real curX: showMedia ? offsetX : volOffsetX
-    readonly property real curY: showMedia ? offsetY : volOffsetY
+    readonly property real curX: volOffsetX
+    readonly property real curY: volOffsetY
 
-    readonly property bool mediaMoved: offsetX !== 0 || offsetY !== 0
     readonly property bool volumeMoved: volOffsetX !== 0 || volOffsetY !== 0
 
-    readonly property bool movedFromDefault: mediaMoved || volumeMoved
+    readonly property bool movedFromDefault: volumeMoved
         || osdScale !== numSpec.osdScale.def
-        || mediaWidth !== numSpec.mediaWidth.def
-        || portraitWidth !== numSpec.portraitWidth.def
         || flyoutWidth !== numSpec.flyoutWidth.def
-        || barCount !== numSpec.barCount.def
-        || barRadius !== numSpec.barRadius.def
-        || mediaTimeout !== numSpec.mediaTimeout.def
         || volTimeout !== numSpec.volTimeout.def
-        || showVisualizer !== boolDefaults.showVisualizer
-        || trackChangeOsd !== boolDefaults.trackChangeOsd
-        || showArt !== boolDefaults.showArt
-        || musicOnly !== boolDefaults.musicOnly
-        || artistBelow !== boolDefaults.artistBelow
-        || portrait !== boolDefaults.portrait
 
     readonly property string statePath: Quickshell.env("HOME") + "/.config/quickshell/state/mediaosd-state.json"
-
-    readonly property var musicPlayers: [
-        "spotify", "spotifyd", "spotify_player", "spotify-launcher", "mpd", "mopidy", "cmus",
-        "rhythmbox", "strawberry", "amberol", "lollypop", "deadbeef", "audacious",
-        "quodlibet", "clementine", "elisa", "youtube-music", "ncspot"
-    ]
-    readonly property var browserPlayers: [
-        "firefox", "librewolf", "zen", "chromium", "chrome", "google-chrome", "brave",
-        "vivaldi", "opera", "edge", "microsoft-edge", "plasma-browser-integration"
-    ]
-    readonly property var musicSites: [
-        "music.youtube.com", "open.spotify.com", "soundcloud.com", "bandcamp.com",
-        "music.apple.com", "tidal.com", "deezer.com", "music.amazon.", "pandora.com",
-        "qobuz.com", "listen.tidal.com", "radio.", "last.fm"
-    ]
-
-    function isMusic(p) {
-        var name = p.player.split(".")[0].toLowerCase()
-        if (musicPlayers.indexOf(name) >= 0)
-            return true
-        if (browserPlayers.indexOf(name) < 0)
-            return false
-        if (p.album !== "")
-            return true
-        var u = p.url.toLowerCase()
-        return musicSites.some(function (s) { return u.indexOf(s) >= 0 })
-    }
-
-    readonly property string playerFormat:
-        "{{playerName}}\t{{status}}\t{{title}}\t{{artist}}\t{{album}}\t{{position}}\t{{mpris:length}}\t{{mpris:artUrl}}\t{{xesam:url}}"
-
-    function parsePlayer(line) {
-        if (!line)
-            return null
-        var f = line.split("\t")
-        if (f.length < 3)
-            return null
-        while (f.length < 9)
-            f.push("")
-        var p = {
-            player: f[0],
-            status: f[1],
-            title: f[2],
-            artist: f[3],
-            album: f[4],
-            position: parseFloat(f[5]) || 0,
-            length: parseFloat(f[6]) || 0,
-            art: f[7],
-            url: f[8]
-        }
-        p.music = isMusic(p)
-        return p
-    }
-
-    function ctl(cmd) {
-        var c = ["playerctl"]
-        if (player !== "")
-            c.push("--player=" + player)
-        c.push(cmd)
-        Quickshell.execDetached(c)
-    }
-
-    function mediaCmd(cmd) {
-        ctl(cmd)
-        hideTimer.restart()
-    }
-
-    property string title: ""
-    property string artist: ""
-    property string status: "Stopped"
-    property string artUrl: ""
-    property string player: ""
-    property real position: 0
-    property real length: 0
-
-    readonly property bool playing: status === "Playing"
-    readonly property real progress: length > 0 ? Math.min(position / length, 1) : 0
-
-    function applyPlayer(p, withTiming) {
-        player = p.player
-        status = p.status
-        title = p.title
-        artist = p.artist
-        artUrl = p.art
-        if (withTiming) {
-            position = p.position
-            length = p.length
-        }
-    }
-
-    function clearPlayer() {
-        status = "Stopped"
-        title = ""
-        artist = ""
-        artUrl = ""
-        player = ""
-        position = 0
-        length = 0
-    }
-
-    function pickPlayer(text) {
-        var lines = text.trim().split("\n")
-        var pool = []
-
-        for (var i = 0; i < lines.length; i++) {
-            var p = parsePlayer(lines[i])
-            if (!p || (musicOnly && !p.music))
-                continue
-            pool.push(p)
-        }
-
-        return pool.find(function (p) { return p.status === "Playing" }) ?? pool[0] ?? null
-    }
-
-    function updateMedia() {
-        if (!mediaProcess.running)
-            mediaProcess.running = true
-    }
 
     PwObjectTracker { objects: [Pipewire.defaultAudioSink] }
 
@@ -226,15 +70,12 @@ PanelWindow {
 
     property bool ready: false
     property bool showing: false
-    property bool showMedia: false
-    property bool pendingShow: false
     property bool settingsOpen: false
-    property string settingsTab: "media"
+    property string settingsTab: "volume"
     property bool dragging: false
-    property bool pinned: false
-    readonly property bool hovered: flyoutHover.hovered || mediaHover.hovered || toolsHover.hovered
+    readonly property bool hovered: flyoutHover.hovered || toolsHover.hovered
 
-    readonly property Item activeCard: showMedia ? mediaPanel : flyout
+    readonly property Item activeCard: flyout
 
     Timer {
         interval: 2000
@@ -244,9 +85,9 @@ PanelWindow {
 
     Timer {
         id: hideTimer
-        interval: root.showMedia ? root.mediaTimeout : root.volTimeout
+        interval: root.volTimeout
         onTriggered: {
-            if (root.hovered || root.settingsOpen || root.dragging || (root.showMedia && root.pinned))
+            if (root.hovered || root.settingsOpen || root.dragging)
                 hideTimer.restart()
             else
                 root.showing = false
@@ -256,33 +97,13 @@ PanelWindow {
     function triggerOsd() {
         if (!ready)
             return
-        if (showing) {
-            hideTimer.restart()
-            return
-        }
-        pendingShow = true
-        updateMedia()
-    }
-
-    function showMediaOsd() {
-        pendingShow = false
-        showMedia = true
         showing = true
         hideTimer.restart()
-        updateMedia()
-    }
-
-    function triggerMediaOsd() {
-        if (ready && !(settingsOpen && settingsTab === "volume"))
-            showMediaOsd()
     }
 
     function openSettings() {
-        var volumeTab = showing && !showMedia
-        pendingShow = false
-        settingsTab = volumeTab ? "volume" : "media"
+        settingsTab = "volume"
         settingsOpen = true
-        showMedia = !volumeTab
         showing = true
         hideTimer.restart()
         Qt.callLater(reposition)
@@ -303,17 +124,8 @@ PanelWindow {
 
     function setSettingsTab(tab) {
         settingsTab = tab
-        if (tab === "media")
-            showMedia = true
-        else if (tab === "volume")
-            showMedia = false
         hideTimer.restart()
         Qt.callLater(reposition)
-    }
-
-    function togglePinned() {
-        pinned = !pinned
-        hideTimer.restart()
     }
 
     function closeAll() {
@@ -322,34 +134,15 @@ PanelWindow {
         showing = false
     }
 
-    function finishPendingShow() {
-        if (!pendingShow)
-            return
-        pendingShow = false
-        showMedia = playing
-        showing = true
-        hideTimer.restart()
-    }
-
     onShowingChanged: {
         if (!showing) {
-            showMedia = false
             settingsOpen = false
             dragging = false
-            pinned = false
         }
-    }
-
-    onShowMediaChanged: {
-        if (showMedia)
-            updateMedia()
-        else
-            bars = []
     }
 
     IpcHandler {
         target: "mediaosd"
-        function media(): void { root.triggerMediaOsd() }
         function settings(): void { root.openSettings() }
         function hide(): void { root.closeAll() }
     }
@@ -379,28 +172,18 @@ PanelWindow {
             nx = Math.max(minX, Math.min(maxX, x))
             ny = Math.max(minY, Math.min(maxY, y))
         }
-        if (showMedia) {
-            offsetX = nx
-            offsetY = ny
-        } else {
-            volOffsetX = nx
-            volOffsetY = ny
-        }
+        volOffsetX = nx
+        volOffsetY = ny
     }
 
-    function resetPos(media) {
-        if (media) {
-            offsetX = 0
-            offsetY = 0
-        } else {
-            volOffsetX = 0
-            volOffsetY = 0
-        }
+    function resetPos() {
+        volOffsetX = 0
+        volOffsetY = 0
         saveState()
     }
 
     function resetPosition() {
-        resetPos(showMedia)
+        resetPos()
     }
 
     function reposition() {
@@ -409,10 +192,7 @@ PanelWindow {
     }
 
     onOsdScaleChanged: reposition()
-    onMediaWidthChanged: reposition()
     onFlyoutWidthChanged: reposition()
-    onPortraitChanged: reposition()
-    onPortraitWidthChanged: reposition()
 
     function setNumber(key, v) {
         var s = numSpec[key]
@@ -473,109 +253,6 @@ PanelWindow {
         }
     }
 
-    Process {
-        id: mediaProcess
-
-        command: ["playerctl", "--all-players", "metadata", "--format", root.playerFormat]
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var pick = root.pickPlayer(this.text)
-                if (pick)
-                    root.applyPlayer(pick, true)
-                else
-                    root.clearPlayer()
-                root.finishPendingShow()
-            }
-        }
-    }
-
-    Process {
-        id: playerEventProcess
-
-        command: ["playerctl", "--all-players", "--follow", "metadata", "--format", root.playerFormat]
-        running: true
-
-        stdout: SplitParser {
-            onRead: data => {
-                var p = root.parsePlayer(data.trim())
-                if (!p || (root.musicOnly && !p.music))
-                    return
-
-                var trackChanged = p.title !== root.title || p.artist !== root.artist
-                root.applyPlayer(p, false)
-
-                if (root.ready && root.trackChangeOsd && trackChanged
-                        && p.title !== "" && p.status === "Playing")
-                    root.triggerMediaOsd()
-
-                if (root.ready)
-                    root.updateMedia()
-            }
-        }
-    }
-
-    Timer {
-        interval: 500
-        repeat: true
-        running: root.showing && root.showMedia
-        onTriggered: root.updateMedia()
-    }
-
-    Timer {
-        interval: 250
-        repeat: true
-        running: root.playing && root.showing && root.showMedia
-        onTriggered: {
-            if (root.length > 0)
-                root.position = Math.min(root.position + 250000, root.length)
-        }
-    }
-
-    property var bars: []
-    property bool cavaPaused: false
-
-    Timer {
-        id: cavaResume
-        interval: 350
-        onTriggered: root.cavaPaused = false
-    }
-
-    onBarCountChanged: {
-        if (cavaProcess.running) {
-            cavaPaused = true
-            cavaResume.restart()
-        }
-    }
-
-    Process {
-        id: cavaProcess
-
-        running: root.showing && root.showMedia && root.showVisualizer && !root.cavaPaused
-
-        command: [
-            "sh", "-c",
-            "printf '%s\\n' " +
-            "'[general]' 'bars = " + root.barCount + "' 'framerate = 30' " +
-            "'[input]' 'method = pipewire' " +
-            "'[output]' 'method = raw' 'raw_target = /dev/stdout' " +
-            "'data_format = ascii' 'ascii_max_range = 100' " +
-            "'bar_delimiter = 59' 'frame_delimiter = 10' " +
-            "> /tmp/quickshell-cava.conf && exec cava -p /tmp/quickshell-cava.conf"
-        ]
-
-        stdout: SplitParser {
-            onRead: data => {
-                var parts = data.split(";")
-                var n = root.barCount
-                var out = new Array(n)
-                for (var i = 0; i < n; i++)
-                    out[i] = parseInt(parts[i]) || 0
-                root.bars = out
-            }
-        }
-    }
-
     Item {
         id: scene
         anchors.fill: parent
@@ -593,7 +270,7 @@ PanelWindow {
             host: root
             xOffset: root.volOffsetX
             yOffset: root.volOffsetY
-            open: root.showing && !root.showMedia
+            open: root.showing
             width: root.flyoutWidth
             height: 28
             radius: 36
@@ -654,207 +331,6 @@ PanelWindow {
             }
         }
 
-        OsdCard {
-            id: mediaPanel
-            host: root
-            xOffset: root.offsetX
-            yOffset: root.offsetY
-            open: root.showing && root.showMedia
-            width: root.portrait ? root.portraitWidth : root.mediaWidth
-            height: mediaCol.height + 28
-            radius: 24
-
-            readonly property bool artShown: root.showArt
-                && root.artUrl !== "" && artImg.status !== Image.Error
-
-            onHeightChanged: root.reposition()
-
-            HoverHandler {
-                id: mediaHover
-                enabled: mediaPanel.open
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                enabled: mediaPanel.open
-            }
-
-            Column {
-                id: mediaCol
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.topMargin: 14
-                anchors.leftMargin: root.portrait ? 20 : 25
-                anchors.rightMargin: root.portrait ? 20 : 25
-                spacing: 6
-
-                Item {
-                    id: topBlock
-                    width: parent.width
-                    readonly property real artSize: mediaPanel.artShown ? (root.portrait ? width : 52) : 0
-                    height: root.portrait
-                        ? artSize + (artSize > 0 ? 8 : 0) + textCol.height
-                        : Math.max(artSize, textCol.height)
-
-                    Item {
-                        visible: mediaPanel.artShown
-                        width: topBlock.artSize
-                        height: topBlock.artSize
-
-                        Image {
-                            id: artImg
-                            anchors.fill: parent
-                            source: root.showArt ? root.artUrl : ""
-                            sourceSize: Qt.size(400, 400)
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            smooth: true
-                            visible: false
-                        }
-
-                        Rectangle {
-                            id: artMask
-                            anchors.fill: parent
-                            radius: root.portrait ? 16 : 10
-                            visible: false
-                            layer.enabled: true
-                        }
-
-                        MultiEffect {
-                            anchors.fill: parent
-                            source: artImg
-                            maskEnabled: true
-                            maskSource: artMask
-                        }
-                    }
-
-                    Column {
-                        id: textCol
-                        readonly property bool sameLine: !root.portrait && !root.artistBelow
-                        x: root.portrait ? 0 : (topBlock.artSize > 0 ? topBlock.artSize + 12 : 0)
-                        y: root.portrait
-                            ? (topBlock.artSize > 0 ? topBlock.artSize + 8 : 0)
-                            : (topBlock.height - height) / 2
-                        width: topBlock.width - x
-                        spacing: 2
-
-                        Item {
-                            width: parent.width
-                            height: titleText.implicitHeight
-
-                            Text {
-                                id: titleText
-                                width: textCol.sameLine ? parent.width / 2 - 5 : parent.width
-                                text: root.title || "Nothing playing"
-                                horizontalAlignment: root.portrait ? Text.AlignHCenter : Text.AlignLeft
-                                elide: Text.ElideRight
-                                font.pixelSize: 13
-                                font.bold: true
-                                color: Theme.text
-                            }
-                            Text {
-                                visible: textCol.sameLine
-                                anchors.right: parent.right
-                                width: parent.width / 2 - 5
-                                text: root.artist || "No artist"
-                                horizontalAlignment: Text.AlignRight
-                                elide: Text.ElideLeft
-                                font.pixelSize: 11
-                                color: Theme.text
-                                opacity: 0.65
-                            }
-                        }
-
-                        Text {
-                            visible: !textCol.sameLine
-                            width: parent.width
-                            text: root.artist || "No artist"
-                            horizontalAlignment: root.portrait ? Text.AlignHCenter : Text.AlignLeft
-                            elide: Text.ElideRight
-                            font.pixelSize: 11
-                            color: Theme.text
-                            opacity: 0.65
-                        }
-                    }
-                }
-
-                Item {
-                    id: visualizer
-                    visible: root.showVisualizer
-                    width: parent.width
-                    height: 20
-                    readonly property real barSpacing: 3
-                    readonly property real barWidth: (width - barSpacing * (root.barCount - 1)) / root.barCount
-
-                    Repeater {
-                        model: root.barCount
-                        Rectangle {
-                            required property int index
-                            x: index * (visualizer.barWidth + visualizer.barSpacing)
-                            width: visualizer.barWidth
-                            radius: Math.min(root.barRadius, width / 2)
-                            color: Theme.text
-                            opacity: ((index + 0.5) / root.barCount) <= root.progress ? 0.9 : 0.3
-                            height: Math.max(3, ((root.bars[index] ?? 0) / 100) * visualizer.height)
-                            y: visualizer.height - height
-                            Behavior on height { NumberAnimation { duration: 60 } }
-                            Behavior on opacity { NumberAnimation { duration: 200 } }
-                        }
-                    }
-                }
-
-                Item {
-                    visible: !root.showVisualizer
-                    width: parent.width
-                    height: 20
-
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width
-                        height: 4
-                        radius: Math.min(root.barRadius, 2)
-                        color: Theme.text
-                        opacity: 0.3
-                    }
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width * root.progress
-                        height: 4
-                        radius: Math.min(root.barRadius, 2)
-                        color: Theme.text
-                        opacity: 0.9
-                    }
-                }
-
-                Item {
-                    width: parent.width
-                    height: 26
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 28
-
-                        GlyphButton {
-                            text: "󰒮"
-                            font.pixelSize: 19
-                            onClicked: root.mediaCmd("previous")
-                        }
-                        GlyphButton {
-                            text: root.playing ? "󰏤" : "󰐊"
-                            font.pixelSize: 21
-                            onClicked: root.mediaCmd("play-pause")
-                        }
-                        GlyphButton {
-                            text: "󰒭"
-                            font.pixelSize: 19
-                            onClicked: root.mediaCmd("next")
-                        }
-                    }
-                }
-            }
-        }
-
         Item {
             id: tools
             width: root.activeCard.width
@@ -893,20 +369,6 @@ PanelWindow {
                     host: root
                     scene: scene
                 }
-            }
-
-            FooterButton {
-                visible: root.showMedia
-                anchors.right: settingsButton.left
-                anchors.rightMargin: 8
-                anchors.verticalCenter: parent.verticalCenter
-                width: 18; height: 18
-                color: "transparent"
-                label: "\uDB81\uDC03"
-                fontSize: 13
-                active: root.pinned
-                opacity: (hovered || root.pinned) ? 1 : 0.7
-                onClicked: root.togglePinned()
             }
 
             FooterButton {
@@ -1015,19 +477,13 @@ PanelWindow {
                         anchors.margins: 4
 
                         TabButton {
-                            width: parent.width / 3
-                            label: "Media"
-                            selected: root.settingsTab === "media"
-                            onClicked: root.setSettingsTab("media")
-                        }
-                        TabButton {
-                            width: parent.width / 3
+                            width: parent.width / 2
                             label: "Volume"
                             selected: root.settingsTab === "volume"
                             onClicked: root.setSettingsTab("volume")
                         }
                         TabButton {
-                            width: parent.width / 3
+                            width: parent.width / 2
                             label: "General"
                             selected: root.settingsTab === "general"
                             onClicked: root.setSettingsTab("general")
@@ -1047,11 +503,9 @@ PanelWindow {
                     elide: Text.ElideRight
                     font.pixelSize: 10
                     color: Theme.textDim
-                    text: root.settingsTab === "media"
-                        ? "Choose what the media popup shows. Drag its handle to move it."
-                        : root.settingsTab === "volume"
-                            ? "The volume popup stays open while you adjust these."
-                            : "Options that apply to both popups."
+                    text: root.settingsTab === "volume"
+                        ? "The volume popup stays open while you adjust these."
+                        : "Size and position of the popup."
                 }
             }
 
@@ -1069,62 +523,6 @@ PanelWindow {
                     id: contentCol
                     x: 20
                     width: flick.width - 40
-
-                    Column {
-                        visible: root.settingsTab === "media"
-                        width: parent.width
-
-                        SectionHeader { text: "Content" }
-                        ToggleRow { host: root; key: "showArt"; label: "Album art"; checked: root.showArt }
-                        ToggleRow { host: root; key: "showVisualizer"; label: "Visualizer"; checked: root.showVisualizer }
-
-                        SectionHeader { text: "Layout" }
-                        ToggleRow { host: root; key: "portrait"; label: "Portrait layout"; checked: root.portrait }
-                        ToggleRow {
-                            host: root
-                            key: "artistBelow"
-                            label: "Artist below title"
-                            checked: root.artistBelow || root.portrait
-                            enabled: !root.portrait
-                        }
-                        SliderRow {
-                            host: root
-                            key: "mediaWidth"
-                            label: "Width"
-                            value: root.mediaWidth
-                            enabled: !root.portrait
-                        }
-                        SliderRow {
-                            host: root
-                            key: "portraitWidth"
-                            label: "Portrait width"
-                            value: root.portraitWidth
-                            enabled: root.portrait
-                        }
-                        SliderRow {
-                            host: root
-                            key: "barCount"
-                            label: "Visualizer bars"
-                            value: root.barCount
-                            enabled: root.showVisualizer
-                        }
-                        SliderRow {
-                            host: root
-                            key: "barRadius"
-                            label: "Roundness"
-                            value: root.barRadius
-                        }
-
-                        SectionHeader { text: "Behavior" }
-                        ToggleRow { host: root; key: "musicOnly"; label: "Music players only"; checked: root.musicOnly }
-                        ToggleRow { host: root; key: "trackChangeOsd"; label: "Pop up on track change"; checked: root.trackChangeOsd }
-                        SliderRow {
-                            host: root
-                            key: "mediaTimeout"
-                            label: "Hide after"
-                            value: root.mediaTimeout
-                        }
-                    }
 
                     Column {
                         visible: root.settingsTab === "volume"
@@ -1158,7 +556,7 @@ PanelWindow {
                             host: root
                             key: "osdScale"
                             label: "Scale"
-                            hint: "Resizes both popups"
+                            hint: "Resizes the popup"
                             value: root.osdScale
                         }
 
@@ -1168,20 +566,15 @@ PanelWindow {
                             wrapMode: Text.WordWrap
                             font.pixelSize: 10
                             color: Theme.textDim
-                            text: "Hover a popup and drag the handle underneath to move it. Media and volume remember their own spots. Double-click the handle to reset it."
+                            text: "Hover the popup and drag the handle underneath to move it. Double-click the handle to reset it."
                         }
                         Item { width: 1; height: 10 }
                         Row {
                             spacing: 8
                             ActionButton {
-                                label: "Reset media position"
-                                enabled: root.mediaMoved
-                                onClicked: root.resetPos(true)
-                            }
-                            ActionButton {
-                                label: "Reset volume position"
+                                label: "Reset position"
                                 enabled: root.volumeMoved
-                                onClicked: root.resetPos(false)
+                                onClicked: root.resetPos()
                             }
                         }
                     }
