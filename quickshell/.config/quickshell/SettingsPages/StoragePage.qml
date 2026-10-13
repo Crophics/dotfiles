@@ -8,7 +8,6 @@ Item {
     property var drives: []
     property var filesystems: []
     property var cleanupInfo: ({yay:0, pacman:0, journal:0, trash:0, flatpak:0, cliphist:0, thumbs:0})
-    property var sdaUsageData: null
     property real marginLeft: 0
     property real marginRight: 55
     property real marginTop: 0
@@ -64,6 +63,19 @@ Item {
         return d
     }
 
+    // btrfs subvolumes (/, /home, /var/log ...) are separate mounts of one partition, and df reports the
+    // whole partition for each. Show each partition once, under its shortest mount point.
+    function mergeMounts(list) {
+        var byDev = {}, out = []
+        for (var i = 0; i < list.length; ++i) {
+            var it = list[i], seen = byDev[it.filesystem]
+            if (!seen) { it.others = 0; byDev[it.filesystem] = it; out.push(it); continue }
+            seen.others++
+            if (it.mount.length < seen.mount.length) seen.mount = it.mount
+        }
+        return out
+    }
+
     function parseDriveData(data) {
         var disks = []
         try {
@@ -71,20 +83,20 @@ Item {
             if (!obj.blockdevices) return disks
             for (var i = 0; i < obj.blockdevices.length; ++i) {
                 var d = obj.blockdevices[i]
-                if (d.type === "disk" && d.name === "sda")
+                if (d.type === "disk" && !/^(zram|loop|ram|sr)/.test(d.name))
                     disks.push({ name: d.name || "", model: d.model || "", size: parseInt(d.size) || 0, type: d.type || "", tran: d.tran || "" })
             }
         } catch (e) { console.log("lsblk JSON error:", e) }
         return disks
     }
 
-    function findSdaUsage() {
+    // Space used on the filesystems that live on a disk's partitions (null if none are mounted).
+    function usageFor(diskName) {
         var used = 0
         for (var i = 0; i < filesystems.length; ++i) {
-            var fs = filesystems[i]
-            if (fs.filesystem.indexOf("/dev/sda") === 0) used += fs.used
+            if (filesystems[i].filesystem.indexOf("/dev/" + diskName) === 0) used += filesystems[i].used
         }
-        return used > 0 ? {used: used} : null
+        return used > 0 ? { used: used } : null
     }
 
     function runCommand(c) { commandProcess.command = ["sh", "-c", c]; commandProcess.running = true }
@@ -109,8 +121,7 @@ Item {
                     var item = page.parseDfLine(lines[i])
                     if (item) fs.push(item)
                 }
-                page.filesystems = fs
-                page.sdaUsageData = page.findSdaUsage()
+                page.filesystems = page.mergeMounts(fs)
             }
         }
         stderr: StdioCollector {}
@@ -232,8 +243,9 @@ Item {
                         model: page.drives
                         delegate: Item {
                             required property var modelData
-                            property bool hasUsage: page.sdaUsageData !== null && modelData.size > 0
-                            property real usedPct: hasUsage ? (page.sdaUsageData.used / modelData.size) * 100 : 0
+                            property var usage: page.usageFor(modelData.name)
+                            property bool hasUsage: usage !== null && modelData.size > 0
+                            property real usedPct: hasUsage ? (usage.used / modelData.size) * 100 : 0
                             width: list.width; height: 64
 
                             Column {
@@ -268,12 +280,12 @@ Item {
                                 Row {
                                     width: parent.width; height: 13; spacing: 14
                                     Text {
-                                        text: page.sdaUsageData ? page.formatBytes(page.sdaUsageData.used) + " USED" : "-- USED"
+                                        text: usage ? page.formatBytes(usage.used) + " USED" : "-- USED"
                                         color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
                                     }
                                     Text {
-                                        text: page.sdaUsageData && modelData.size > page.sdaUsageData.used
-                                            ? page.formatBytes(modelData.size - page.sdaUsageData.used) + " FREE" : "-- FREE"
+                                        text: usage && modelData.size > usage.used
+                                            ? page.formatBytes(modelData.size - usage.used) + " FREE" : "-- FREE"
                                         color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
                                     }
                                     Text {
@@ -302,7 +314,7 @@ Item {
                                 Row {
                                     width: parent.width; height: 17
                                     Text {
-                                        width: parent.width - 55; text: modelData.mount
+                                        width: parent.width - 55; text: modelData.mount + (modelData.others > 0 ? "   +" + modelData.others + " more mounts of this partition" : "")
                                         color: Theme.text; elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter
                                         font.family: Theme.fontFamily; font.pixelSize: 13; font.bold: true
                                     }
