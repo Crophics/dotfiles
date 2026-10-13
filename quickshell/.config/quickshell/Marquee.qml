@@ -3,13 +3,33 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
+import QtQml.Models
 
 Scope {
     id: root
 
+    // The player the bar shows and controls: the one you last controlled from the bar, or the last one
+    // that started playing. Falls back to "first playing, else first" until one of those has happened.
+    property var lastActive: null
+
     readonly property var player: {
         const ps = Mpris.players.values;
+        if (lastActive && ps.includes(lastActive))
+            return lastActive;
         return ps.find(p => p.isPlaying) ?? ps[0] ?? null;
+    }
+
+    // Remember the most recent player to start playing.
+    Instantiator {
+        model: Mpris.players
+        delegate: Connections {
+            required property var modelData
+            target: modelData
+            function onIsPlayingChanged() {
+                if (modelData.isPlaying)
+                    root.lastActive = modelData
+            }
+        }
     }
     readonly property bool playing: player !== null && player.isPlaying
     readonly property string title: player

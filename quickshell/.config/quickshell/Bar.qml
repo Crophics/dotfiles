@@ -320,6 +320,7 @@ Scope {
     function mediaAct(kind) {
         const p = Marquee.player;
         if (!p) return;
+        Marquee.lastActive = p;   // keep controlling this player, even if another one starts playing
         if (kind === "toggle") p.togglePlaying();
         else if (kind === "next") p.next();
         else p.previous();
