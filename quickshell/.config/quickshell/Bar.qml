@@ -843,7 +843,6 @@ Scope {
 
             // True while the special workspace (scratchpad) is shown on the focused monitor.
             property bool inSpecial: false
-            property real specialPulse: 1
 
             Connections {
                 target: Hyprland
@@ -859,24 +858,15 @@ Scope {
                 inSpecial = sp !== undefined && sp !== ""
             }
 
-            SequentialAnimation {
-                running: wsRoot.inSpecial
-                loops: Animation.Infinite
-                onRunningChanged: if (!running) wsRoot.specialPulse = 1
-                NumberAnimation { target: wsRoot; property: "specialPulse"; to: 0.3; duration: 900; easing.type: Easing.InOutSine }
-                NumberAnimation { target: wsRoot; property: "specialPulse"; to: 1; duration: 900; easing.type: Easing.InOutSine }
-            }
-
-            implicitWidth: root.vertical ? root.panelThick : wsLane.implicitWidth + 8
-            implicitHeight: wsLane.implicitHeight + (root.vertical ? 12 : 0)
+            implicitWidth: root.vertical ? root.panelThick : (inSpecial ? specialLabel.width : wsLane.implicitWidth) + 8
+            implicitHeight: (inSpecial ? specialLabel.height : wsLane.implicitHeight) + (root.vertical ? 12 : 0)
 
             // Sliding highlight behind the numbers (drawn first, so it sits under them).
             Rectangle {
                 id: wsPill
-                visible: wsRoot.focusItem !== null
+                visible: wsRoot.focusItem !== null && !wsRoot.inSpecial
                 radius: Math.min(width, height) / 2
-                color: wsRoot.inSpecial ? Qt.alpha(Theme.accent, 0.25) : Theme.accent
-                Behavior on color { ColorAnimation { duration: Theme.animMed } }
+                color: Theme.accent
                 x: wsRoot.focusItem ? wsLane.x + wsRoot.focusItem.x : 0
                 y: wsRoot.focusItem ? wsLane.y + wsRoot.focusItem.y : 0
                 width: wsRoot.focusItem ? wsRoot.focusItem.width : 0
@@ -887,22 +877,36 @@ Scope {
                 Behavior on height { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
             }
 
-            // Breathing outline that marks "you are in the scratchpad".
+            // While the special workspace (scratchpad) is open, the numbers fold into one label pill.
             Rectangle {
+                id: specialLabel
                 visible: wsRoot.inSpecial
-                x: wsLane.x - 3
-                y: wsLane.y - 2
-                width: wsLane.width + 6
-                height: wsLane.height + 4
-                radius: Math.min(width, height) / 2
-                color: "transparent"
-                border.width: 1.5
-                border.color: Theme.accent
-                opacity: wsRoot.specialPulse
+                anchors.centerIn: parent
+                width: specialText.implicitWidth + 20
+                height: 20
+                radius: height / 2
+                color: Theme.accent
+
+                Text {
+                    id: specialText
+                    anchors.centerIn: parent
+                    text: root.vertical ? "\u2726" : "\u2726 scratchpad"
+                    color: Theme.bgPanel
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.run("$HOME/.config/hypr/scripts/scratchpad.sh toggle")
+                }
             }
 
             Lane {
                 id: wsLane
+                visible: !wsRoot.inSpecial
                 anchors.centerIn: parent
                 gap: 2
 
@@ -926,7 +930,7 @@ Scope {
                             anchors.centerIn: parent
                             text: String(dot.modelData.id)
                             color: dot.modelData.urgent ? Theme.danger
-                                 : dot.isFocused ? (wsRoot.inSpecial ? Theme.text : Theme.bgPanel)
+                                 : dot.isFocused ? Theme.bgPanel
                                  : dotMa.containsMouse ? Theme.accent2
                                  : dot.occupied ? Theme.text
                                  : Qt.alpha(Theme.textFaint, 0.7)
