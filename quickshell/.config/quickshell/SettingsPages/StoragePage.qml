@@ -90,14 +90,47 @@ Item {
         return disks
     }
 
-    // Space used on the filesystems that live on a disk's partitions (null if none are mounted).
-    function usageFor(diskName) {
-        var used = 0
-        for (var i = 0; i < filesystems.length; ++i) {
-            if (filesystems[i].filesystem.indexOf("/dev/" + diskName) === 0) used += filesystems[i].used
-        }
-        return used > 0 ? { used: used } : null
+    // The partitions of a disk (as listed by df), biggest first.
+    function partitionsOf(diskName) {
+        return filesystems
+            .filter(function (f) { return f.filesystem.indexOf("/dev/" + diskName) === 0 })
+            .sort(function (a, b) { return b.used - a.used })
     }
+    function segmentColor(i) { return [Theme.accent, Theme.accent2, Theme.textDim, Theme.border][Math.min(i, 3)] }
+
+    // The cleanup actions, biggest first. `amount` is a size in bytes (clipboard: item count).
+    readonly property var cleanupDefs: [
+        { key: "trash", label: "TRASH", action: "EMPTY", title: "EMPTY TRASH?",
+          message: "This permanently deletes everything in ~/.local/share/Trash.",
+          command: "rm -rf -- \"$HOME/.local/share/Trash/files/\"* \"$HOME/.local/share/Trash/info/\"*" },
+        { key: "cliphist", label: "CLIPBOARD HISTORY", action: "WIPE", title: "WIPE CLIPBOARD HISTORY?",
+          message: "This permanently clears your entire clipboard history (cliphist).",
+          command: "cliphist wipe" },
+        { key: "thumbs", label: "WALLPAPER PICKER", action: "CLEAR", title: "CLEAR THUMBNAIL CACHE?",
+          message: "This permanently deletes everything in ~/.cache/quickshell/thumbs.",
+          command: "rm -rf -- \"$HOME/.cache/quickshell/thumbs/\"*" },
+        { key: "yay", label: "YAY CACHE", action: "CLEAN", title: "CLEAR YAY CACHE?",
+          message: "CACHE_PLACEHOLDER",
+          command: "rm -rf -- \"$HOME/.cache/yay/\"*" },
+        { key: "pacman", label: "PACMAN CACHE", action: "CLEAN", title: "CLEAN PACMAN CACHE?",
+          message: "Keeps only the newest cached version of each package and removes packages that are no longer installed. Snapper snapshots still cover rollbacks.",
+          command: "pkexec sh -c 'paccache -rk1; paccache -ruk0'" },
+        { key: "journal", label: "JOURNAL", action: "7 DAYS", title: "VACUUM JOURNAL?",
+          message: "Keep only the last 7 days of system logs.",
+          command: "pkexec journalctl --vacuum-time=7d" },
+        { key: "flatpak", label: "FLATPAK UNUSED", action: "CLEAN", title: "REMOVE UNUSED FLATPAKS?",
+          message: "This removes unused Flatpak runtimes and packages.",
+          command: "flatpak uninstall --unused -y" }
+    ]
+    readonly property var cleanupItems: cleanupDefs
+        .map(function (d) { return Object.assign({ amount: cleanupInfo[d.key] || 0 }, d) })
+        .sort(function (a, b) {
+            // The clipboard is a count, not bytes: keep it out of the size ranking.
+            var x = a.key === "cliphist" ? (a.amount > 0 ? 1 : 0) : a.amount
+            var y = b.key === "cliphist" ? (b.amount > 0 ? 1 : 0) : b.amount
+            return y - x
+        })
+    readonly property real reclaimable: cleanupItems.reduce(function (sum, i) { return i.key === "cliphist" ? sum : sum + i.amount }, 0)
 
     function runCommand(c) { commandProcess.command = ["sh", "-c", c]; commandProcess.running = true }
     function refreshAll() { pDrives.running = pStorage.running = pCleanup.running = true }
@@ -234,176 +267,124 @@ Item {
                     id: list
                     width: parent.width; spacing: 10
 
-                    Text {
-                        text: "DRIVES"; color: Theme.text
-                        font.family: Theme.fontFamily; font.pixelSize: 15; font.bold: true; font.letterSpacing: 2
-                    }
-
+                    // ── Drives: one bar per drive, split by partition ──
                     Repeater {
                         model: page.drives
-                        delegate: Item {
+                        delegate: Column {
+                            id: drive
                             required property var modelData
-                            property var usage: page.usageFor(modelData.name)
-                            property bool hasUsage: usage !== null && modelData.size > 0
-                            property real usedPct: hasUsage ? (usage.used / modelData.size) * 100 : 0
-                            width: list.width; height: 64
+                            readonly property var parts: page.partitionsOf(modelData.name)
+                            readonly property real usedSum: parts.reduce(function (a, p) { return a + p.used }, 0)
+                            readonly property real size: Math.max(1, modelData.size)
+                            width: list.width
+                            spacing: 10
 
-                            Column {
-                                anchors.fill: parent; spacing: 9
+                            Item {
+                                width: parent.width; height: 20
+                                Text {
+                                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width - sizeLabel.width - 12
+                                    text: (modelData.model || modelData.name || "DRIVE").trim()
+                                          + (modelData.tran ? "   " + modelData.tran.toUpperCase() : "")
+                                    color: Theme.text; elide: Text.ElideRight
+                                    font.family: Theme.fontFamily; font.pixelSize: 14; font.bold: true; font.letterSpacing: 1
+                                }
+                                Text {
+                                    id: sizeLabel
+                                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                                    text: page.formatBytes(modelData.size)
+                                    color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 12
+                                }
+                            }
+
+                            Rectangle {
+                                id: stack
+                                width: parent.width; height: 30; radius: 7
+                                color: Theme.trackBg; border.width: 1; border.color: Theme.border
+                                clip: true
 
                                 Row {
-                                    width: parent.width; height: 17
-                                    Text {
-                                        width: parent.width - 70; text: modelData.model || modelData.name || "SSD/HDD"
-                                        color: Theme.text; elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter
-                                        font.family: Theme.fontFamily; font.pixelSize: 13; font.bold: true
+                                    anchors.fill: parent; anchors.margins: 1
+                                    Repeater {
+                                        model: drive.parts
+                                        delegate: Rectangle {
+                                            required property var modelData
+                                            required property int index
+                                            width: Math.max(2, (stack.width - 2) * modelData.used / drive.size)
+                                            height: parent.height
+                                            color: page.segmentColor(index)
+                                            Text {
+                                                visible: parent.width > 90
+                                                anchors.left: parent.left; anchors.leftMargin: 9
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: modelData.mount + "  " + page.formatBytes(modelData.used)
+                                                color: Theme.bg; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true
+                                            }
+                                        }
                                     }
-                                    Text {
-                                        width: 70; text: hasUsage ? Math.round(usedPct) + "%" : "--%"
-                                        color: hasUsage ? page.usageColor(usedPct) : Theme.textDim
-                                        horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
-                                        font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true
+                                    Item {
+                                        width: Math.max(0, (stack.width - 2) * (drive.size - drive.usedSum) / drive.size)
+                                        height: parent.height
+                                        Text {
+                                            visible: parent.width > 110
+                                            anchors.left: parent.left; anchors.leftMargin: 10
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: "free  " + page.formatBytes(drive.size - drive.usedSum)
+                                            color: Theme.textFaint; font.family: Theme.fontFamily; font.pixelSize: 10
+                                        }
                                     }
                                 }
+                            }
 
-                                Rectangle {
-                                    width: parent.width; height: 4; radius: 2
-                                    color: Theme.alpha(Theme.textDim, .15)
-                                    Rectangle {
-                                        width: hasUsage ? parent.width * page.usageWidth(usedPct) : 0
-                                        height: parent.height; radius: 2
-                                        color: hasUsage ? page.usageColor(usedPct) : Theme.accent
-                                        Behavior on width { NumberAnimation { duration: Theme.animMed } }
+                            Flow {
+                                width: parent.width; spacing: 18
+                                Repeater {
+                                    model: drive.parts
+                                    delegate: Row {
+                                        required property var modelData
+                                        required property int index
+                                        spacing: 7
+                                        Rectangle { width: 9; height: 9; radius: 2; color: page.segmentColor(index); anchors.verticalCenter: parent.verticalCenter }
+                                        Text {
+                                            text: modelData.mount + (modelData.others > 0 ? " +" + modelData.others : "")
+                                                  + "   " + page.formatBytes(modelData.used) + " / " + page.formatBytes(modelData.total)
+                                            color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
+                                        }
                                     }
                                 }
-
                                 Row {
-                                    width: parent.width; height: 13; spacing: 14
-                                    Text {
-                                        text: usage ? page.formatBytes(usage.used) + " USED" : "-- USED"
-                                        color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                                    }
-                                    Text {
-                                        text: usage && modelData.size > usage.used
-                                            ? page.formatBytes(modelData.size - usage.used) + " FREE" : "-- FREE"
-                                        color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                                    }
-                                    Text {
-                                        text: page.formatBytes(modelData.size) + " TOTAL"
-                                        color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                                    }
+                                    spacing: 7
+                                    Rectangle { width: 9; height: 9; radius: 2; color: Theme.trackBg; border.width: 1; border.color: Theme.border; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: "free"; color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                             }
                         }
                     }
 
-                    Text {
-                        text: "FILESYSTEM"; color: Theme.text; topPadding: 4
-                        font.family: Theme.fontFamily; font.pixelSize: 15; font.bold: true; font.letterSpacing: 2
-                    }
-
-                    Repeater {
-                        model: page.filesystems
-                        delegate: Item {
-                            required property var modelData
-                            width: list.width; height: 64
-
-                            Column {
-                                anchors.fill: parent; spacing: 9
-
-                                Row {
-                                    width: parent.width; height: 17
-                                    Text {
-                                        width: parent.width - 55; text: modelData.mount + (modelData.others > 0 ? "   +" + modelData.others + " more mounts of this partition" : "")
-                                        color: Theme.text; elide: Text.ElideRight; verticalAlignment: Text.AlignVCenter
-                                        font.family: Theme.fontFamily; font.pixelSize: 13; font.bold: true
-                                    }
-                                    Text {
-                                        width: 55; text: modelData.percent + "%"; color: page.usageColor(modelData.percent)
-                                        horizontalAlignment: Text.AlignRight; verticalAlignment: Text.AlignVCenter
-                                        font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: parent.width; height: 4; radius: 2
-                                    color: Theme.alpha(Theme.textDim, .15)
-                                    Rectangle {
-                                        width: parent.width * page.usageWidth(modelData.percent)
-                                        height: parent.height; radius: 2; color: page.usageColor(modelData.percent)
-                                        Behavior on width { NumberAnimation { duration: Theme.animMed } }
-                                    }
-                                }
-
-                                Row {
-                                    width: parent.width; height: 13; spacing: 14
-                                    Text {
-                                        text: page.formatBytes(modelData.used) + " USED"
-                                        color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                                    }
-                                    Text {
-                                        text: page.formatBytes(modelData.available) + " FREE"
-                                        color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                                    }
-                                    Text {
-                                        text: page.formatBytes(modelData.total) + " TOTAL"
-                                        color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                                    }
-                                }
-                            }
+                    // ── Cleanup ──
+                    Item {
+                        width: list.width; height: 40
+                        Text {
+                            anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.bottomMargin: 6
+                            text: "CLEANUP"; color: Theme.accent
+                            font.family: Theme.fontFamily; font.pixelSize: 11; font.letterSpacing: 2.5
+                        }
+                        Text {
+                            anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.bottomMargin: 6
+                            text: page.reclaimable > 0 ? page.formatBytes(page.reclaimable) + " can be reclaimed" : "Nothing to clean"
+                            color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
                         }
                     }
 
-                    Text {
-                        text: "CLEANUP"; color: Theme.text; topPadding: 4
-                        font.family: Theme.fontFamily; font.pixelSize: 15; font.bold: true; font.letterSpacing: 2
-                    }
-
                     Repeater {
-                        model: [
-                            {
-                                key: "trash", label: "TRASH", action: "EMPTY", title: "EMPTY TRASH?",
-                                message: "This permanently deletes everything in ~/.local/share/Trash.",
-                                command: "rm -rf -- \"$HOME/.local/share/Trash/files/\"* \"$HOME/.local/share/Trash/info/\"*"
-                            },
-                            {
-                                key: "cliphist", label: "CLIPHIST", action: "WIPE", title: "WIPE CLIPBOARD HISTORY?",
-                                message: "This permanently clears your entire clipboard history (cliphist).",
-                                command: "cliphist wipe"
-                            },
-                            {
-                                key: "thumbs", label: "WALLPAPER PICKER", action: "CLEAR", title: "CLEAR THUMBNAIL CACHE?",
-                                message: "This permanently deletes everything in ~/.cache/quickshell/thumbs.",
-                                command: "rm -rf -- \"$HOME/.cache/quickshell/thumbs/\"*"
-                            },
-                            {
-                                key: "yay", label: "YAY CACHE", action: "CLEAN", title: "CLEAR YAY CACHE?",
-                                message: "CACHE_PLACEHOLDER",
-                                command: "rm -rf -- \"$HOME/.cache/yay/\"*"
-                            },
-                            {
-                                key: "pacman", label: "PACMAN CACHE", action: "CLEAN", title: "CLEAN PACMAN CACHE?",
-                                message: "Keeps only the newest cached version of each package and removes packages that are no longer installed. Snapper snapshots still cover rollbacks.",
-                                command: "pkexec sh -c 'paccache -rk1; paccache -ruk0'"
-                            },
-                            {
-                                key: "journal", label: "JOURNAL", action: "7 DAYS", title: "VACUUM JOURNAL?",
-                                message: "Keep only the last 7 days of system logs.",
-                                command: "pkexec journalctl --vacuum-time=7d"
-                            },
-                            {
-                                key: "flatpak", label: "FLATPAK UNUSED", action: "CLEAN", title: "REMOVE UNUSED FLATPAKS?",
-                                message: "This removes unused Flatpak runtimes and packages.",
-                                command: "flatpak uninstall --unused -y"
-                            }
-                        ]
-
-                        delegate: CleanupButton {
+                        model: page.cleanupItems
+                        delegate: CleanRow {
                             required property var modelData
                             width: list.width
                             label: modelData.label
                             value: modelData.key === "cliphist" ? page.formatCount(page.cleanupInfo.cliphist) : page.formatBytes(page.cleanupInfo[modelData.key])
                             actionText: modelData.action
+                            empty: !modelData.amount
                             onClicked: page.confirmAction(
                                 modelData.title,
                                 modelData.message === "CACHE_PLACEHOLDER"
@@ -439,72 +420,52 @@ Item {
         }
     }
 
-    component CleanupButton: Rectangle {
-        id: cleanupRoot
+    // One cleanup item: name, size, and its action. Items with nothing to clean are dimmed and inert.
+    component CleanRow: Rectangle {
+        id: row
         required property string label
         required property string value
         required property string actionText
+        property bool empty: false
         signal clicked()
 
-        width: parent.width
         height: 42
-        radius: Theme.radius
-        color: "#00000000"
-        border.width: 1
-        border.color: Theme.border
+        color: area.containsMouse && !empty ? Theme.alpha(Theme.accent, 0.06) : "transparent"
+        opacity: empty ? 0.45 : 1
+
+        Rectangle { anchors.top: parent.top; width: parent.width; height: 1; color: Theme.border }
 
         Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 14
-            anchors.verticalCenter: parent.verticalCenter
-            text: cleanupRoot.label
-            color: Theme.textDim
-            font.family: Theme.fontFamily
-            font.pixelSize: 13
-            font.bold: true
-            font.letterSpacing: 2
+            anchors.left: parent.left; anchors.leftMargin: 4; anchors.verticalCenter: parent.verticalCenter
+            text: row.label; color: Theme.text
+            font.family: Theme.fontFamily; font.pixelSize: 12; font.letterSpacing: 1.5
         }
-
         Row {
-            anchors.right: parent.right
-            anchors.rightMargin: 14
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 8
-
+            anchors.right: parent.right; anchors.rightMargin: 4; anchors.verticalCenter: parent.verticalCenter
+            spacing: 14
             Text {
-                text: cleanupRoot.value
-                color: Theme.textDim
-                font.family: Theme.fontFamily
-                font.pixelSize: 12
-                anchors.verticalCenter: parent.verticalCenter
+                text: row.value; color: Theme.textDim; anchors.verticalCenter: parent.verticalCenter
+                font.family: Theme.fontFamily; font.pixelSize: 12
             }
-
-            Text {
-                text: cleanupRoot.actionText
-                color: Theme.textDim
-                font.family: Theme.fontFamily
-                font.pixelSize: 12
-                font.bold: true
-                font.letterSpacing: 1
+            Rectangle {
+                width: actionLabel.implicitWidth + 22; height: 26; radius: Theme.radius
                 anchors.verticalCenter: parent.verticalCenter
+                color: "transparent"; border.width: 1
+                border.color: row.empty ? Theme.border : (area.containsMouse ? Theme.accent : Theme.accent2)
+                Text {
+                    id: actionLabel
+                    anchors.centerIn: parent; text: row.actionText
+                    color: row.empty ? Theme.textDim : Theme.accent
+                    font.family: Theme.fontFamily; font.pixelSize: 10; font.letterSpacing: 1.5
+                }
             }
         }
-
         MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-
-            onEntered: {
-                parent.color = Theme.alpha(Theme.accent, 0.08)
-                parent.border.color = Theme.accent
-            }
-
-            onExited: {
-                parent.color = "#00000000"
-                parent.border.color = Theme.border
-            }
-
-            onClicked: cleanupRoot.clicked()
+            id: area
+            anchors.fill: parent; hoverEnabled: true
+            enabled: !row.empty
+            cursorShape: row.empty ? Qt.ArrowCursor : Qt.PointingHandCursor
+            onClicked: row.clicked()
         }
     }
 }
