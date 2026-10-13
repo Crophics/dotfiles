@@ -9,6 +9,7 @@ Scope {
     // Exposed so shell.qml can make this popup and the brightness popup replace each other.
     property alias showing: root.showing
     function dismiss() { root.dismiss() }
+    property var osd: root
 
 PanelWindow {
     id: root
@@ -73,8 +74,6 @@ PanelWindow {
 
     property bool ready: false
     property bool showing: false
-    property bool settingsOpen: false
-    property string settingsTab: "volume"
     property bool dragging: false
     readonly property bool hovered: flyoutHover.hovered || toolsHover.hovered
 
@@ -90,7 +89,7 @@ PanelWindow {
         id: hideTimer
         interval: root.volTimeout
         onTriggered: {
-            if (root.hovered || root.settingsOpen || root.dragging)
+            if (root.hovered || root.dragging)
                 hideTimer.restart()
             else
                 root.showing = false
@@ -104,50 +103,25 @@ PanelWindow {
         hideTimer.restart()
     }
 
+    // Volume popup settings live in the Settings app (SettingsPages/PopupsPage.qml).
     function openSettings() {
-        settingsTab = "volume"
-        settingsOpen = true
-        showing = true
-        hideTimer.restart()
-        Qt.callLater(reposition)
-    }
-
-    function closeSettings() {
-        settingsOpen = false
-        dragging = false
-        hideTimer.restart()
-    }
-
-    function toggleSettings() {
-        if (settingsOpen)
-            closeSettings()
-        else
-            openSettings()
-    }
-
-    function setSettingsTab(tab) {
-        settingsTab = tab
-        hideTimer.restart()
-        Qt.callLater(reposition)
+        if (Refs.settings) Refs.settings.openPage("PopupsPage")
     }
 
     // Hide the plain popup (used when the brightness popup takes its place).
     function dismiss() {
-        if (!settingsOpen && !dragging)
+        if (!dragging)
             showing = false
     }
 
     function closeAll() {
-        settingsOpen = false
         dragging = false
         showing = false
     }
 
     onShowingChanged: {
-        if (!showing) {
-            settingsOpen = false
+        if (!showing)
             dragging = false
-        }
     }
 
     IpcHandler {
@@ -389,232 +363,8 @@ PanelWindow {
                 color: "transparent"
                 label: "󰒓"
                 fontSize: 13
-                active: root.settingsOpen
-                opacity: (hovered || root.settingsOpen) ? 1 : 0.7
-                onClicked: root.toggleSettings()
-            }
-        }
-    }
-}
-
-PanelWindow {
-    id: settingsWin
-
-    visible: root.settingsOpen
-    color: "transparent"
-    implicitWidth: 420
-    implicitHeight: layout.height
-    exclusionMode: ExclusionMode.Ignore
-
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "mediaosd-settings"
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-
-    readonly property real maxContent: Math.max(240, (screen?.height ?? 800) * 0.85 - 186)
-
-    Connections {
-        target: root
-        function onSettingsTabChanged() { flick.contentY = 0 }
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        radius: 20
-        color: Theme.bg
-        border.width: 1
-        border.color: Theme.alpha(Theme.text, 0.12)
-    }
-
-    FocusScope {
-        anchors.fill: parent
-        focus: true
-        Keys.onEscapePressed: root.closeSettings()
-
-        Column {
-            id: layout
-            width: parent.width
-
-            Item {
-                width: parent.width
-                height: 60
-
-                Text {
-                    x: 20; y: 12
-                    text: "OSD settings"
-                    font.pixelSize: 15
-                    font.bold: true
-                    color: Theme.text
-                }
-                Text {
-                    x: 20; y: 34
-                    text: "Changes apply live and are saved automatically"
-                    font.pixelSize: 10
-                    color: Theme.textDim
-                }
-                Text {
-                    anchors.right: parent.right
-                    anchors.rightMargin: 20
-                    y: 10
-                    width: 24; height: 24
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    text: "×"
-                    font.pixelSize: 22
-                    color: closeArea.containsMouse ? Theme.text : Theme.textDim
-                    MouseArea {
-                        id: closeArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: root.closeSettings()
-                    }
-                }
-            }
-
-            Item {
-                width: parent.width
-                height: 40
-
-                Rectangle {
-                    x: 20
-                    width: parent.width - 40
-                    height: 32
-                    radius: 16
-                    color: Theme.alpha(Theme.text, 0.08)
-
-                    Row {
-                        anchors.fill: parent
-                        anchors.margins: 4
-
-                        TabButton {
-                            width: parent.width / 2
-                            label: "Volume"
-                            selected: root.settingsTab === "volume"
-                            onClicked: root.setSettingsTab("volume")
-                        }
-                        TabButton {
-                            width: parent.width / 2
-                            label: "General"
-                            selected: root.settingsTab === "general"
-                            onClicked: root.setSettingsTab("general")
-                        }
-                    }
-                }
-            }
-
-            Item {
-                width: parent.width
-                height: 30
-
-                Text {
-                    x: 20
-                    width: parent.width - 40
-                    anchors.verticalCenter: parent.verticalCenter
-                    elide: Text.ElideRight
-                    font.pixelSize: 10
-                    color: Theme.textDim
-                    text: root.settingsTab === "volume"
-                        ? "The volume popup stays open while you adjust these."
-                        : "Size and position of the popup."
-                }
-            }
-
-            Flickable {
-                id: flick
-                width: parent.width
-                height: Math.min(contentCol.height + 12, settingsWin.maxContent)
-                contentWidth: width
-                contentHeight: contentCol.height + 12
-                clip: true
-                flickableDirection: Flickable.VerticalFlick
-                boundsBehavior: Flickable.StopAtBounds
-
-                Column {
-                    id: contentCol
-                    x: 20
-                    width: flick.width - 40
-
-                    Column {
-                        visible: root.settingsTab === "volume"
-                        width: parent.width
-
-                        SectionHeader { text: "Appearance" }
-                        SliderRow {
-                            host: root
-                            key: "flyoutWidth"
-                            label: "Width"
-                            hint: "Width of the volume popup"
-                            value: root.flyoutWidth
-                        }
-
-                        SectionHeader { text: "Behavior" }
-                        SliderRow {
-                            host: root
-                            key: "volTimeout"
-                            label: "Hide after"
-                            hint: "How long the popup stays after a volume change"
-                            value: root.volTimeout
-                        }
-                    }
-
-                    Column {
-                        visible: root.settingsTab === "general"
-                        width: parent.width
-
-                        SectionHeader { text: "Size" }
-                        SliderRow {
-                            host: root
-                            key: "osdScale"
-                            label: "Scale"
-                            hint: "Resizes the popup"
-                            value: root.osdScale
-                        }
-
-                        SectionHeader { text: "Position" }
-                        Text {
-                            width: parent.width
-                            wrapMode: Text.WordWrap
-                            font.pixelSize: 10
-                            color: Theme.textDim
-                            text: "Hover the popup and drag the handle underneath to move it. Double-click the handle to reset it."
-                        }
-                        Item { width: 1; height: 10 }
-                        Row {
-                            spacing: 8
-                            ActionButton {
-                                label: "Reset position"
-                                enabled: root.volumeMoved
-                                onClicked: root.resetPos()
-                            }
-                        }
-                    }
-                }
-            }
-
-            Item {
-                width: parent.width
-                height: 58
-
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: Theme.alpha(Theme.text, 0.08)
-                }
-
-                ActionButton {
-                    x: 20
-                    anchors.verticalCenter: parent.verticalCenter
-                    label: "Reset all"
-                    enabled: root.movedFromDefault
-                    onClicked: root.resetAll()
-                }
-                ActionButton {
-                    anchors.right: parent.right
-                    anchors.rightMargin: 20
-                    anchors.verticalCenter: parent.verticalCenter
-                    label: "Done"
-                    primary: true
-                    onClicked: root.closeSettings()
-                }
+                opacity: hovered ? 1 : 0.7
+                onClicked: root.openSettings()
             }
         }
     }
@@ -713,272 +463,6 @@ component DragArea: MouseArea {
     onReleased: finish()
     onCanceled: finish()
     onDoubleClicked: host.resetPosition()
-}
-
-component TabButton: Rectangle {
-    id: tb
-    property string label: ""
-    property bool selected: false
-    signal clicked()
-
-    height: 24
-    radius: 12
-    color: selected ? Theme.accent : (tbArea.containsMouse ? Theme.alpha(Theme.text, 0.08) : "transparent")
-    Behavior on color { ColorAnimation { duration: 120 } }
-
-    Text {
-        anchors.centerIn: parent
-        text: tb.label
-        font.pixelSize: 11
-        font.bold: true
-        color: tb.selected ? Theme.bg : Theme.textDim
-    }
-
-    MouseArea {
-        id: tbArea
-        anchors.fill: parent
-        hoverEnabled: true
-        onClicked: tb.clicked()
-    }
-}
-
-component ActionButton: Rectangle {
-    id: ab
-    property string label: ""
-    property bool primary: false
-    signal clicked()
-
-    implicitWidth: abText.implicitWidth + 28
-    width: implicitWidth
-    height: 30
-    radius: 15
-    opacity: enabled ? 1 : 0.4
-    color: primary
-        ? Theme.accent
-        : Theme.alpha(Theme.text, abArea.containsMouse ? 0.18 : 0.1)
-    Behavior on color { ColorAnimation { duration: 120 } }
-
-    Text {
-        id: abText
-        anchors.centerIn: parent
-        text: ab.label
-        font.pixelSize: 11
-        font.bold: true
-        color: ab.primary ? Theme.bg : Theme.text
-    }
-
-    MouseArea {
-        id: abArea
-        anchors.fill: parent
-        hoverEnabled: true
-        onClicked: ab.clicked()
-    }
-}
-
-component SectionHeader: Item {
-    property string text: ""
-    width: parent?.width ?? 0
-    height: 32
-
-    Text {
-        anchors.left: parent.left
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 4
-        text: parent.text
-        font.pixelSize: 10
-        font.bold: true
-        font.letterSpacing: 1.2
-        font.capitalization: Font.AllUppercase
-        color: Theme.textDim
-    }
-}
-
-component ToggleRow: Item {
-    id: tr
-    property var host
-    property string key: ""
-    property string label: ""
-    property bool checked: false
-
-    width: parent?.width ?? 0
-    height: 34
-    opacity: enabled ? 1 : 0.4
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.leftMargin: -8
-        anchors.rightMargin: -8
-        radius: 8
-        color: trArea.containsMouse && tr.enabled ? Theme.alpha(Theme.text, 0.06) : "transparent"
-    }
-
-    Text {
-        anchors.left: parent.left
-        anchors.right: sw.left
-        anchors.rightMargin: 12
-        anchors.verticalCenter: parent.verticalCenter
-        text: tr.label
-        elide: Text.ElideRight
-        font.pixelSize: 12
-        font.bold: true
-        color: Theme.text
-    }
-
-    Rectangle {
-        id: sw
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        width: 36; height: 20; radius: 10
-        color: tr.checked ? Theme.accent : "transparent"
-        border.width: 1
-        border.color: tr.checked ? Theme.accent : Theme.alpha(Theme.text, 0.3)
-        Behavior on color { ColorAnimation { duration: 150 } }
-
-        Rectangle {
-            width: 14; height: 14; radius: 7
-            anchors.verticalCenter: parent.verticalCenter
-            x: tr.checked ? parent.width - width - 3 : 3
-            color: tr.checked ? Theme.bg : Theme.text
-            Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-        }
-    }
-
-    MouseArea {
-        id: trArea
-        anchors.fill: parent
-        hoverEnabled: true
-        onClicked: tr.host.toggleSetting(tr.key)
-    }
-}
-
-component SliderRow: Item {
-    id: sl
-    property var host
-    property string key: ""
-    property string label: ""
-    property string hint: ""
-    property real value: 0
-
-    readonly property var spec: host.numSpec[key]
-    readonly property real range: spec.max - spec.min
-    readonly property real frac: (value - spec.min) / range
-    readonly property real defFrac: (spec.def - spec.min) / range
-    readonly property bool changed: value !== spec.def
-
-    width: parent?.width ?? 0
-    height: hint !== "" ? 62 : 48
-    opacity: enabled ? 1 : 0.4
-
-    Text {
-        x: 0; y: 4
-        text: sl.label
-        font.pixelSize: 12
-        font.bold: true
-        color: Theme.text
-    }
-
-    Text {
-        visible: sl.hint !== ""
-        x: 0; y: 21
-        width: parent.width - 80
-        text: sl.hint
-        elide: Text.ElideRight
-        font.pixelSize: 10
-        color: Theme.textDim
-    }
-
-    Row {
-        anchors.right: parent.right
-        y: 3
-        spacing: 6
-
-        Text {
-            text: sl.host.fmtValue(sl.key, sl.value)
-            font.pixelSize: 11
-            font.bold: true
-            color: Theme.text
-        }
-        Text {
-            width: 14
-            text: "↺"
-            horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: 13
-            color: resetArea.containsMouse ? Theme.accent : Theme.textDim
-            opacity: sl.changed ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 120 } }
-            MouseArea {
-                id: resetArea
-                anchors.fill: parent
-                hoverEnabled: true
-                enabled: sl.changed
-                onClicked: sl.host.resetKey(sl.key)
-            }
-        }
-    }
-
-    Item {
-        id: track
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 2
-        height: 20
-
-        readonly property real knobSize: 14
-        readonly property real span: Math.max(1, width - knobSize)
-
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width
-            height: 4
-            radius: 2
-            color: Theme.alpha(Theme.text, 0.18)
-        }
-
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            x: track.knobSize / 2 + sl.defFrac * track.span - 1
-            width: 2; height: 8; radius: 1
-            color: Theme.alpha(Theme.text, 0.35)
-        }
-
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: sl.frac * track.span + track.knobSize / 2
-            height: 4
-            radius: 2
-            color: Theme.accent
-        }
-
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            x: sl.frac * track.span
-            width: track.knobSize; height: track.knobSize; radius: track.knobSize / 2
-            color: Theme.text
-            scale: slArea.pressed ? 1.2 : (slArea.containsMouse ? 1.1 : 1)
-            Behavior on scale { NumberAnimation { duration: 100 } }
-        }
-
-        MouseArea {
-            id: slArea
-            anchors.fill: parent
-            hoverEnabled: true
-            preventStealing: true
-
-            function setFromX(mx) {
-                var f = Math.max(0, Math.min(1, (mx - track.knobSize / 2) / track.span))
-                var steps = Math.round(f * sl.range / sl.spec.step)
-                var v = Math.min(sl.spec.max, sl.spec.min + steps * sl.spec.step)
-                if (v !== sl.value)
-                    sl.host.setNumber(sl.key, v)
-            }
-
-            onPressed: function (mouse) { setFromX(mouse.x) }
-            onPositionChanged: function (mouse) { if (pressed) setFromX(mouse.x) }
-            onReleased: sl.host.saveState()
-            onCanceled: sl.host.saveState()
-        }
-    }
 }
 
 }

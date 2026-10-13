@@ -21,6 +21,17 @@ PanelWindow {
     function show()   { showing = true }
     function hide()   { showing = false }
     function toggle() { showing = !showing }
+    // Open the settings on a page, by its file name ("BarPage") or its label ("Bar").
+    function openPage(name) {
+        for (var i = 0; i < navItems.length; i++) {
+            if (navItems[i].page === name || navItems[i].name.toLowerCase() === String(name).toLowerCase()) {
+                selectedIndex = i
+                show()
+                return true
+            }
+        }
+        return false
+    }
     function nextPage() { selectedIndex = (selectedIndex + 1) % navItems.length }
     function prevPage() { selectedIndex = (selectedIndex - 1 + navItems.length) % navItems.length }
 
@@ -169,12 +180,13 @@ PanelWindow {
             root.hide()
         }
         function sound(): void {
-            root.selectedIndex = 1
-            root.show()
+            root.openPage("AudioPage")
         }
         function network(): void {
-            root.selectedIndex = 3
-            root.show()
+            root.openPage("NetworkPage")
+        }
+        function page(name: string): void {
+            root.openPage(name)
         }
         function snapTop(): void {
             root.snapTop()
@@ -229,6 +241,10 @@ PanelWindow {
         { name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
         { name: "Storage", icon: "󰋊", page: "StoragePage" },
         { name: "Power", icon: "󰐥", page: "PowerPage" },
+        { name: "Session", icon: "󰌾", page: "SessionPage" },
+        { name: "Bar", icon: "󰕮", page: "BarPage" },
+        { name: "Popups", icon: "󰍡", page: "PopupsPage" },
+        { name: "Windows", icon: "󰖲", page: "WindowsPage" },
         { name: "Configs", icon: "󰧮",  page: "ConfigsPage" },
         { name: "Themes", icon: "󰉼",  page: "ThemesPage" }
     ]

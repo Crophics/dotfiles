@@ -54,6 +54,9 @@ Scope {
 
     Timer { id: saveTimer; interval: 300; onTriggered: cfgFile.writeAdapter() }
 
+    // The saved settings object, for the Settings app (SettingsPages/BarPage.qml).
+    property var config: cfg
+
     function resetSettings() { for (const k in defaults) cfg[k] = defaults[k]; }
 
     // ───────────────────────── Derived layout ─────────────────────────
@@ -200,8 +203,8 @@ Scope {
 
     // ───────────────────────── State / IPC ─────────────────────────
     property bool barVisible: true
-    property bool settingsOpen: false
-    property string settingsTab: "bar"      // "bar" | "modules"
+    // Bar settings live in the Settings app (SettingsPages/BarPage.qml).
+    function openSettings() { if (Refs.settings) Refs.settings.openPage("BarPage"); }
     property bool barLive: true
 
     function rebuildBar() { barLive = false; rebuildTimer.restart(); }
@@ -223,7 +226,7 @@ Scope {
         }
         function setStyle(st: string): void { if (root.styles.indexOf(st) >= 0) cfg.style = st; }
         function setStatsMode(mode: string): void { if (root.statsModes.indexOf(mode) >= 0) cfg.statsMode = mode; }
-        function customize(): void { root.settingsOpen = !root.settingsOpen; }
+        function customize(): void { root.openSettings(); }
         function moveModule(id: string, section: string): void {
             if (root.valid(id) && root.sections.indexOf(section) >= 0) root.moveTo(id, section);
         }
@@ -450,7 +453,7 @@ Scope {
 
         function secondaryAction() {
             if (secondaryHint !== "") secondary();
-            else root.settingsOpen = !root.settingsOpen;
+            else root.openSettings();
         }
 
         opacity: disabled ? 0.4 : 1
@@ -594,150 +597,21 @@ Scope {
         }
     }
 
-    // ── Settings-window widgets ──
     component Rule: Rectangle {
         height: 1
         color: Qt.alpha(Theme.text, 0.12)
     }
 
     // Dimmed automatically when `enabled: false` is set on it or a parent.
-    component Toggle: Rectangle {
-        id: tg
-        property bool checked: false
-        signal toggled(bool v)
-        implicitWidth: 34
-        implicitHeight: 18
-        radius: 9
-        opacity: enabled ? 1 : 0.4
-        color: Qt.alpha(checked ? Theme.accent : Theme.text, checked ? 0.6 : 0.15)
-        Rectangle {
-            width: 14; height: 14; radius: 7; y: 2
-            x: tg.checked ? 18 : 2
-            color: Theme.text
-            Behavior on x { NumberAnimation { duration: 120 } }
-        }
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: tg.toggled(!tg.checked)
-        }
-    }
 
     // `step` snaps the value (0 = continuous)
-    component Slide: Item {
-        id: sl
-        property real from: 0
-        property real to: 1
-        property real value: 0
-        property real step: 0
-        readonly property real frac: (value - from) / (to - from)
-        signal moved(real v)
-        implicitWidth: 160
-        implicitHeight: 20
-        opacity: enabled ? 1 : 0.4
-
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width; height: 4; radius: 2
-            color: Qt.alpha(Theme.text, 0.15)
-            Rectangle { width: parent.width * sl.frac; height: 4; radius: 2; color: Theme.accent }
-        }
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            x: (sl.width - width) * sl.frac
-            width: 12; height: 12; radius: 6
-            color: Theme.text
-        }
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            function upd(px) {
-                const v = sl.from + Math.max(0, Math.min(1, px / width)) * (sl.to - sl.from);
-                sl.moved(sl.step > 0 ? +(Math.round(v / sl.step) * sl.step).toFixed(3) : v);
-            }
-            onPressed: m => upd(m.x)
-            onPositionChanged: m => { if (pressed) upd(m.x); }
-        }
-    }
 
     // One button style for everything clickable in the settings window.
     //   plain    → transparent until selected/hovered (tabs, segments)
     //   primary  → accent-filled (Done)
-    component Pill: Rectangle {
-        id: pl
-        property string label: ""
-        property bool selected: false
-        property bool plain: false
-        property bool primary: false
-        signal clicked()
-        implicitWidth: Math.max(24, lbl.implicitWidth + 18)
-        implicitHeight: 24
-        radius: height / 2
-        opacity: enabled ? 1 : 0.35
-        color: selected || primary ? Qt.alpha(Theme.accent, 0.4)
-             : plMa.containsMouse ? Qt.alpha(Theme.text, 0.14)
-             : plain ? "transparent" : Qt.alpha(Theme.text, 0.08)
-        Behavior on color { ColorAnimation { duration: 100 } }
-        Text {
-            id: lbl
-            anchors.centerIn: parent
-            text: pl.label
-            color: pl.plain && !pl.selected ? Theme.textDim : Theme.text
-            font.family: Theme.iconFont
-            font.pixelSize: 11
-            font.capitalization: Font.Capitalize
-        }
-        MouseArea {
-            id: plMa
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: pl.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: pl.clicked()
-        }
-    }
 
-    // Segmented control built from Pills
-    component Seg: Rectangle {
-        id: seg
-        property var options: []
-        property string current: ""
-        signal picked(string v)
-        implicitWidth: segRow.implicitWidth + 4
-        implicitHeight: 26
-        radius: 13
-        color: Qt.alpha(Theme.text, 0.08)
-        Row {
-            id: segRow
-            anchors.centerIn: parent
-            Repeater {
-                model: seg.options
-                delegate: Pill {
-                    required property string modelData
-                    height: 22
-                    plain: true
-                    label: modelData
-                    selected: modelData === seg.current
-                    onClicked: seg.picked(modelData)
-                }
-            }
-        }
-    }
 
     // Label on the left; whatever you put inside goes on the right.
-    component SetRow: RowLayout {
-        property string label: ""
-        Layout.fillWidth: true
-        spacing: 8
-        opacity: enabled ? 1 : 0.4
-        Text {
-            Layout.fillWidth: true
-            text: parent.label
-            elide: Text.ElideRight
-            color: Theme.text
-            font.family: Theme.iconFont
-            font.pixelSize: 12
-        }
-    }
 
     component Arrow: Item {
         id: ar
@@ -949,7 +823,7 @@ Scope {
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
                             onPressed: { dotTip.suppressed = true; dotTip.shown = false; }
                             onClicked: mouse => {
-                                if (mouse.button === Qt.RightButton) root.settingsOpen = !root.settingsOpen;
+                                if (mouse.button === Qt.RightButton) root.openSettings();
                                 else dot.modelData.activate();
                             }
                         }
@@ -1040,130 +914,6 @@ Scope {
             warning: root.batLow
             active: root.vertical && root.batCharging
             tip: root.batTip
-        }
-    }
-
-    // ───────────────────────── Settings window ─────────────────────────
-    LazyLoader {
-        active: root.settingsOpen
-
-        PanelWindow {
-            implicitWidth: 420
-            implicitHeight: col.implicitHeight + 36
-            color: "transparent"
-            exclusionMode: ExclusionMode.Ignore
-            WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.namespace: "bar-settings"
-            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 20
-                color: Theme.bg
-                border.width: 1
-                border.color: Qt.alpha(Theme.text, 0.12)
-                focus: true
-                Keys.onEscapePressed: root.settingsOpen = false
-
-                ColumnLayout {
-                    id: col
-                    anchors { left: parent.left; right: parent.right; top: parent.top; margins: 18 }
-                    spacing: 12
-
-                    // header: title · tabs · close
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Bar settings"
-                            color: Theme.text
-                            font.family: Theme.iconFont
-                            font.pixelSize: 15
-                            font.bold: true
-                        }
-                        Seg { options: ["bar", "modules"]; current: root.settingsTab; onPicked: v => root.settingsTab = v }
-                        Pill { label: "×"; plain: true; onClicked: root.settingsOpen = false }
-                    }
-
-                    // ── Bar ──
-                    ColumnLayout {
-                        visible: root.settingsTab === "bar"
-                        Layout.fillWidth: true
-                        spacing: 10
-
-                        SetRow { label: "Position"; Seg { options: root.positions; current: cfg.position; onPicked: v => cfg.position = v } }
-                        SetRow { label: "Style"; Seg { options: root.styles; current: cfg.style; onPicked: v => cfg.style = v } }
-                        SetRow { label: "CPU / RAM"; Seg { options: root.statsModes; current: cfg.statsMode; onPicked: v => cfg.statsMode = v } }
-
-                        SetRow {
-                            label: "Thickness  " + cfg.thickness
-                            Slide { from: 16; to: 40; step: 1; value: cfg.thickness; onMoved: v => cfg.thickness = v }
-                        }
-                        SetRow {
-                            label: "Edge margin  " + cfg.margin
-                            enabled: !root.strip
-                            Slide { from: 0; to: 16; step: 1; value: cfg.margin; onMoved: v => cfg.margin = v }
-                        }
-                        SetRow {
-                            label: "Text scale  " + cfg.scale.toFixed(2)
-                            Slide { from: 0.8; to: 1.5; step: 0.05; value: cfg.scale; onMoved: v => cfg.scale = v }
-                        }
-                        SetRow {
-                            label: "Background  " + Math.round(cfg.bgOpacity * 100) + "%"
-                            Slide { from: 0; to: 1; step: 0.05; value: cfg.bgOpacity; onMoved: v => cfg.bgOpacity = v }
-                        }
-
-                        SetRow { label: "Border"; Toggle { checked: cfg.border; onToggled: v => cfg.border = v } }
-                        SetRow { label: "Tooltips"; Toggle { checked: cfg.tooltips; onToggled: v => cfg.tooltips = v } }
-                        SetRow {
-                            label: "Hints in tooltips"
-                            enabled: cfg.tooltips
-                            Toggle { checked: cfg.tooltipHints; onToggled: v => cfg.tooltipHints = v }
-                        }
-                    }
-
-                    // ── Modules ──
-                    ColumnLayout {
-                        visible: root.settingsTab === "modules"
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Repeater {
-                            model: root.moduleDefs
-                            delegate: SetRow {
-                                required property var modelData
-                                label: modelData.l
-
-                                Toggle {
-                                    enabled: !modelData.fixed
-                                    checked: !!modelData.fixed || root.isOn(modelData.id)
-                                    onToggled: v => root.setOn(modelData.id, v)
-                                }
-                                Seg { options: root.sections; current: root.sectionOf(modelData.id); onPicked: v => root.moveTo(modelData.id, v) }
-                                Pill {
-                                    label: root.vertical ? "\u25B2" : "\u25C0"
-                                    enabled: root.canShift(modelData.id, -1)
-                                    onClicked: root.shiftBy(modelData.id, -1)
-                                }
-                                Pill {
-                                    label: root.vertical ? "\u25BC" : "\u25B6"
-                                    enabled: root.canShift(modelData.id, 1)
-                                    onClicked: root.shiftBy(modelData.id, 1)
-                                }
-                            }
-                        }
-                    }
-
-                    Rule { Layout.fillWidth: true }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Pill { label: "Reset all"; onClicked: root.resetSettings() }
-                        Item { Layout.fillWidth: true }
-                        Pill { label: "Done"; primary: true; onClicked: root.settingsOpen = false }
-                    }
-                }
-            }
         }
     }
 

@@ -1,3 +1,6 @@
+local okp, prefs = pcall(require, "prefs")
+if not okp then prefs = {} end
+
 -- Docs: https://wiki.hypr.land/Configuring/Basics/Window-Rules/
 -- To check class name, open the app and run:
 -- hyprctl clients
@@ -11,7 +14,7 @@ hl.layer_rule({
 -- Opacity rules for all windows except fullscreen
 hl.window_rule({
     match = { class = ".*" },
-    opacity = "0.9 override",
+    opacity = string.format("%.2f override", prefs.opacity or 0.9),
 })
 hl.window_rule({
     match = { class = ".*", fullscreen = true },

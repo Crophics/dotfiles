@@ -32,7 +32,6 @@ PanelWindow {
     property int itemSpacing: defaultSpacing
 
     property bool showing: false
-    property bool settingsOpen: false
     property bool dragging: false
     property int currentIndex: 0
     property var hiddenNames: []
@@ -100,70 +99,8 @@ PanelWindow {
         }
     }
 
-    component SizeBtn: Text {
-        signal clicked()
-        height: 14
-        verticalAlignment: Text.AlignVCenter
-        horizontalAlignment: Text.AlignHCenter
-        color: Theme.text
-        MouseArea { anchors.fill: parent; onClicked: parent.clicked() }
-    }
-
-    component SizeControl: Row {
-        id: sc
-        property int value: 100
-        signal step(int delta)
-        signal reset()
-
-        spacing: 4
-        opacity: scHover.hovered ? 1 : 0.7
-        Behavior on opacity { NumberAnimation { duration: 150 } }
-        HoverHandler { id: scHover }
-
-        SizeBtn { text: "−"; width: 16; font.pixelSize: 12; onClicked: sc.step(-10) }
-        SizeBtn { text: "+"; width: 16; font.pixelSize: 12; onClicked: sc.step(10) }
-    }
 
     // label on the left, value + [−][+] on the right
-    component StepRow: Item {
-        id: sr
-        property string label: ""
-        property string valueText: ""
-        signal step(int dir)
-
-        height: 20
-        opacity: srHover.hovered ? 0.95 : 0.6
-        Behavior on opacity { NumberAnimation { duration: 150 } }
-        HoverHandler { id: srHover }
-
-        Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 4
-            anchors.verticalCenter: parent.verticalCenter
-            text: sr.label
-            font.pixelSize: 10
-            font.bold: true
-            color: Theme.textDim
-        }
-
-        Row {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
-
-            Text {
-                width: 34
-                height: 20
-                text: sr.valueText
-                horizontalAlignment: Text.AlignRight
-                verticalAlignment: Text.AlignVCenter
-                font.pixelSize: 10
-                color: Theme.text
-            }
-            SizeBtn { text: "−"; width: 16; height: 20; font.pixelSize: 12; onClicked: sr.step(-1) }
-            SizeBtn { text: "+"; width: 16; height: 20; font.pixelSize: 12; onClicked: sr.step(1) }
-        }
-    }
 
     readonly property var actions: [
         { name: "shutdown",  label: "Shut down", icon: "shutdown.png",  key: "s", cmd: ["systemctl", "poweroff"] },
@@ -201,7 +138,6 @@ PanelWindow {
             if (scr) root.screen = scr
         }
         currentIndex = 0
-        settingsOpen = false
         dragging = false
         showing = true
         Qt.callLater(function () {
@@ -212,7 +148,13 @@ PanelWindow {
         })
     }
 
-    function closeMenu() { showing = false; settingsOpen = false; dragging = false }
+    function closeMenu() { showing = false; dragging = false }
+
+    // Power menu settings live in the Settings app (SettingsPages/PopupsPage.qml).
+    function openSettings() {
+        closeMenu()
+        if (Refs.settings) Refs.settings.openPage("PopupsPage")
+    }
     function toggleMenu() { showing ? closeMenu() : openMenu() }
 
     function saveState() {
@@ -345,17 +287,6 @@ PanelWindow {
         focus: true
         Keys.onPressed: function (event) {
             if (!root.showing) return
-            if (root.settingsOpen) {
-                if (event.key === Qt.Key_Escape
-                        || event.key === Qt.Key_Return
-                        || event.key === Qt.Key_Enter
-                        || event.text.toLowerCase() === "c") {
-                    root.settingsOpen = false
-                    root.dragging = false
-                }
-                event.accepted = true
-                return
-            }
             if (event.key === Qt.Key_Escape) {
                 root.closeMenu()
                 event.accepted = true
@@ -383,8 +314,7 @@ PanelWindow {
                 return
             }
             if (event.text.toLowerCase() === "c") {
-                root.settingsOpen = true
-                root.dragging = false
+                root.openSettings()
                 event.accepted = true
                 return
             }
@@ -398,7 +328,7 @@ PanelWindow {
         }
         MouseArea {
             anchors.fill: parent
-            onClicked: root.settingsOpen ? root.settingsOpen = false : root.closeMenu()
+            onClicked: root.closeMenu()
         }
         Rectangle {
             id: panel
@@ -490,7 +420,6 @@ PanelWindow {
                 }
 
                 Column {
-                    visible: !root.settingsOpen
                     width: parent.width
                     spacing: root.itemSpacing
                     Repeater {
@@ -570,15 +499,6 @@ PanelWindow {
                         width: parent.width
                         height: 16
 
-                        SizeControl {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 2
-                            anchors.verticalCenter: parent.verticalCenter
-                            value: root.menuSize
-                            onStep: function (d) { root.stepSize(d) }
-                            onReset: root.resetSize()
-                        }
-
                         FooterButton {
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
@@ -586,156 +506,11 @@ PanelWindow {
                             fontSize: 12
                             textColor: Theme.textDim
                             opacity: hovered ? 1 : 0.7
-                            onClicked: {
-                                root.settingsOpen = true
-                                root.dragging = false
-                            }
+                            onClicked: root.openSettings()
                         }
                     }
                 }
 
-                Column {
-                    visible: root.settingsOpen
-                    width: parent.width
-                    spacing: root.itemSpacing
-
-                    Repeater {
-                        model: root.actions
-
-                        delegate: Rectangle {
-                            id: row
-                            required property var modelData
-                            readonly property bool on: root.hiddenNames.indexOf(modelData.name) < 0
-
-                            width: parent.width
-                            height: Math.max(36, root.itemHeight - 8)
-                            radius: 12
-                            color: Theme.alpha(
-                                Theme._bgBase,
-                                rowArea.containsMouse ? 0.9 : 0.8
-                            )
-                            Behavior on color { ColorAnimation { duration: 120 } }
-
-                            Rectangle {
-                                id: rThumb
-                                width: 32; height: 32; radius: 8
-                                anchors.left: parent.left
-                                anchors.leftMargin: 10
-                                anchors.verticalCenter: parent.verticalCenter
-                                color: "transparent"
-
-                                Image {
-                                    anchors.centerIn: parent
-                                    width: 20; height: 20
-                                    sourceSize: Qt.size(root.iconRes, root.iconRes)
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                    mipmap: true
-                                    asynchronous: true
-                                    source: root.iconDir + root.iconFile(row.modelData.icon)
-                                    opacity: row.on ? 1 : 0.4
-                                }
-                            }
-
-                            Text {
-                                anchors.left: rThumb.right
-                                anchors.leftMargin: 10
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: row.modelData.label
-                                font.pixelSize: 11
-                                font.bold: true
-                                color: row.on ? Theme.text : Theme.textDim
-                            }
-
-                            Rectangle {
-                                anchors.right: parent.right
-                                anchors.rightMargin: 10
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 34; height: 18; radius: 9
-                                color: row.on ? Theme.accent : "transparent"
-                                border.width: 1
-                                border.color: row.on ? Theme.accent : Theme.alpha(Theme.text, 0.3)
-                                Behavior on color { ColorAnimation { duration: 150 } }
-
-                                Rectangle {
-                                    width: 12; height: 12; radius: 6
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    x: row.on ? parent.width - width - 3 : 3
-                                    color: row.on ? Theme.bg : Theme.text
-                                    Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                                }
-                            }
-
-                            MouseArea {
-                                id: rowArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                onClicked: root.toggleAction(row.modelData.name)
-                            }
-                        }
-                    }
-
-                    // layout steppers
-                    Column {
-                        width: parent.width
-                        spacing: 2
-
-                        StepRow {
-                            width: parent.width
-                            label: "Width"
-                            valueText: root.cardWidth + "px"
-                            onStep: function (dir) { root.stepWidth(dir) }
-                        }
-                        StepRow {
-                            width: parent.width
-                            label: "Height"
-                            valueText: root.itemHeight + "px"
-                            onStep: function (dir) { root.stepHeight(dir) }
-                        }
-                        StepRow {
-                            width: parent.width
-                            label: "Spacing"
-                            valueText: root.itemSpacing + "px"
-                            onStep: function (dir) { root.stepSpacing(dir) }
-                        }
-                    }
-
-                    Item {
-                        width: parent.width
-                        height: 16
-
-                        SizeControl {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 2
-                            anchors.verticalCenter: parent.verticalCenter
-                            value: root.menuSize
-                            onStep: function (d) { root.stepSize(d) }
-                            onReset: root.resetSize()
-                        }
-
-                        Row {
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 6
-
-                            FooterButton {
-                                label: "↺"
-                                fontSize: 11
-                                opacity: root.movedFromDefault ? 1 : 0.4
-                                onClicked: root.resetPosition()
-                            }
-
-                            FooterButton {
-                                label: "󰒓"
-                                fontSize: 12
-                                onClicked: {
-                                    root.settingsOpen = false
-                                    root.dragging = false
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     }

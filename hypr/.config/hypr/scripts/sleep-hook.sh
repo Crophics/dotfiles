@@ -5,7 +5,7 @@
 #         longer -> lock first, then turn the screen on. Skipped locking when the
 #         screen was already locked or the suspend was deliberate (suspend.sh
 #         locks itself and touches the sleep-manual marker).
-GRACE=60
+GRACE=$(jq -r '.graceSec // 60' "$HOME/.config/quickshell/state/session.json" 2>/dev/null || echo 60)   # Settings > Session
 D=${XDG_RUNTIME_DIR:-/tmp}
 dpms() { hyprctl dispatch "hl.dsp.dpms({action=\"$1\"})" >/dev/null; }
 logger -t sleep-hook "$1 start"

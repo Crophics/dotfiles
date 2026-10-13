@@ -14,8 +14,8 @@ Scope {
     property real level: 0
     property bool showing: false
 
-    readonly property int step: 5
-    readonly property int timeout: 1200
+    property int step: 5          // percent per key press (saved, set in Settings > Popups)
+    property int timeout: 1200    // ms the popup stays up (saved)
     readonly property int topGap: 30
 
     // brightnessctl -m prints "device,class,current,percent,max"
@@ -58,6 +58,27 @@ Scope {
             onStreamFinished: root.parse(text)
         }
         onExited: root.flush()
+    }
+
+    readonly property string statePath: Quickshell.env("HOME") + "/.config/quickshell/state/brightness-state.json"
+
+    function saveState() {
+        stateFile.setText(JSON.stringify({ step: root.step, timeout: root.timeout }))
+    }
+
+    FileView {
+        id: stateFile
+        path: root.statePath
+        printErrors: false
+        onLoaded: {
+            try {
+                var s = JSON.parse(stateFile.text())
+                if (typeof s.step === "number") root.step = Math.max(1, Math.min(20, Math.round(s.step)))
+                if (typeof s.timeout === "number") root.timeout = Math.max(600, Math.min(5000, Math.round(s.timeout)))
+            } catch (e) {
+                console.warn("brightnessosd: could not read saved state:", e)
+            }
+        }
     }
 
     Timer {
