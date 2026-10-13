@@ -25,8 +25,7 @@ hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs ipc call notifications toggle")) 
 hl.bind(mainMod .. " + J", hl.dsp.exec_cmd("qs ipc call bar toggle")) -- Toggle bar
 hl.bind("CTRL + " .. mainMod .. " + T", hl.dsp.exec_cmd("qs -n -p ~/.config/quickshell/hyprquickpaper")) -- Wallpapers
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/opacity.sh")) -- Opacity
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("qs ipc call mediaosd media")) -- Music popup
-hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("qs ipc call mediaosd settings")) -- Music popup settings
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd("qs ipc call mediaosd settings")) -- OSD settings (volume popup)
 
 -- Session
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock")) -- Lock screen
@@ -63,6 +62,14 @@ hl.bind(mainMod .. " + ALT + Space", function()
         end
     end
 end)
+
+-- Special workspace (scratchpad)
+local scratch = home .. "/.config/hypr/scripts/scratchpad.sh"
+hl.bind(mainMod .. " + Grave", hl.dsp.exec_cmd(scratch .. " toggle")) -- Show / hide the special workspace
+hl.bind(mainMod .. " + ALT + Up", hl.dsp.exec_cmd(scratch .. " send")) -- Send window to it
+hl.bind(mainMod .. " + ALT + Down", hl.dsp.exec_cmd(scratch .. " return")) -- Bring window back
+hl.bind(mainMod .. " + CTRL + SHIFT + Up", hl.dsp.exec_cmd(scratch .. " send follow")) -- Send window, follow it
+hl.bind(mainMod .. " + CTRL + SHIFT + Down", hl.dsp.exec_cmd(scratch .. " return follow")) -- Bring window back, follow it
 
 -- Focus and move with the arrow keys
 hl.bind(mainMod .. " + Left", hl.dsp.focus({ direction = "left" }))

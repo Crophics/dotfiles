@@ -841,6 +841,32 @@ Scope {
             // The delegate of the focused workspace; the pill slides to it.
             property Item focusItem: null
 
+            // True while the special workspace (scratchpad) is shown on the focused monitor.
+            property bool inSpecial: false
+            property real specialPulse: 1
+
+            Connections {
+                target: Hyprland
+                // data is "<special workspace name>,<monitor>"; the name is empty when it closes.
+                function onRawEvent(event) {
+                    if (event.name === "activespecial")
+                        wsRoot.inSpecial = event.data.split(",")[0] !== ""
+                }
+            }
+
+            Component.onCompleted: {
+                var sp = Hyprland.focusedMonitor?.lastIpcObject?.specialWorkspace?.name
+                inSpecial = sp !== undefined && sp !== ""
+            }
+
+            SequentialAnimation {
+                running: wsRoot.inSpecial
+                loops: Animation.Infinite
+                onRunningChanged: if (!running) wsRoot.specialPulse = 1
+                NumberAnimation { target: wsRoot; property: "specialPulse"; to: 0.3; duration: 900; easing.type: Easing.InOutSine }
+                NumberAnimation { target: wsRoot; property: "specialPulse"; to: 1; duration: 900; easing.type: Easing.InOutSine }
+            }
+
             implicitWidth: root.vertical ? root.panelThick : wsLane.implicitWidth + 8
             implicitHeight: wsLane.implicitHeight + (root.vertical ? 12 : 0)
 
@@ -849,7 +875,8 @@ Scope {
                 id: wsPill
                 visible: wsRoot.focusItem !== null
                 radius: Math.min(width, height) / 2
-                color: Theme.accent
+                color: wsRoot.inSpecial ? Qt.alpha(Theme.accent, 0.25) : Theme.accent
+                Behavior on color { ColorAnimation { duration: Theme.animMed } }
                 x: wsRoot.focusItem ? wsLane.x + wsRoot.focusItem.x : 0
                 y: wsRoot.focusItem ? wsLane.y + wsRoot.focusItem.y : 0
                 width: wsRoot.focusItem ? wsRoot.focusItem.width : 0
@@ -858,6 +885,20 @@ Scope {
                 Behavior on y { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
                 Behavior on width { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
                 Behavior on height { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
+            }
+
+            // Breathing outline that marks "you are in the scratchpad".
+            Rectangle {
+                visible: wsRoot.inSpecial
+                x: wsLane.x - 3
+                y: wsLane.y - 2
+                width: wsLane.width + 6
+                height: wsLane.height + 4
+                radius: Math.min(width, height) / 2
+                color: "transparent"
+                border.width: 1.5
+                border.color: Theme.accent
+                opacity: wsRoot.specialPulse
             }
 
             Lane {
@@ -885,7 +926,7 @@ Scope {
                             anchors.centerIn: parent
                             text: String(dot.modelData.id)
                             color: dot.modelData.urgent ? Theme.danger
-                                 : dot.isFocused ? Theme.bgPanel
+                                 : dot.isFocused ? (wsRoot.inSpecial ? Theme.text : Theme.bgPanel)
                                  : dotMa.containsMouse ? Theme.accent2
                                  : dot.occupied ? Theme.text
                                  : Qt.alpha(Theme.textFaint, 0.7)
