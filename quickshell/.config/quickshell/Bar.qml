@@ -123,7 +123,7 @@ Scope {
     //   g = glyph, tip = tooltip title, hint = left-click description.
     // Modules without it have a dedicated Component below (see `comps`).
     readonly property var moduleDefs: [
-        { id: "stats",    l: "CPU / RAM" },
+        { id: "stats",    l: "CPU / Temp / RAM" },
         { id: "ws",       l: "Workspaces" },
         { id: "media",    l: "Media" },
         { id: "volume",   l: "Volume" },
@@ -698,7 +698,7 @@ Scope {
         }
     }
 
-    // CPU / RAM — "default": `CPU 12%`   "compact": small icon + `12%`
+    // CPU / Temp / RAM — "default": `CPU 12%`   "compact": small icon + `12%`
     Component {
         id: statsC
         Lane {

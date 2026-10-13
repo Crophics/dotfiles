@@ -20,7 +20,7 @@ SetPage {
         SetSeg { options: page.bar ? page.bar.styles : []; current: page.cfg?.style ?? ""; onPicked: v => page.cfg.style = v }
     }
     SetRow {
-        label: "CPU / RAM"
+        label: "CPU / Temp / RAM"
         hint: "Compact fits a vertical bar"
         SetSeg { options: page.bar ? page.bar.statsModes : []; current: page.cfg?.statsMode ?? ""; onPicked: v => page.cfg.statsMode = v }
     }
