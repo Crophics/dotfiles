@@ -6,14 +6,14 @@
     "popover": "{{bg_card}}",
     "foreground": "#ffffff",
     "syntax": {
-      "comment": "#6B7280",
-      "keyword": "#C678DD",
-      "variable": "#ffffff",
-      "attribute": "#E5C07B",
-      "property": "#56B6C2",
-      "function": "#61AFEF",
-      "string": "#98C379",
-      "constant": "#D19A66"
+      "comment": "{{fg_muted}}",
+      "keyword": "{{danger}}",
+      "function": "{{accent}}",
+      "string": "{{term2}}",
+      "constant": "{{term5}}",
+      "property": "{{term6}}",
+      "attribute": "{{term3}}",
+      "variable": "#ffffff"
     }
   },
   "editor.tokenColorCustomizations": {
