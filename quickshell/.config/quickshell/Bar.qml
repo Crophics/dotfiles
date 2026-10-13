@@ -15,7 +15,7 @@ Scope {
     readonly property var defaults: ({
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
-        statsMode: "compact", showTemp: true, clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
+        statsMode: "compact", showTemp: true, weatherLocation: "", weatherUnits: "metric", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
         hidden: "stats,wall,settings",
         startMods: "stats,ws",
         centerMods: "clock",
@@ -44,6 +44,8 @@ Scope {
             property bool border: root.defaults.border
             property string statsMode: root.defaults.statsMode   // "default" | "compact"
             property string clockFormat: root.defaults.clockFormat   // Qt date/time format (Settings > Bar > Clock)
+            property string weatherLocation: root.defaults.weatherLocation   // empty = from this connection's IP
+            property string weatherUnits: root.defaults.weatherUnits         // "metric" | "imperial"
             property bool showTemp: root.defaults.showTemp       // CPU temperature next to CPU / RAM
             property bool tooltips: root.defaults.tooltips
             property bool tooltipHints: root.defaults.tooltipHints // show "Left click: ..." lines in tooltips
@@ -126,6 +128,7 @@ Scope {
     readonly property var moduleDefs: [
         { id: "stats",    l: "CPU / Temp / RAM" },
         { id: "ws",       l: "Workspaces" },
+        { id: "weather",  l: "Weather" },
         { id: "media",    l: "Media" },
         { id: "volume",   l: "Volume" },
         { id: "battery",  l: "Battery" },
@@ -143,7 +146,7 @@ Scope {
     readonly property var moduleIds: moduleDefs.map(d => d.id)
     readonly property var defMap: moduleDefs.reduce((m, d) => { m[d.id] = d; return m; }, {})
     readonly property var comps: ({
-        stats: statsC, ws: wsC, media: mediaC, volume: volumeC, battery: batteryC, icon: iconC
+        stats: statsC, ws: wsC, weather: weatherC, media: mediaC, volume: volumeC, battery: batteryC, icon: iconC
     })
 
     function csv(str) { return str === "" ? [] : str.split(","); }
@@ -162,6 +165,7 @@ Scope {
         if (!isOn(id)) return false;
         switch (id) {
         case "stats":   return !vertical || cfg.statsMode === "compact";   // compact fits vertical bars
+        case "weather": return weather !== null;
         case "media":   return Marquee.player !== null && Marquee.title !== "";
         case "battery": return battery !== null;
         default:        return true;
@@ -291,6 +295,48 @@ Scope {
         id: tempFile
         printErrors: false
         onLoaded: root.cpuTemp = Math.round(Number(text()) / 1000)
+    }
+
+    // Weather (Open-Meteo via scripts/weather.sh), refreshed every 15 minutes and when the
+    // location or units change. `weather` is null until the first successful fetch.
+    property var weather: null
+
+    function refreshWeather() {
+        if (!weatherProc.running) weatherProc.running = true;
+    }
+    Process {
+        id: weatherProc
+        command: [Quickshell.env("HOME") + "/.config/quickshell/scripts/weather.sh", cfg.weatherLocation, cfg.weatherUnits]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try { root.weather = JSON.parse(text); } catch (e) { /* keep the last value */ }
+            }
+        }
+    }
+    Timer {
+        interval: 900000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: root.refreshWeather()
+    }
+    Connections {
+        target: cfg
+        function onWeatherLocationChanged() { root.weather = null; refreshTimer.restart(); }
+        function onWeatherUnitsChanged() { root.weather = null; refreshTimer.restart(); }
+    }
+    Timer { id: refreshTimer; interval: 700; onTriggered: root.refreshWeather() }
+
+    // WMO weather code -> Nerd Font glyph and a short description.
+    function weatherInfo(code, day) {
+        const g = c => String.fromCodePoint(c);
+        if (code === 0)  return { g: g(day ? 0xF0599 : 0xF0594), d: "Clear" };
+        if (code <= 2)   return { g: g(day ? 0xF0595 : 0xF0F31), d: "Partly cloudy" };
+        if (code === 3)  return { g: g(0xF0590), d: "Overcast" };
+        if (code <= 48)  return { g: g(0xF0591), d: "Fog" };
+        if (code <= 57)  return { g: g(0xF0597), d: "Drizzle" };
+        if (code <= 67)  return { g: g(0xF0597), d: "Rain" };
+        if (code <= 77)  return { g: g(0xF0598), d: "Snow" };
+        if (code <= 82)  return { g: g(0xF0596), d: "Showers" };
+        if (code <= 86)  return { g: g(0xF0598), d: "Snow showers" };
+        return { g: g(0xF0593), d: "Thunderstorm" };
     }
 
     // Notification count: the notifications panel persists its history here
@@ -936,6 +982,24 @@ Scope {
             warning: root.batLow
             active: root.vertical && root.batCharging
             tip: root.batTip
+        }
+    }
+
+    Component {
+        id: weatherC
+        Mod {
+            readonly property var w: root.weather
+            readonly property var info: w ? root.weatherInfo(w.code, w.day) : ({ g: "", d: "" })
+            readonly property string deg: w && w.units === "imperial" ? "°F" : "°C"
+            baseSize: root.sz.stat
+            glyphSize: root.sz.stat + 2
+            glyph: info.g
+            text: w ? w.temp + "°" : ""
+            vtext: w ? w.temp + "°" : ""
+            interactive: false
+            tip: w ? info.d + ", " + w.temp + deg + " in " + w.city + "\nFeels like " + w.feels + deg
+                     + " · humidity " + w.humidity + "% · wind " + w.wind + (w.units === "imperial" ? " mph" : " km/h")
+                     + (w.stale ? "\n(offline, last known)" : "") : "Weather"
         }
     }
 
