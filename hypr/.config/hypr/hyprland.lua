@@ -39,6 +39,11 @@ hl.env("XCURSOR_THEME", cursorTheme)
 hl.env("XCURSOR_SIZE", cursorSize)
 hl.env("HYPRCURSOR_THEME", cursorTheme)
 hl.env("HYPRCURSOR_SIZE", cursorSize)
+
+-- Use plain X cursor themes (Adwaita etc.). With hyprcursor on, Hyprland draws the only hyprcursor theme
+-- installed (Bibata) at startup even when another theme is asked for, and the later `setcursor` can't
+-- redraw it until some window sets a cursor shape.
+hl.config({ cursor = { enable_hyprcursor = false } })
 hl.env("QT_QPA_PLATFORM", "wayland")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
