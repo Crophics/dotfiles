@@ -12,7 +12,11 @@ Item {
     property int _code: -1
     property bool _got: false
 
-    function run(cmds) { _queue = cmds.slice(); error = ""; busy = true; _next() }
+    // Commands that arrive while one is running wait their turn instead of replacing it.
+    function run(cmds) {
+        if (busy) { _queue = _queue.concat(cmds); return }
+        _queue = cmds.slice(); error = ""; busy = true; _next()
+    }
     function _next() {
         if (!_queue.length) { busy = false; finished(error === ""); return }
         var c = _queue.shift()

@@ -18,10 +18,10 @@ SetPage {
     property string wallpaper: ""
     property bool notifyWall: true     // wallpaper picker's "notify on wallpaper change"
 
-    function reload() { pState.running = true }
+    function reload() { stateFile.reload() }
     function apply(args) { run.run([[theme].concat(args)]) }
     function pretty(n) { return n.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) }
-    Component.onCompleted: { pState.running = true; pList.running = true; pNotify.running = true }
+    Component.onCompleted: { pList.running = true; pNotify.running = true }
     Process {
         id: pNotify
         command: ["jq", "-r", "(.general // {}) | if has(\"notifyOnWallpaperChange\") then .notifyOnWallpaperChange else true end", page.home + "/.config/skwd-wall/config.json"]
@@ -33,20 +33,22 @@ SetPage {
     }
 
     NmRun { id: run; onFinished: ok => page.reload() }
-    Process {
-        id: pState
-        command: ["cat", (Quickshell.env("XDG_STATE_HOME") || (page.home + "/.local/state")) + "/43pr/state.json"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    var s = JSON.parse(text)
-                    page.colorGen = s.colorgen !== false
-                    page.dark = s.mode_appearance !== "light"
-                    page.mode = s.mode || "wallpaper"
-                    page.preset = s.preset || "default"
-                    page.wallpaper = s.wallpaper || ""
-                } catch (e) {}
-            }
+    // Follows the theme state file, so changes made anywhere (the wallpaper picker, a keybind, a terminal) show up here.
+    FileView {
+        id: stateFile
+        path: (Quickshell.env("XDG_STATE_HOME") || (page.home + "/.local/state")) + "/43pr/state.json"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: {
+            try {
+                var s = JSON.parse(text())
+                page.colorGen = s.colorgen !== false
+                page.dark = s.mode_appearance !== "light"
+                page.mode = s.mode || "wallpaper"
+                page.preset = s.preset || "default"
+                page.wallpaper = s.wallpaper || ""
+            } catch (e) {}
         }
     }
     Process {
@@ -56,7 +58,8 @@ SetPage {
             onStreamFinished: {
                 var out = []
                 text.split("\n").forEach(l => {
-                    var m = l.trim().match(/^(\S+)\s+(.*)$/)
+                    // The list marks the active preset with a leading "*"; it is not part of the name.
+                    var m = l.trim().replace(/^\*\s*/, "").match(/^(\S+)\s+(.*)$/)
                     if (m) out.push({ name: m[1], desc: m[2] })
                 })
                 page.presets = out
@@ -88,9 +91,9 @@ SetPage {
             placeholder: "Wallpaper colours"
             options: page.presets.map(p => page.pretty(p.name) + "  ·  " + p.desc)
             currentIndex: page.mode === "preset" ? page.presets.findIndex(p => p.name === page.preset) : -1
-            onPicked: i => { var n = page.presets[i].name; page.apply(n === "default" ? ["default"] : ["preset", n]) }
+            onPicked: i => { var n = page.presets[i].name; page.mode = "preset"; page.preset = n; page.apply(n === "default" ? ["default"] : ["preset", n]) }
         }
-        SetButton { visible: page.mode === "preset"; label: "Use wallpaper"; onClicked: page.apply(["auto"]) }
+        SetButton { visible: page.mode === "preset"; label: "Use wallpaper"; onClicked: { page.mode = "wallpaper"; page.apply(["auto"]) } }
     }
 
     SetSection { text: "Wallpaper" }
