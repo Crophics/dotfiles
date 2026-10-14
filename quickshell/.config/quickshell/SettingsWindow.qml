@@ -37,7 +37,7 @@ PanelWindow {
     function nextPage() { selectedIndex = (selectedIndex + 1) % navItems.length }
     function prevPage() { selectedIndex = (selectedIndex - 1 + navItems.length) % navItems.length }
 
-    onShowingChanged: if (!showing) dragging = false
+    onShowingChanged: { if (!showing) dragging = false; else navScroll.restart() }
 
     // Windows can't draw above this panel, so when nm-applet asks for a Wi-Fi password the panel
     // steps aside while that dialog is open and comes back when it closes.
@@ -258,26 +258,38 @@ PanelWindow {
     property var navItems: [
         { group: "Appearance", name: "Themes", icon: "󰉼", page: "ThemesPage" },
         { group: "Appearance", name: "Style", icon: "󰏘", page: "AppearancePage" },
-        { group: "Appearance", name: "Windows", icon: "󰖲", page: "WindowsPage" },
         { group: "Appearance", name: "Bar", icon: "󰕮", page: "BarPage" },
         { group: "Appearance", name: "Popups", icon: "󰍡", page: "PopupsPage" },
-        { group: "Input", name: "Input", icon: "󰍽", page: "InputPage" },
-        { group: "Input", name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
+        { group: "Desktop", name: "Windows", icon: "󰖲", page: "WindowsPage" },
         { group: "Desktop", name: "Layout", icon: "󰕰", page: "LayoutPage" },
         { group: "Desktop", name: "Behavior", icon: "󰒓", page: "BehaviorPage" },
-        { group: "Display", name: "Display", icon: "\uf108", page: "DisplayPage" },
-        { group: "System", name: "Audio", icon: "\uf028", page: "AudioPage" },
+        { group: "Desktop", name: "Display", icon: "\uf108", page: "DisplayPage" },
+        { group: "Devices", name: "Input", icon: "󰍽", page: "InputPage" },
+        { group: "Devices", name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
+        { group: "Devices", name: "Audio", icon: "\uf028", page: "AudioPage" },
+        { group: "Devices", name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
+        { group: "Devices", name: "Network", icon: "\uf1eb", page: "NetworkPage" },
         { group: "System", name: "Apps", icon: "󰀻", page: "AppsPage" },
         { group: "System", name: "Power", icon: "󰐥", page: "PowerPage" },
         { group: "System", name: "Storage", icon: "󰋊", page: "StoragePage" },
-        { group: "Connections", name: "Network", icon: "\uf1eb", page: "NetworkPage" },
-        { group: "Connections", name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
-        { group: "Advanced", name: "Advanced", icon: "󰧮", page: "AdvancedPage" }
+        { group: "System", name: "Advanced", icon: "󰧮", page: "AdvancedPage" }
     ]
     // Old page names still resolve (IPC, bar buttons).
     readonly property var pageAliases: ({ ConfigsPage: "AdvancedPage", Configs: "AdvancedPage", SessionPage: "PowerPage", Session: "PowerPage", ConnectionsPage: "NetworkPage", Connections: "NetworkPage", SystemPage: "StoragePage", System: "StoragePage" })
 
     property int selectedIndex: 0
+    // Keep the chosen page's entry in view when the sidebar is longer than the window.
+    function ensureNavVisible() {
+        var it = navRepeater.itemAt(selectedIndex)
+        if (!it || sidebarFlickable.height <= 0) return
+        var top = it.y, bottom = it.y + it.height
+        var maxY = Math.max(0, sidebarFlickable.contentHeight - sidebarFlickable.height)
+        if (top < sidebarFlickable.contentY) sidebarFlickable.contentY = Math.max(0, top - 30)
+        else if (bottom > sidebarFlickable.contentY + sidebarFlickable.height)
+            sidebarFlickable.contentY = Math.min(maxY, bottom - sidebarFlickable.height + 8)
+    }
+    onSelectedIndexChanged: Qt.callLater(ensureNavVisible)
+    Timer { id: navScroll; interval: 350; onTriggered: root.ensureNavVisible() }
 
     PerspectivePanel {
         id: card
@@ -573,6 +585,7 @@ PanelWindow {
                             spacing: 4
 
                             Repeater {
+                                id: navRepeater
                                 model: root.navItems
                                 delegate: Column {
                                     required property var modelData
