@@ -29,6 +29,7 @@ SetPage {
     SetSection { text: "Cursor" }
     SetRow {
         label: "Cursor theme"
+        hint: "Apps use it as they open. Already open windows keep their old cursor"
         SetSelect {
             implicitWidth: 220
             options: page.cursors
@@ -38,6 +39,7 @@ SetPage {
     }
     SetRow {
         label: "Cursor size"
+        hint: "Already open windows keep their old size"
         SetSeg {
             options: ["16", "20", "24", "28", "32", "40", "48"]
             current: String(page.info.cursorSize)

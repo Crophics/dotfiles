@@ -242,6 +242,8 @@ PanelWindow {
         { group: "Appearance", name: "Popups", icon: "󰍡", page: "PopupsPage" },
         { group: "Input", name: "Input", icon: "󰍽", page: "InputPage" },
         { group: "Input", name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
+        { group: "Desktop", name: "Layout", icon: "󰕰", page: "LayoutPage" },
+        { group: "Desktop", name: "Behavior", icon: "󰒓", page: "BehaviorPage" },
         { group: "Display", name: "Display", icon: "\uf108", page: "DisplayPage" },
         { group: "System", name: "Audio", icon: "\uf028", page: "AudioPage" },
         { group: "System", name: "Apps", icon: "󰀻", page: "AppsPage" },

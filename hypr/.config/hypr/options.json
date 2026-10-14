@@ -376,6 +376,286 @@
    "unit": " s",
    "default": 0,
    "path": "cursor.inactive_timeout"
+  },
+  {
+   "id": "general.layout",
+   "page": "Layout",
+   "section": "Tiling",
+   "label": "Layout",
+   "hint": "Dwindle splits the space in halves, master keeps one big window and stacks the rest",
+   "type": "seg",
+   "options": [
+    "Dwindle",
+    "Master"
+   ],
+   "values": [
+    "dwindle",
+    "master"
+   ],
+   "default": "dwindle",
+   "path": "general.layout"
+  },
+  {
+   "id": "general.resize_on_border",
+   "page": "Layout",
+   "section": "Tiling",
+   "label": "Drag borders to resize",
+   "type": "toggle",
+   "default": true,
+   "path": "general.resize_on_border"
+  },
+  {
+   "id": "general.extend_border_grab_area",
+   "page": "Layout",
+   "section": "Tiling",
+   "label": "Border grab area",
+   "hint": "How far from the edge you can grab to resize",
+   "type": "slider",
+   "min": 0,
+   "max": 30,
+   "step": 1,
+   "unit": " px",
+   "default": 15,
+   "path": "general.extend_border_grab_area",
+   "enabledIf": "general.resize_on_border"
+  },
+  {
+   "id": "general.hover_icon_on_border",
+   "page": "Layout",
+   "section": "Tiling",
+   "label": "Resize cursor on borders",
+   "type": "toggle",
+   "default": true,
+   "path": "general.hover_icon_on_border",
+   "enabledIf": "general.resize_on_border"
+  },
+  {
+   "id": "dwindle.preserve_split",
+   "page": "Layout",
+   "section": "Dwindle",
+   "label": "Keep split direction",
+   "hint": "A split stays the way it is when you resize or move windows",
+   "type": "toggle",
+   "default": true,
+   "path": "dwindle.preserve_split"
+  },
+  {
+   "id": "dwindle.smart_split",
+   "page": "Layout",
+   "section": "Dwindle",
+   "label": "Split toward the pointer",
+   "hint": "New windows open on the side of the window your pointer is on",
+   "type": "toggle",
+   "default": false,
+   "path": "dwindle.smart_split"
+  },
+  {
+   "id": "dwindle.force_split",
+   "page": "Layout",
+   "section": "Dwindle",
+   "label": "New window goes",
+   "type": "seg",
+   "options": [
+    "Automatic",
+    "Left or top",
+    "Right or bottom"
+   ],
+   "values": [
+    0,
+    1,
+    2
+   ],
+   "default": 0,
+   "path": "dwindle.force_split"
+  },
+  {
+   "id": "master.new_status",
+   "page": "Layout",
+   "section": "Master",
+   "label": "New windows join as",
+   "type": "seg",
+   "options": [
+    "Master",
+    "Stack",
+    "Follow focus"
+   ],
+   "values": [
+    "master",
+    "slave",
+    "inherit"
+   ],
+   "default": "master",
+   "path": "master.new_status"
+  },
+  {
+   "id": "master.mfact",
+   "page": "Layout",
+   "section": "Master",
+   "label": "Master size",
+   "hint": "Share of the screen the master window takes",
+   "type": "slider",
+   "min": 0.2,
+   "max": 0.8,
+   "step": 0.05,
+   "decimals": 2,
+   "default": 0.55,
+   "path": "master.mfact"
+  },
+  {
+   "id": "master.orientation",
+   "page": "Layout",
+   "section": "Master",
+   "label": "Master position",
+   "type": "seg",
+   "options": [
+    "Left",
+    "Right",
+    "Top",
+    "Bottom",
+    "Center"
+   ],
+   "values": [
+    "left",
+    "right",
+    "top",
+    "bottom",
+    "center"
+   ],
+   "default": "left",
+   "path": "master.orientation"
+  },
+  {
+   "id": "misc.focus_on_activate",
+   "page": "Behavior",
+   "section": "Focus",
+   "label": "Jump to windows that ask for attention",
+   "hint": "Switches to an app when it requests focus, like a link opening in the browser",
+   "type": "toggle",
+   "default": false,
+   "path": "misc.focus_on_activate"
+  },
+  {
+   "id": "binds.workspace_back_and_forth",
+   "page": "Behavior",
+   "section": "Workspaces",
+   "label": "Same shortcut goes back",
+   "hint": "Pressing the shortcut for the current workspace returns to the previous one",
+   "type": "toggle",
+   "default": false,
+   "path": "binds.workspace_back_and_forth"
+  },
+  {
+   "id": "binds.allow_workspace_cycles",
+   "page": "Behavior",
+   "section": "Workspaces",
+   "label": "Remember workspace history",
+   "type": "toggle",
+   "default": false,
+   "path": "binds.allow_workspace_cycles"
+  },
+  {
+   "id": "misc.close_special_on_empty",
+   "page": "Behavior",
+   "section": "Workspaces",
+   "label": "Close empty scratchpad",
+   "type": "toggle",
+   "default": true,
+   "path": "misc.close_special_on_empty"
+  },
+  {
+   "id": "misc.enable_swallow",
+   "page": "Behavior",
+   "section": "Windows",
+   "label": "Window swallowing",
+   "hint": "A program started from the terminal replaces the terminal window while it runs",
+   "type": "toggle",
+   "default": false,
+   "path": "misc.enable_swallow"
+  },
+  {
+   "id": "misc.animate_manual_resizes",
+   "page": "Behavior",
+   "section": "Windows",
+   "label": "Animate resizing",
+   "type": "toggle",
+   "default": false,
+   "path": "misc.animate_manual_resizes"
+  },
+  {
+   "id": "misc.animate_mouse_windowdragging",
+   "page": "Behavior",
+   "section": "Windows",
+   "label": "Animate dragging",
+   "type": "toggle",
+   "default": false,
+   "path": "misc.animate_mouse_windowdragging"
+  },
+  {
+   "id": "general.allow_tearing",
+   "page": "Behavior",
+   "section": "Graphics",
+   "label": "Allow tearing in games",
+   "hint": "Lower input lag in fullscreen games, with some visible tearing",
+   "type": "toggle",
+   "default": false,
+   "path": "general.allow_tearing"
+  },
+  {
+   "id": "misc.vrr",
+   "page": "Behavior",
+   "section": "Graphics",
+   "label": "Variable refresh rate",
+   "hint": "Applies to every screen. Per-screen control is on the Display page",
+   "type": "seg",
+   "options": [
+    "Off",
+    "On",
+    "Fullscreen only"
+   ],
+   "values": [
+    0,
+    1,
+    2
+   ],
+   "default": 0,
+   "path": "misc.vrr"
+  },
+  {
+   "id": "xwayland.force_zero_scaling",
+   "page": "Behavior",
+   "section": "Graphics",
+   "label": "Sharp text in older apps",
+   "hint": "Draws X11 apps at full resolution. They may look small at high scale",
+   "type": "toggle",
+   "default": false,
+   "path": "xwayland.force_zero_scaling"
+  },
+  {
+   "id": "misc.mouse_move_enables_dpms",
+   "page": "Behavior",
+   "section": "Screen wake",
+   "label": "Wake screen on mouse move",
+   "type": "toggle",
+   "default": false,
+   "path": "misc.mouse_move_enables_dpms"
+  },
+  {
+   "id": "misc.key_press_enables_dpms",
+   "page": "Behavior",
+   "section": "Screen wake",
+   "label": "Wake screen on key press",
+   "type": "toggle",
+   "default": false,
+   "path": "misc.key_press_enables_dpms"
+  },
+  {
+   "id": "misc.middle_click_paste",
+   "page": "Behavior",
+   "section": "Mouse",
+   "label": "Middle click pastes",
+   "type": "toggle",
+   "default": true,
+   "path": "misc.middle_click_paste"
   }
  ]
 }
