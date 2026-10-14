@@ -20,6 +20,7 @@ SetPage {
     property bool nightOn: false
     property int nightTemp: 4500
     property bool nightAuto: false
+    property bool nightDrag: false      // slider is being dragged: keep its value, ignore status refreshes
     property string nightStart: "20:00"
     property string nightEnd: "07:00"
 
@@ -135,7 +136,8 @@ SetPage {
             onStreamFinished: {
                 try {
                     var d = JSON.parse(text)
-                    page.nightOn = d.on === true; page.nightTemp = d.temp
+                    page.nightOn = d.on === true
+                    if (!page.nightDrag && !nightSet.running && !page.nightQueue) page.nightTemp = d.temp
                     page.nightAuto = d.auto === true; page.nightStart = d.start; page.nightEnd = d.end
                 } catch (e) {}
             }
@@ -297,8 +299,8 @@ SetPage {
         SetSlider {
             from: 2500; to: 6500; step: 100; unit: " K"
             value: page.nightTemp
-            onMoved: v => { page.nightTemp = v; page.night(["temp", String(v), "preview"]) }
-            onCommitted: v => page.night(["temp", String(v)])
+            onMoved: v => { page.nightDrag = true; page.nightTemp = v; page.night(["temp", String(v), "preview"]) }
+            onCommitted: v => { page.nightTemp = v; page.night(["temp", String(v)]); page.nightDrag = false }
         }
     }
     SetRow {
