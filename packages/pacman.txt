@@ -129,8 +129,10 @@ intel-lpmd
 intel-media-driver
 intel-ucode
 inter-font
+iw
 iwd
 jfsutils
+jq
 kde-cli-tools
 kitty
 lazygit
@@ -142,6 +144,7 @@ lib32-vulkan-intel
 libdvdcss
 libgsf
 libguestfs
+libnotify
 libopenraw
 libreoffice-fresh
 libva-nvidia-driver
@@ -229,6 +232,7 @@ pv
 pyenv
 python
 python-defusedxml
+python-gobject
 python-packaging
 python-pip
 python-pyfiglet
@@ -237,6 +241,7 @@ python-reportlab
 python-sphinx
 python-sphinx-furo
 qemu-full
+qrencode
 qt5-wayland
 qt6ct
 qt6-wayland
@@ -311,6 +316,7 @@ wlogout
 wpa_supplicant
 wtype
 xdg-desktop-portal-hyprland
+xdg-utils
 xfsprogs
 xl2tpd
 xorg-xhost
