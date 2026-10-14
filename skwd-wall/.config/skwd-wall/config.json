@@ -4,7 +4,8 @@
   "general": {
     "closeOnSelection": true,
     "reopenAtLastSelection": false,
-    "filterBarAlwaysVisible": false
+    "filterBarAlwaysVisible": false,
+    "notifyOnWallpaperChange": false
   },
   "paths": {
     "wallpaper": "~/Pictures/Wallpapers"

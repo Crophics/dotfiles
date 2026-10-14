@@ -16,11 +16,21 @@ SetPage {
     property string mode: "wallpaper"  // "wallpaper" or "preset"
     property string preset: "default"
     property string wallpaper: ""
+    property bool notifyWall: true     // wallpaper picker's "notify on wallpaper change"
 
     function reload() { pState.running = true }
     function apply(args) { run.run([[theme].concat(args)]) }
     function pretty(n) { return n.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) }
-    Component.onCompleted: { pState.running = true; pList.running = true }
+    Component.onCompleted: { pState.running = true; pList.running = true; pNotify.running = true }
+    Process {
+        id: pNotify
+        command: ["jq", "-r", "(.general // {}) | if has(\"notifyOnWallpaperChange\") then .notifyOnWallpaperChange else true end", page.home + "/.config/skwd-wall/config.json"]
+        stdout: StdioCollector { onStreamFinished: page.notifyWall = text.trim() !== "false" }
+    }
+    function setNotify(on) {
+        notifyWall = on
+        run.run([["sh", "-c", "f=\"$HOME/.config/skwd-wall/config.json\"; jq --argjson v \"$1\" '.general.notifyOnWallpaperChange = $v' \"$f\" > \"$f.tmp\" && mv \"$f.tmp\" \"$f\"", "sh", on ? "true" : "false"]])
+    }
 
     NmRun { id: run; onFinished: ok => page.reload() }
     Process {
@@ -88,5 +98,10 @@ SetPage {
         label: "Wallpaper"
         hint: page.wallpaper !== "" ? page.wallpaper.split("/").pop() : "None chosen yet"
         SetButton { label: "Choose"; primary: true; onClicked: Quickshell.execDetached([page.home + "/.config/hypr/scripts/wallpaper-picker.sh"]) }
+    }
+    SetRow {
+        label: "Notify when it changes"
+        hint: "A notification each time a new wallpaper is set"
+        SetToggle { checked: page.notifyWall; onToggled: v => page.setNotify(v) }
     }
 }
