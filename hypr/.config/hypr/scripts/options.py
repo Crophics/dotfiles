@@ -4,6 +4,7 @@ shows; the user's changes live in quickshell/state/options.json.
 
   options.py set <id> <json>   save one value and apply it
   options.py reset <id>...     back to the default and apply
+  options.py reset-all         every option back to its default
   options.py apply <id>...     re-apply (after the state file was written elsewhere)
   options.py build             regenerate hypr/options.lua and hypr/prefs.lua only
 
@@ -153,6 +154,9 @@ def main():
             s.pop(i, None)
         save(s)
         apply(reg, s, args)
+    elif cmd == "reset-all":
+        save({})
+        apply(reg, {}, list(reg))
     elif cmd == "apply":
         apply(reg, s, args)
     elif cmd == "build":

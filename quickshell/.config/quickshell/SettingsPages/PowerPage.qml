@@ -1,283 +1,180 @@
 import QtQuick
-import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import "../"
 
-Item {
+// Power: profile and battery, plus locking and sleeping (idle timers, lid, low-battery actions).
+// Session values are saved to state/session.json; scripts/apply-session-prefs.sh turns them into a hypridle config.
+SetPage {
     id: page
+    title: "POWER"
 
-    property real marginLeft: 0
-    property real marginRight: 55
-    property real marginTop: 0
-    property real marginBottom: 0
+    property int lockMin: 5
+    property int suspendMin: 15
+    property int graceSec: 60
 
-    property string currentProfile: "balanced"
-    property var availableProfiles: ["power-saver", "balanced", "performance"]
+    readonly property string home: Quickshell.env("HOME")
+    readonly property var nt: Refs.notifications
 
-    property bool hasBattery: false
-    property int batteryPercent: 0
-    property string batteryStatus: ""
-
-    readonly property var profiles: [
-        { id: "power-saver", label: "POWER SAVER", icon: "\uf06c", desc: "Quiet, longer battery" },
-        { id: "balanced",    label: "BALANCED",    icon: "\uf24e", desc: "Default behaviour" },
-        { id: "performance", label: "PERFORMANCE", icon: "\uf0e7", desc: "Maximum speed" }
-    ]
-
-    function profileLabel(id) {
-        for (let i = 0; i < profiles.length; i++)
-            if (profiles[i].id === id) return profiles[i].label
-        return id.toUpperCase()
-    }
-    Process {
-        id: profileGet
-        command: ["powerprofilesctl", "get"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const v = text.trim()
-                if (v.length > 0) page.currentProfile = v
+    FileView {
+        id: file
+        path: page.home + "/.config/quickshell/state/session.json"
+        printErrors: false
+        onSaved: Quickshell.execDetached([page.home + "/.config/hypr/scripts/apply-session-prefs.sh"])
+        onLoaded: {
+            try {
+                var s = JSON.parse(file.text())
+                if (typeof s.lockMin === "number") page.lockMin = s.lockMin
+                if (typeof s.suspendMin === "number") page.suspendMin = s.suspendMin
+                if (typeof s.graceSec === "number") page.graceSec = s.graceSec
+            } catch (e) {
+                console.warn("session: could not read saved state:", e)
             }
         }
     }
+
+    function minutes(m) { return m === 0 ? "Never" : m + " min" }
+
+    function commit() {
+        file.setText(JSON.stringify({ lockMin: page.lockMin, suspendMin: page.suspendMin, graceSec: page.graceSec }))
+    }
+
+    property string profile: "balanced"
+    property var profilesAvailable: []
+    property int level: 0
+    property string chargeState: ""
+    property bool hasBattery: false
+    readonly property var profileOptions: [
+        { id: "power-saver", label: "Power saver" }, { id: "balanced", label: "Balanced" }, { id: "performance", label: "Performance" }
+    ]
+
+    function refresh() { pProf.running = true; pBat.running = true }
+    Component.onCompleted: { refresh(); pList.running = true }
+    Timer { interval: 5000; running: true; repeat: true; onTriggered: page.refresh() }
+    Process { id: pProf; command: ["powerprofilesctl", "get"]; stdout: StdioCollector { onStreamFinished: page.profile = text.trim() } }
     Process {
-        id: profileList
+        id: pList
         command: ["powerprofilesctl", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const found = []
-                const re = /^\s*\*?\s*([a-z-]+):\s*$/gm
-                let m
-                while ((m = re.exec(text)) !== null) found.push(m[1])
-                if (found.length > 0) page.availableProfiles = found
+                var ids = []
+                text.split("\n").forEach(l => { var m = l.match(/^[* ]\s*([a-z-]+):/); if (m) ids.push(m[1]) })
+                page.profilesAvailable = ids
             }
         }
     }
     Process {
-        id: profileSet
-        onExited: exitCode => refreshTimer.restart()
-    }
-
-    function setProfile(id) {
-        if (profileSet.running) return
-        page.currentProfile = id
-        profileSet.command = ["powerprofilesctl", "set", id]
-        profileSet.running = true
-    }
-    Process {
-        id: batteryGet
-        command: [
-            "sh", "-c",
-            "cat /sys/class/power_supply/BAT*/capacity /sys/class/power_supply/BAT*/status 2>/dev/null | head -n 2"
-        ]
+        id: pBat
+        command: ["sh", "-c", "for b in /sys/class/power_supply/BAT*; do [ -r \"$b/capacity\" ] && echo $(cat \"$b/capacity\") $(cat \"$b/status\") && break; done"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const lines = text.trim().split("\n")
-                if (lines.length >= 2 && lines[0].length > 0) {
-                    const pct = parseInt(lines[0])
-                    if (!isNaN(pct)) {
-                        page.batteryPercent = pct
-                        page.batteryStatus = lines[1].trim()
-                        page.hasBattery = true
-                        return
-                    }
-                }
-                page.hasBattery = false
+                var p = text.trim().split(" ")
+                page.hasBattery = p.length >= 2 && p[0] !== ""
+                if (page.hasBattery) { page.level = parseInt(p[0]); page.chargeState = p.slice(1).join(" ") }
             }
         }
     }
+    Process { id: setProf; onExited: page.refresh() }
 
-    function refresh() {
-        profileGet.running = true
-        batteryGet.running = true
-    }
-
-    Timer { id: refreshTimer; interval: 250; onTriggered: page.refresh() }
-
-    Timer {
-        interval: 5000; running: true; repeat: true
-        onTriggered: if (!batteryGet.running) batteryGet.running = true
-    }
-
-    Flickable {
-        id: flick
-        anchors.fill: parent
-        anchors.leftMargin: page.marginLeft; anchors.rightMargin: page.marginRight
-        anchors.topMargin: page.marginTop; anchors.bottomMargin: page.marginBottom
-        contentWidth: width
-        contentHeight: content.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-
-        ScrollBar.vertical: ScrollBar {
-            id: scrollBar
-
-            background: Rectangle {
-                color: "transparent"
-                radius: width / 2
-            }
-            contentItem: Rectangle {
-                color: "transparent"
-                radius: width / 2
-            }
+    SetSection { text: "Performance" }
+    SetRow {
+        label: "Power profile"
+        hint: "Power saver is quieter and lasts longer. Performance is fastest"
+        SetSeg {
+            options: page.profileOptions.filter(o => page.profilesAvailable.length === 0 || page.profilesAvailable.indexOf(o.id) >= 0).map(o => o.label)
+            current: (page.profileOptions.find(o => o.id === page.profile) || {}).label || ""
+            onPicked: v => { var o = page.profileOptions.find(x => x.label === v); page.profile = o.id; setProf.command = ["powerprofilesctl", "set", o.id]; setProf.running = true }
         }
+    }
+    SetRow {
+        visible: page.hasBattery
+        label: "Battery"
+        hint: page.chargeState
+        Text { height: 26; verticalAlignment: Text.AlignVCenter; text: page.level + "%"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 13; font.letterSpacing: 1 }
+    }
 
-        Column {
-            id: content
-            width: flick.width
-            spacing: 14
-
-            Text {
-                text: "POWER"; color: Theme.text
-                font.family: Theme.fontFamily; font.pixelSize: 19; font.letterSpacing: 3
-            }
-
-            Rectangle { width: parent.width; height: 1; color: Theme.border }
-            Column {
-                width: parent.width; spacing: 10
-                topPadding: 6
-                bottomPadding: 6
-
-                Text {
-                    text: "POWER PROFILE"; color: Theme.text
-                    font.family: Theme.fontFamily; font.pixelSize: 15; font.bold: true; font.letterSpacing: 2
-                }
-
-                Row {
-                    width: parent.width; spacing: 10
-                    topPadding: 6
-                    bottomPadding: 6
-
-                    Repeater {
-                        model: page.profiles
-
-                        delegate: Rectangle {
-                            id: card
-                            required property var modelData
-                            readonly property bool selected: page.currentProfile === modelData.id
-                            readonly property bool available: page.availableProfiles.indexOf(modelData.id) !== -1
-                            property bool hovered: false
-
-                            width: (parent.width - parent.spacing * 2) / 3; height: 100; radius: Theme.radius
-                            opacity: available ? 1.0 : 0.35
-                            color: selected ? Theme.alpha(Theme.accent, 0.10)
-                                 : hovered ? Theme.alpha(Theme.accent, 0.08)
-                                 : "#00000000"
-                            border.width: 1
-                            border.color: (selected || hovered) ? Theme.accent : Theme.border
-
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: 8
-
-                                Rectangle {
-                                    width: 28; height: 28; radius: Theme.radius
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    color: card.selected ? Theme.alpha(Theme.accent, 0.10) : Theme.alpha("#A0A0A0", 0.15)
-                                    border.width: 1
-                                    border.color: card.selected ? Theme.accent : Theme.border
-                                    Text {
-                                        anchors.centerIn: parent; text: card.modelData.icon
-                                        color: card.selected ? Theme.accent : "#A0A0A0"
-                                        font.family: Theme.iconFont; font.pixelSize: 12
-                                    }
-                                }
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: card.modelData.label; color: Theme.text
-                                    font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true; font.letterSpacing: 1
-                                }
-
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: card.available ? card.modelData.desc : "Unavailable"
-                                    color: Theme.textDim
-                                    font.family: Theme.fontFamily; font.pixelSize: 10
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent; hoverEnabled: true
-                                enabled: card.available
-                                cursorShape: Qt.PointingHandCursor
-                                onEntered: card.hovered = true
-                                onExited: card.hovered = false
-                                onClicked: page.setProfile(card.modelData.id)
-                            }
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                visible: page.hasBattery
-                width: parent.width; height: 100; radius: Theme.radius
-                color: "#00000000"; border.width: 1; border.color: Theme.border
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 14
-                    spacing: 8
-
-                    Row {
-                        spacing: 10
-
-                        Text {
-                            text: "BATTERY"; color: Theme.text
-                            font.family: Theme.fontFamily; font.pixelSize: 14; font.bold: true
-                        }
-
-                        Text {
-                            text: page.batteryStatus.toUpperCase()
-                            color: Theme.textDim
-                            font.family: Theme.fontFamily; font.pixelSize: 12
-                        }
-
-                        Text {
-                            visible: page.batteryStatus === "Charging"
-                            text: "CHARGING"; color: Theme.accent2
-                            font.family: Theme.fontFamily; font.pixelSize: 10
-                        }
-                    }
-
-                    Item {
-                        width: parent.width
-                        height: levelLabel.implicitHeight
-                        Text {
-                            id: levelLabel
-                            anchors.left: parent.left
-                            text: "LEVEL"
-                            color: Theme.textDim
-                            font.family: Theme.fontFamily; font.pixelSize: 11
-                        }
-                        Text {
-                            anchors.right: parent.right
-                            text: page.batteryPercent + "%"
-                            color: Theme.text
-                            font.family: Theme.fontFamily; font.pixelSize: 11
-                        }
-                    }
-
-                    Rectangle {
-                        width: parent.width; height: 6; radius: 3
-                        color: Theme.alpha("#A0A0A0", 0.15)
-
-                        Rectangle {
-                            width: parent.width * Math.max(0, Math.min(1, page.batteryPercent / 100))
-                            height: parent.height; radius: 3
-                            color: page.batteryPercent <= 15 ? "#E05555" : Theme.accent2
-                            Behavior on width { NumberAnimation { duration: 200 } }
-                        }
-                    }
-                }
-            }
+    SetSection { text: "When idle" }
+    SetRow {
+        label: "Lock screen after"
+        SetSlider {
+            from: 0; to: 30; step: 1
+            value: page.lockMin
+            displayText: page.minutes(value)
+            onMoved: v => page.lockMin = v
+            onCommitted: page.commit()
+        }
+    }
+    SetRow {
+        label: "Suspend after"
+        hint: "Counted from the start of the idle time"
+        SetSlider {
+            from: 0; to: 60; step: 1
+            value: page.suspendMin
+            displayText: page.minutes(value)
+            onMoved: v => page.suspendMin = v
+            onCommitted: page.commit()
         }
     }
 
-    Component.onCompleted: {
-        profileList.running = true
-        profileGet.running = true
-        batteryGet.running = true
+    SetSection { text: "Lid" }
+    SetRow {
+        label: "Skip lock if reopened within"
+        hint: "Closing the lid always suspends. A quick close and open shows the desktop"
+        SetSlider {
+            from: 0; to: 300; step: 5
+            value: page.graceSec
+            displayText: value === 0 ? "Always lock" : value + " s"
+            onMoved: v => page.graceSec = v
+            onCommitted: page.commit()
+        }
+    }
+
+    SetSection { text: "Low battery" }
+    SetRow {
+        label: "Low battery warning"
+        hint: "A notification when the charge falls to this level on battery"
+        SetSlider {
+            from: 10; to: 50; step: 5; unit: "%"
+            value: page.nt?.warnPct ?? 20
+            onMoved: v => {
+                page.nt.warnPct = v
+                if (page.nt.critPct > v) page.nt.critPct = v      // keep critical at or below the warning
+                page.nt.saveSettings()
+            }
+        }
+    }
+    SetRow {
+        label: "Critical warning"
+        hint: "A second, urgent notification"
+        SetSlider {
+            from: 5; to: 40; step: 5; unit: "%"
+            value: page.nt?.critPct ?? 15
+            onMoved: v => {
+                page.nt.critPct = Math.min(v, page.nt.warnPct)
+                if (page.nt.suspendPct > page.nt.critPct) page.nt.suspendPct = page.nt.critPct
+                page.nt.saveSettings()
+            }
+        }
+    }
+    SetRow {
+        label: "Suspend at"
+        hint: "Lock and sleep by itself to protect your work. Off by default"
+        SetSlider {
+            from: 0; to: 20; step: 1
+            value: page.nt?.suspendPct ?? 0
+            displayText: value === 0 ? "Off" : value + "%"
+            onMoved: v => { page.nt.suspendPct = Math.min(v, page.nt.critPct); page.nt.saveSettings() }
+        }
+    }
+
+    SetSection { text: "Now" }
+    SetRow {
+        label: "Lock the screen"
+        SetButton { label: "Lock"; onClicked: Quickshell.execDetached(["loginctl", "lock-session"]) }
+    }
+    SetRow {
+        label: "Suspend the laptop"
+        hint: "Locks first. Wake it with a key or the touchpad"
+        SetButton { label: "Suspend"; onClicked: Quickshell.execDetached([page.home + "/.config/hypr/scripts/suspend.sh"]) }
     }
 }
