@@ -84,6 +84,8 @@ SetPage {
         delegate: Loader {
             required property var modelData
             width: parent ? parent.width : 0
+            property bool popupOpen: false    // set by a dropdown inside: draw this row above the ones below
+            z: popupOpen ? 100 : 0
             sourceComponent: modelData.heading !== undefined ? headingC : rowC
             Component {
                 id: headingC
