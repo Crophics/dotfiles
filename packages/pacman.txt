@@ -183,6 +183,7 @@ ncdu
 neovim
 netctl
 networkmanager
+ network-manager-applet blueman hyprlock
 networkmanager-openvpn
 nfs-utils
 nilfs-utils
