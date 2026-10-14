@@ -97,7 +97,7 @@ SetPage {
                     dirty: page.isDirty(modelData)
                     enabled: page.isEnabled(modelData)
                     onMoved: v => {
-                        if (modelData.path) page.set(modelData, v)
+                        if (modelData.path || modelData.compose) page.set(modelData, v)
                         else if (modelData.hook === "opacity") Theme.bgAlpha = v      // shell follows live; saved on release
                     }
                     onChanged: v => page.set(modelData, v)

@@ -66,6 +66,20 @@
    "path": "decoration.rounding"
   },
   {
+   "id": "decoration.rounding_power",
+   "page": "Windows",
+   "section": "Borders and gaps",
+   "label": "Corner smoothness",
+   "hint": "2 is a plain round corner, higher looks squarer",
+   "type": "slider",
+   "min": 2,
+   "max": 6,
+   "step": 0.5,
+   "decimals": 1,
+   "default": 2.0,
+   "path": "decoration.rounding_power"
+  },
+  {
    "id": "general.gaps_in",
    "page": "Windows",
    "section": "Borders and gaps",
@@ -77,6 +91,36 @@
    "unit": " px",
    "default": 4,
    "path": "general.gaps_in"
+  },
+  {
+   "id": "windows.gap_edge",
+   "page": "Windows",
+   "section": "Borders and gaps",
+   "label": "Gap to screen edge",
+   "hint": "Left, right and bottom",
+   "type": "slider",
+   "min": 0,
+   "max": 40,
+   "step": 1,
+   "unit": " px",
+   "default": 8,
+   "compose": "gaps_out",
+   "part": "edge"
+  },
+  {
+   "id": "windows.gap_top",
+   "page": "Windows",
+   "section": "Borders and gaps",
+   "label": "Gap under the bar",
+   "hint": "The top edge",
+   "type": "slider",
+   "min": 0,
+   "max": 40,
+   "step": 1,
+   "unit": " px",
+   "default": 5,
+   "compose": "gaps_out",
+   "part": "top"
   },
   {
    "id": "decoration.blur.enabled",
@@ -116,6 +160,32 @@
    "enabledIf": "decoration.blur.enabled"
   },
   {
+   "id": "decoration.blur.vibrancy",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Blur colour boost",
+   "hint": "Makes colours behind blurred windows stronger",
+   "type": "slider",
+   "min": 0,
+   "max": 1,
+   "step": 0.05,
+   "decimals": 2,
+   "default": 0.2,
+   "path": "decoration.blur.vibrancy",
+   "enabledIf": "decoration.blur.enabled"
+  },
+  {
+   "id": "decoration.blur.popups",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Blur menus",
+   "hint": "Also blur right-click menus and popups",
+   "type": "toggle",
+   "default": false,
+   "path": "decoration.blur.popups",
+   "enabledIf": "decoration.blur.enabled"
+  },
+  {
    "id": "decoration.shadow.enabled",
    "page": "Windows",
    "section": "Blur and shadow",
@@ -139,6 +209,44 @@
    "enabledIf": "decoration.shadow.enabled"
   },
   {
+   "id": "decoration.shadow.render_power",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Shadow sharpness",
+   "hint": "Higher makes the shadow fade out faster",
+   "type": "slider",
+   "min": 1,
+   "max": 4,
+   "step": 1,
+   "default": 3,
+   "path": "decoration.shadow.render_power",
+   "enabledIf": "decoration.shadow.enabled"
+  },
+  {
+   "id": "decoration.glow.enabled",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Inner glow",
+   "hint": "A soft glow along the inside of window edges",
+   "type": "toggle",
+   "default": false,
+   "path": "decoration.glow.enabled"
+  },
+  {
+   "id": "decoration.glow.range",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Glow size",
+   "type": "slider",
+   "min": 1,
+   "max": 30,
+   "step": 1,
+   "unit": " px",
+   "default": 10,
+   "path": "decoration.glow.range",
+   "enabledIf": "decoration.glow.enabled"
+  },
+  {
    "id": "decoration.dim_inactive",
    "page": "Windows",
    "section": "Focus",
@@ -160,6 +268,16 @@
    "default": 0.5,
    "path": "decoration.dim_strength",
    "enabledIf": "decoration.dim_inactive"
+  },
+  {
+   "id": "general.snap.enabled",
+   "page": "Windows",
+   "section": "Focus",
+   "label": "Snap floating windows",
+   "hint": "Floating windows stick to screen edges and other windows when you drag them",
+   "type": "toggle",
+   "default": false,
+   "path": "general.snap.enabled"
   },
   {
    "id": "windows.animations",
@@ -195,6 +313,16 @@
    "enabledIf": "windows.animations"
   },
   {
+   "id": "decoration.motion_blur.enabled",
+   "page": "Windows",
+   "section": "Animations",
+   "label": "Motion blur",
+   "hint": "Blurs windows while they move or resize",
+   "type": "toggle",
+   "default": false,
+   "path": "decoration.motion_blur.enabled"
+  },
+  {
    "id": "input.kb_layout",
    "page": "Input",
    "section": "Keyboard",
@@ -204,6 +332,17 @@
    "default": "us",
    "path": "input.kb_layout",
    "placeholder": "us"
+  },
+  {
+   "id": "input.kb_variant",
+   "page": "Input",
+   "section": "Keyboard",
+   "label": "Layout variant",
+   "hint": "Optional, like dvorak or intl",
+   "type": "text",
+   "default": "",
+   "path": "input.kb_variant",
+   "placeholder": "none"
   },
   {
    "id": "input.repeat_rate",
@@ -232,6 +371,26 @@
    "unit": " ms",
    "default": 600,
    "path": "input.repeat_delay"
+  },
+  {
+   "id": "input.kb_options",
+   "page": "Input",
+   "section": "Keyboard",
+   "label": "Caps Lock key",
+   "hint": "What the Caps Lock key does",
+   "type": "seg",
+   "options": [
+    "Normal",
+    "Escape",
+    "Ctrl"
+   ],
+   "values": [
+    "",
+    "caps:escape",
+    "ctrl:nocaps"
+   ],
+   "default": "",
+   "path": "input.kb_options"
   },
   {
    "id": "input.numlock_by_default",
@@ -273,6 +432,30 @@
    ],
    "default": "flat",
    "path": "input.accel_profile"
+  },
+  {
+   "id": "input.natural_scroll",
+   "page": "Input",
+   "section": "Mouse",
+   "label": "Natural scrolling",
+   "hint": "For a mouse wheel. The touchpad has its own setting below",
+   "type": "toggle",
+   "default": false,
+   "path": "input.natural_scroll"
+  },
+  {
+   "id": "input.scroll_factor",
+   "page": "Input",
+   "section": "Mouse",
+   "label": "Scroll speed",
+   "hint": "For a mouse wheel",
+   "type": "slider",
+   "min": 0.2,
+   "max": 3,
+   "step": 0.1,
+   "decimals": 1,
+   "default": 1.0,
+   "path": "input.scroll_factor"
   },
   {
    "id": "input.left_handed",
@@ -355,6 +538,37 @@
    "path": "input.touchpad.scroll_factor"
   },
   {
+   "id": "input.touchpad.tap_and_drag",
+   "page": "Input",
+   "section": "Touchpad",
+   "label": "Tap and drag",
+   "hint": "Tap, then tap again and hold to drag",
+   "type": "toggle",
+   "default": true,
+   "path": "input.touchpad.tap_and_drag"
+  },
+  {
+   "id": "input.touchpad.middle_button_emulation",
+   "page": "Input",
+   "section": "Touchpad",
+   "label": "Two-button middle click",
+   "hint": "Pressing both buttons at once counts as a middle click",
+   "type": "toggle",
+   "default": false,
+   "path": "input.touchpad.middle_button_emulation"
+  },
+  {
+   "id": "gestures.workspace_swipe",
+   "page": "Input",
+   "section": "Gestures",
+   "label": "Three-finger swipe switches workspace",
+   "hint": "Swipe left or right on the touchpad",
+   "type": "toggle",
+   "default": false,
+   "lua": "hl.gesture({ fingers = 3, direction = \"horizontal\", action = \"workspace\" })",
+   "apply": "reload"
+  },
+  {
    "id": "cursor.hide_on_key_press",
    "page": "Input",
    "section": "Cursor",
@@ -382,15 +596,19 @@
    "page": "Layout",
    "section": "Tiling",
    "label": "Window tiling style",
-   "hint": "Dwindle splits the space in half for every new window. Master keeps one big window and stacks the rest beside it",
+   "hint": "Dwindle splits the space in half for every new window. Master keeps one big window and stacks the rest. Scrolling lines windows up in columns you scroll through. Monocle shows one window at a time",
    "type": "seg",
    "options": [
     "Dwindle",
-    "Master"
+    "Master",
+    "Scrolling",
+    "Monocle"
    ],
    "values": [
     "dwindle",
-    "master"
+    "master",
+    "scrolling",
+    "monocle"
    ],
    "default": "dwindle",
    "path": "general.layout"
@@ -535,6 +753,16 @@
    "path": "misc.focus_on_activate"
   },
   {
+   "id": "misc.mouse_move_focuses_monitor",
+   "page": "Behavior",
+   "section": "Focus",
+   "label": "Pointer switches the active screen",
+   "hint": "With several screens, moving the mouse to another one makes it the active one",
+   "type": "toggle",
+   "default": true,
+   "path": "misc.mouse_move_focuses_monitor"
+  },
+  {
    "id": "binds.workspace_back_and_forth",
    "page": "Behavior",
    "section": "Workspaces",
@@ -553,6 +781,15 @@
    "type": "toggle",
    "default": false,
    "path": "misc.enable_swallow"
+  },
+  {
+   "id": "misc.enable_anr_dialog",
+   "page": "Behavior",
+   "section": "Windows",
+   "label": "Warn when an app stops responding",
+   "type": "toggle",
+   "default": true,
+   "path": "misc.enable_anr_dialog"
   },
   {
    "id": "general.allow_tearing",
@@ -620,6 +857,59 @@
    "type": "toggle",
    "default": true,
    "path": "misc.middle_click_paste"
+  },
+  {
+   "id": "master.new_on_top",
+   "page": "Layout",
+   "section": "Master",
+   "label": "New windows go on top of the stack",
+   "type": "toggle",
+   "default": false,
+   "path": "master.new_on_top"
+  },
+  {
+   "id": "scrolling.column_width",
+   "page": "Layout",
+   "section": "Scrolling",
+   "label": "Column width",
+   "hint": "How much of the screen a new column takes",
+   "type": "slider",
+   "min": 0.2,
+   "max": 1,
+   "step": 0.05,
+   "decimals": 2,
+   "default": 0.5,
+   "path": "scrolling.column_width"
+  },
+  {
+   "id": "scrolling.direction",
+   "page": "Layout",
+   "section": "Scrolling",
+   "label": "New columns appear",
+   "type": "seg",
+   "options": [
+    "Right",
+    "Left",
+    "Down",
+    "Up"
+   ],
+   "values": [
+    "right",
+    "left",
+    "down",
+    "up"
+   ],
+   "default": "right",
+   "path": "scrolling.direction"
+  },
+  {
+   "id": "scrolling.follow_focus",
+   "page": "Layout",
+   "section": "Scrolling",
+   "label": "Scroll to the focused window",
+   "type": "toggle",
+   "default": true,
+   "path": "scrolling.follow_focus"
   }
  ]
 }
