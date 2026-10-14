@@ -1,8 +1,10 @@
 import QtQuick
+import Quickshell
 import "../"
 
 // Dropdown: a button showing the current choice, opening a list under it.
-// `options` are the labels shown; `current` is the selected label (or index, see `currentIndex`).
+// The list lives in a overlay over the whole window, so it is never clipped by the rows around it and
+// every click on it reaches it (items outside their parent's bounds don't get clicks in Qt Quick).
 Item {
     id: sel
     property var options: []
@@ -16,14 +18,17 @@ Item {
     width: implicitWidth
     height: 28
 
-    // Raise the row we sit in so the list draws over the rows below it.
-    onOpenChanged: {
-        var p = parent
-        while (p) {
-            if (p.popupOpen !== undefined) p.popupOpen = open
-            p = p.parent
-        }
+    readonly property Item overlay: QsWindow.window ? QsWindow.window.contentItem : null
+
+    function place() {
+        if (!overlay) return
+        const p = sel.mapToItem(overlay, sel.width, sel.height)
+        popup.x = Math.max(8, p.x - popup.width)
+        popup.y = Math.min(p.y + 4, overlay.height - popup.height - 8)
     }
+    onOpenChanged: if (open) place()
+    // Follow the button if the page scrolls while the list is open.
+    Timer { interval: 60; repeat: true; running: sel.open; onTriggered: sel.place() }
 
     Rectangle {
         anchors.fill: parent
@@ -63,57 +68,64 @@ Item {
         }
     }
 
-    // Click anywhere else to close.
-    MouseArea {
-        visible: sel.open
-        x: -3000; y: -3000; width: 6000; height: 6000
-        z: -1
-        onClicked: sel.open = false
-    }
+    // Window-wide overlay: a click outside the list closes it, a click on an item picks it.
+    Item {
+        id: popupLayer
+        parent: sel.overlay
+        anchors.fill: parent ? parent : undefined
+        visible: sel.open && sel.overlay !== null
+        z: 10000
 
-    Rectangle {
-        visible: sel.open
-        z: 10
-        x: sel.width - width
-        y: sel.height + 4
-        width: sel.listWidth
-        height: Math.min(list.contentHeight + 8, 260)
-        radius: Theme.radius
-        color: Theme.bgPanel
-        border.width: 1
-        border.color: Theme.accent
-
-        ListView {
-            id: list
+        MouseArea {
             anchors.fill: parent
-            anchors.margins: 4
-            clip: true
-            model: sel.options
-            boundsBehavior: Flickable.StopAtBounds
-            delegate: Rectangle {
-                required property string modelData
-                required property int index
-                width: list.width
-                height: 28
-                radius: 6
-                color: hov.hovered ? Theme.alpha(Theme.accent, 0.12) : (index === sel.currentIndex ? Theme.alpha(Theme.accent, 0.07) : "transparent")
-                HoverHandler { id: hov }
-                Text {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 10
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: modelData
-                    color: index === sel.currentIndex ? Theme.accent : Theme.text
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    elide: Text.ElideRight
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: { sel.open = false; sel.picked(index) }
+            onClicked: sel.open = false
+            onWheel: wheel => wheel.accepted = true
+        }
+
+        Rectangle {
+            id: popup
+            width: sel.listWidth
+            height: Math.min(list.contentHeight + 8, 260)
+            radius: Theme.radius
+            color: Theme.bgPanel
+            border.width: 1
+            border.color: Theme.accent
+
+            // swallow clicks on the padding so they don't count as "outside"
+            MouseArea { anchors.fill: parent }
+
+            ListView {
+                id: list
+                anchors.fill: parent
+                anchors.margins: 4
+                clip: true
+                model: sel.options
+                boundsBehavior: Flickable.StopAtBounds
+                delegate: Rectangle {
+                    required property string modelData
+                    required property int index
+                    width: list.width
+                    height: 28
+                    radius: 6
+                    color: hov.hovered ? Theme.alpha(Theme.accent, 0.12) : (index === sel.currentIndex ? Theme.alpha(Theme.accent, 0.07) : "transparent")
+                    HoverHandler { id: hov }
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: modelData
+                        color: index === sel.currentIndex ? Theme.accent : Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 11
+                        elide: Text.ElideRight
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: { sel.open = false; sel.picked(index) }
+                    }
                 }
             }
         }
