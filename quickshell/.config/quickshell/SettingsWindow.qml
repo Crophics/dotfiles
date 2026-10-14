@@ -260,18 +260,18 @@ PanelWindow {
         { group: "Appearance", name: "Style", icon: "󰏘", page: "AppearancePage" },
         { group: "Appearance", name: "Bar", icon: "󰕮", page: "BarPage" },
         { group: "Appearance", name: "Popups", icon: "󰍡", page: "PopupsPage" },
+        { group: "Desktop", name: "Display", icon: "\uf108", page: "DisplayPage" },
         { group: "Desktop", name: "Windows", icon: "󰖲", page: "WindowsPage" },
         { group: "Desktop", name: "Layout", icon: "󰕰", page: "LayoutPage" },
         { group: "Desktop", name: "Behavior", icon: "󰒓", page: "BehaviorPage" },
-        { group: "Desktop", name: "Display", icon: "\uf108", page: "DisplayPage" },
+        { group: "Devices", name: "Network", icon: "\uf1eb", page: "NetworkPage" },
+        { group: "Devices", name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
+        { group: "Devices", name: "Audio", icon: "\uf028", page: "AudioPage" },
         { group: "Devices", name: "Input", icon: "󰍽", page: "InputPage" },
         { group: "Devices", name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
-        { group: "Devices", name: "Audio", icon: "\uf028", page: "AudioPage" },
-        { group: "Devices", name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
-        { group: "Devices", name: "Network", icon: "\uf1eb", page: "NetworkPage" },
-        { group: "System", name: "Apps", icon: "󰀻", page: "AppsPage" },
         { group: "System", name: "Power", icon: "󰐥", page: "PowerPage" },
         { group: "System", name: "Storage", icon: "󰋊", page: "StoragePage" },
+        { group: "System", name: "Apps", icon: "󰀻", page: "AppsPage" },
         { group: "System", name: "Advanced", icon: "󰧮", page: "AdvancedPage" }
     ]
     // Old page names still resolve (IPC, bar buttons).
