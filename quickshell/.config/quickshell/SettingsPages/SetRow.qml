@@ -12,6 +12,8 @@ Rectangle {
     property alias leading: lead.data // icon or signal bars before the label
     property bool selected: false     // outlined in the accent colour (an open row)
     property bool clickable: false    // whole row acts as a button
+    property bool popupOpen: false    // a dropdown inside is open: draw above the rows below
+    z: popupOpen ? 100 : 0
     signal clicked()
 
     width: parent ? parent.width : 0

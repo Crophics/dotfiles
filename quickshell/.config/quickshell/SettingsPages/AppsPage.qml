@@ -30,6 +30,11 @@ SetPage {
     property string pickQuery: ""
 
     function candidates(cat) { return apps.filter(a => a.mimes.indexOf(cat.mime) >= 0) }
+    // Two apps can share a name (say, two "Text Editor"s): add the file name to tell them apart.
+    function labelFor(a, list) {
+        var same = list.filter(x => x.name === a.name).length > 1
+        return same ? a.name + "  (" + a.id.replace(".desktop", "") + ")" : a.name
+    }
     function appName(id) { var a = apps.find(x => x.id === id); return a ? a.name : "" }
     function setDefault(cat, id) {
         var d = Object.assign({}, defaults); d[cat.key] = id; defaults = d
@@ -64,12 +69,14 @@ SetPage {
             readonly property var list: page.candidates(modelData)
             label: modelData.label
             hint: list.length === 0 ? "No installed app handles this" : ""
-            controlWidth: 460
-            SetChips {
-                width: 460
-                options: list.map(a => a.name)
-                current: page.appName(page.defaults[modelData.key])
-                onPicked: v => page.setDefault(modelData, list.find(a => a.name === v).id)
+            SetSelect {
+                implicitWidth: 240
+                listWidth: 300
+                enabled: list.length > 0
+                placeholder: list.length > 0 ? "Not set" : "None installed"
+                options: list.map(a => page.labelFor(a, list))
+                currentIndex: list.findIndex(a => a.id === page.defaults[modelData.key])
+                onPicked: i => page.setDefault(modelData, list[i].id)
             }
         }
     }

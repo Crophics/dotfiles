@@ -53,7 +53,11 @@ SetPage {
     }
 
     Timer { interval: 1500; running: true; repeat: true; onTriggered: page.tick++ }
-    Component.onCompleted: { if (adapter) { adapter.pairable = true; adapter.discovering = true } }
+    // BlueZ isn't always ready the instant the page opens, so start the search a moment later.
+    Timer {
+        interval: 1200; running: true
+        onTriggered: if (page.adapter && page.adapter.enabled) { page.adapter.pairable = true; page.adapter.discovering = true }
+    }
     Component.onDestruction: {
         if (adapter) adapter.discovering = false
         agent.running = false
@@ -107,7 +111,7 @@ SetPage {
         visible: page.adapter
         label: "Bluetooth"
         hint: page.adapter ? "hci0 · " + page.adapter.name : ""
-        SetToggle { checked: page.adapter ? page.adapter.enabled : false; onToggled: v => { page.adapter.enabled = v; if (v) page.adapter.discovering = true } }
+        SetToggle { checked: page.adapter ? page.adapter.enabled : false; onToggled: v => page.adapter.enabled = v }
     }
     SetRow {
         visible: page.adapter && page.adapter.enabled

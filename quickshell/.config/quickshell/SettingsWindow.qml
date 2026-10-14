@@ -560,7 +560,7 @@ PanelWindow {
 
                                     Text {
                                         visible: index === 0 || root.navItems[index - 1].group !== modelData.group
-                                        height: visible ? implicitHeight + 10 : 0
+                                        height: visible ? 28 : 0
                                         verticalAlignment: Text.AlignBottom
                                         leftPadding: 16
                                         text: modelData.group.toUpperCase()

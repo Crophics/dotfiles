@@ -29,12 +29,11 @@ SetPage {
     SetSection { text: "Cursor" }
     SetRow {
         label: "Cursor theme"
-        controlWidth: 420
-        SetChips {
-            width: 420
+        SetSelect {
+            implicitWidth: 220
             options: page.cursors
-            current: page.info.cursor
-            onPicked: v => page.apply(["cursor", v, String(page.info.cursorSize)])
+            currentIndex: page.cursors.indexOf(page.info.cursor)
+            onPicked: i => page.apply(["cursor", page.cursors[i], String(page.info.cursorSize)])
         }
     }
     SetRow {
@@ -50,12 +49,11 @@ SetPage {
     SetRow {
         label: "Icon theme"
         hint: "Apps pick it up as they open"
-        controlWidth: 420
-        SetChips {
-            width: 420
+        SetSelect {
+            implicitWidth: 220
             options: page.iconThemes
-            current: page.info.icons
-            onPicked: v => page.apply(["icons", v])
+            currentIndex: page.iconThemes.indexOf(page.info.icons)
+            onPicked: i => page.apply(["icons", page.iconThemes[i]])
         }
     }
 
