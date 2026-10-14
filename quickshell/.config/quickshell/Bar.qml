@@ -849,9 +849,9 @@ Scope {
                                  : dotMa.containsMouse ? wsRoot.tint
                                  : dot.occupied ? Qt.alpha(Theme.text, cfg.wsColor === "accent" ? 1 : 0.7)
                                  : Qt.alpha(Theme.textFaint, 0.7)
-                            font.family: Theme.fontFamily
-                            font.pixelSize: wsRoot.look === "dots" && !dot.isFocused ? 10 : 12
-                            font.bold: dot.isFocused
+                            font.family: Theme.iconFont                     // same face and size as the CPU / temp / RAM text
+                            font.pixelSize: wsRoot.look === "dots" && !dot.isFocused ? root.sz.stat - 2 : root.sz.stat
+                            renderType: Text.NativeRendering
                             Behavior on color { ColorAnimation { duration: Theme.animFast } }
                         }
 
