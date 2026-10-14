@@ -11,7 +11,7 @@ SetPage {
 
     readonly property string home: Quickshell.env("HOME")
     readonly property string displayScript: home + "/.config/hypr/scripts/display.py"
-    readonly property string nightScript: home + "/.config/hypr/scripts/nightlight.sh"
+    readonly property string nightScript: home + "/.config/hypr/scripts/nightlight.py"
 
     property var cfg: []                 // one entry per monitor, what the user is editing
     property int countdown: 0            // seconds left to confirm, 0 = nothing pending
@@ -19,6 +19,9 @@ SetPage {
     property bool hasBacklight: false
     property bool nightOn: false
     property int nightTemp: 4500
+    property bool nightAuto: false
+    property string nightStart: "20:00"
+    property string nightEnd: "07:00"
 
     readonly property var rotations: ["Normal", "90°", "180°", "270°"]
     readonly property var vrrNames: ["Off", "On", "Fullscreen only"]
@@ -27,14 +30,22 @@ SetPage {
     function resolutions(c) { return uniq(c.modes.map(m => m.res)) }
     function rates(c, res) { return c.modes.filter(m => m.res === res).map(m => m.rate) }
     function rateLabel(r) { return parseFloat(r).toFixed(0) + " Hz" }
-    // Scales that give a whole-pixel desktop, shown as clean percentages.
+    // Every scale Hyprland can use on this screen: a multiple of 1/120 that divides both sides
+    // of the picture exactly. Returned as percentages with decimals, like 106.67.
     function scales(c) {
         var w = parseInt(c.res.split("x")[0]), h = parseInt(c.res.split("x")[1]), out = []
-        for (var k = 60; k <= 360; k++) {
-            if ((w * 120) % k === 0 && (h * 120) % k === 0 && (k * 100) % 120 === 0) out.push(k * 100 / 120)
+        for (var k = 90; k <= 360; k++) {
+            if ((w * 120) % k === 0 && (h * 120) % k === 0) out.push(k * 100 / 120)
         }
-        return out.filter(p => p >= 75 && p <= 300)
+        return out
     }
+    function scaleLabel(p) { return Math.round(p) + "%" }
+    function scaleNear(c) {
+        var list = scales(c), best = list[0] || 100, want = c.scale * 100
+        list.forEach(p => { if (Math.abs(p - want) < Math.abs(best - want)) best = p })
+        return best
+    }
+
     function find(name) { return cfg.find(c => c.name === name) }
     function logicalSize(c) {
         var w = parseInt(c.res.split("x")[0]), h = parseInt(c.res.split("x")[1])
@@ -119,19 +130,37 @@ SetPage {
     Process { id: brSet }
     Process {
         id: pNight
-        command: ["sh", "-c", "cat \"$HOME/.config/quickshell/state/nightlight.json\" 2>/dev/null"]
+        command: [nightScript, "status"]
         stdout: StdioCollector {
             onStreamFinished: {
-                try { var s = JSON.parse(text); page.nightOn = s.enabled === true; page.nightTemp = s.temp || 4500 } catch (e) {}
+                try {
+                    var d = JSON.parse(text)
+                    page.nightOn = d.on === true; page.nightTemp = d.temp
+                    page.nightAuto = d.auto === true; page.nightStart = d.start; page.nightEnd = d.end
+                } catch (e) {}
             }
         }
     }
-    Process { id: nightSet }
-    function setNight(on, temp) {
-        nightOn = on; nightTemp = temp
-        nightSet.command = [nightScript, "set", on ? "on" : "off", String(temp)]
+    // Night light commands run one at a time; while a slider drags, only the newest preview waits.
+    property var nightQueue: null
+    Process {
+        id: nightSet
+        onExited: {
+            if (page.nightQueue) { var c = page.nightQueue; page.nightQueue = null; nightSet.command = c; nightSet.running = true }
+            else pNight.running = true
+        }
+    }
+    function night(args) {
+        var cmd = [nightScript].concat(args)
+        if (nightSet.running) { nightQueue = cmd; return }
+        nightSet.command = cmd
         nightSet.running = true
     }
+    function addMinutes(t, d) {
+        var m = ((parseInt(t.split(":")[0]) * 60 + parseInt(t.split(":")[1]) + d) % 1440 + 1440) % 1440
+        return ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + (m % 60)).slice(-2)
+    }
+    readonly property var timeRe: /^([01]?\d|2[0-3]):[0-5]\d$/
 
     // ── one block per monitor ──
     Repeater {
@@ -165,9 +194,8 @@ SetPage {
                     onPicked: v => {
                         var r = page.rates(modelData, v)
                         var rate = r.indexOf(modelData.rate) >= 0 ? modelData.rate : r.slice().sort((a, b) => b - a)[0]
-                        var sc = page.scales(Object.assign({}, modelData, { res: v }))
-                        var scale = sc.indexOf(Math.round(modelData.scale * 100)) >= 0 ? modelData.scale : (sc.indexOf(100) >= 0 ? 1 : sc[0] / 100)
-                        page.edit(modelData.name, { res: v, rate: rate, scale: scale })
+                        var next = Object.assign({}, modelData, { res: v })
+                        page.edit(modelData.name, { res: v, rate: rate, scale: page.scaleNear(next) / 100 })
                     }
                 }
             }
@@ -183,14 +211,17 @@ SetPage {
             SetRow {
                 visible: modelData.enabled
                 label: "Scale"
-                hint: "Larger makes everything bigger. Only sizes that fit the screen exactly are listed"
+                hint: "Larger makes everything bigger. Every size this screen can show exactly"
                 wrapHint: true
-                controlWidth: 330
+                controlWidth: 460
                 SetChips {
-                    width: 330
-                    options: page.scales(modelData).map(p => p + "%")
-                    current: Math.round(modelData.scale * 100) + "%"
-                    onPicked: v => page.edit(modelData.name, { scale: parseInt(v) / 100 })
+                    width: 460
+                    options: page.scales(modelData).map(page.scaleLabel)
+                    current: page.scaleLabel(page.scaleNear(modelData))
+                    onPicked: v => {
+                        var list = page.scales(modelData)
+                        page.edit(modelData.name, { scale: list[options.indexOf(v)] / 100 })
+                    }
                 }
             }
             SetRow {
@@ -257,18 +288,45 @@ SetPage {
     SetSection { text: "Night light" }
     SetRow {
         label: "Night light"
-        hint: "Warmer colours for the evening"
-        SetToggle { checked: page.nightOn; onToggled: v => page.setNight(v, page.nightTemp) }
+        hint: page.nightAuto ? "With a schedule on, this holds until the next scheduled switch" : "Warmer colours for the evening"
+        SetToggle { checked: page.nightOn; onToggled: v => { page.nightOn = v; page.night(["toggle", v ? "on" : "off"]) } }
     }
     SetRow {
         label: "Warmth"
         hint: "Lower is warmer"
-        enabled: page.nightOn
         SetSlider {
             from: 2500; to: 6500; step: 100; unit: " K"
             value: page.nightTemp
-            onCommitted: v => page.setNight(true, v)
+            onMoved: v => { page.nightTemp = v; page.night(["temp", String(v), "preview"]) }
+            onCommitted: v => page.night(["temp", String(v)])
         }
+    }
+    SetRow {
+        label: "Schedule"
+        hint: "Turn on and off at set times every day"
+        SetToggle { checked: page.nightAuto; onToggled: v => { page.nightAuto = v; page.night(["auto", v ? "on" : "off"]) } }
+    }
+    SetRow {
+        visible: page.nightAuto
+        label: "Turn on at"
+        SetButton { label: "−"; onClicked: { page.nightStart = page.addMinutes(page.nightStart, -30); page.night(["times", page.nightStart, page.nightEnd]) } }
+        SetTextField {
+            id: tStart; implicitWidth: 70; text: page.nightStart
+            onEdited: v => startCommit.restart()
+            Timer { id: startCommit; interval: 700; onTriggered: if (page.timeRe.test(tStart.text)) { page.nightStart = tStart.text; page.night(["times", page.nightStart, page.nightEnd]) } }
+        }
+        SetButton { label: "+"; onClicked: { page.nightStart = page.addMinutes(page.nightStart, 30); page.night(["times", page.nightStart, page.nightEnd]) } }
+    }
+    SetRow {
+        visible: page.nightAuto
+        label: "Turn off at"
+        SetButton { label: "−"; onClicked: { page.nightEnd = page.addMinutes(page.nightEnd, -30); page.night(["times", page.nightStart, page.nightEnd]) } }
+        SetTextField {
+            id: tEnd; implicitWidth: 70; text: page.nightEnd
+            onEdited: v => endCommit.restart()
+            Timer { id: endCommit; interval: 700; onTriggered: if (page.timeRe.test(tEnd.text)) { page.nightEnd = tEnd.text; page.night(["times", page.nightStart, page.nightEnd]) } }
+        }
+        SetButton { label: "+"; onClicked: { page.nightEnd = page.addMinutes(page.nightEnd, 30); page.night(["times", page.nightStart, page.nightEnd]) } }
     }
 
     // ── confirm bar ──
