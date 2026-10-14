@@ -6,6 +6,7 @@ Rectangle {
     id: f
     property alias text: input.text
     property string placeholder: ""
+    property bool echoHidden: false
     signal edited(string value)
 
     implicitWidth: 240
@@ -24,6 +25,7 @@ Rectangle {
         anchors.rightMargin: 10
         verticalAlignment: TextInput.AlignVCenter
         clip: true
+        echoMode: f.echoHidden ? TextInput.Password : TextInput.Normal
         color: Theme.text
         selectionColor: Theme.alpha(Theme.accent, 0.4)
         selectedTextColor: Theme.text

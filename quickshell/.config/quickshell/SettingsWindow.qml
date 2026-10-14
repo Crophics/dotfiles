@@ -184,7 +184,7 @@ PanelWindow {
             root.openPage("AudioPage")
         }
         function network(): void {
-            root.openPage("ConnectionsPage")
+            root.openPage("NetworkPage")
         }
         function page(name: string): void {
             root.openPage(name)
@@ -245,11 +245,12 @@ PanelWindow {
         { group: "System", name: "Power", icon: "󰐥", page: "PowerPage" },
         { group: "System", name: "Session", icon: "󰌾", page: "SessionPage" },
         { group: "System", name: "Storage", icon: "󰋊", page: "StoragePage" },
-        { group: "Connections", name: "Connections", icon: "\uf1eb", page: "ConnectionsPage" },
+        { group: "Connections", name: "Network", icon: "\uf1eb", page: "NetworkPage" },
+        { group: "Connections", name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
         { group: "Advanced", name: "Configs", icon: "󰧮", page: "ConfigsPage" }
     ]
     // Old page names still resolve (IPC, bar buttons).
-    readonly property var pageAliases: ({ NetworkPage: "ConnectionsPage", BluetoothPage: "ConnectionsPage", Network: "ConnectionsPage", Bluetooth: "ConnectionsPage", SystemPage: "StoragePage", System: "StoragePage" })
+    readonly property var pageAliases: ({ ConnectionsPage: "NetworkPage", Connections: "NetworkPage", SystemPage: "StoragePage", System: "StoragePage" })
 
     property int selectedIndex: 0
 

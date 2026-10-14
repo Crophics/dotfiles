@@ -9,21 +9,39 @@ Rectangle {
     default property alias controls: ctl.data
     property real controlWidth: 0     // 0 = size to the controls
     property bool wrapHint: false     // let a long hint use more lines instead of eliding
+    property alias leading: lead.data // icon or signal bars before the label
+    property bool selected: false     // outlined in the accent colour (an open row)
+    property bool clickable: false    // whole row acts as a button
+    signal clicked()
 
     width: parent ? parent.width : 0
     height: Math.max(hint !== "" ? 52 : 44, labels.implicitHeight + 24)
     radius: Theme.radius
     color: hover.hovered ? Theme.alpha(Theme.accent, 0.05) : "transparent"
     border.width: 1
-    border.color: Theme.border
+    border.color: selected ? Theme.accent : Theme.border
     opacity: enabled ? 1 : 0.4
 
     HoverHandler { id: hover }
+    MouseArea {
+        anchors.fill: parent
+        enabled: row.clickable
+        cursorShape: Qt.PointingHandCursor
+        onClicked: row.clicked()
+    }
+
+    Row {
+        id: lead
+        anchors.left: parent.left
+        anchors.leftMargin: 14
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 8
+    }
 
     Column {
         id: labels
-        anchors.left: parent.left
-        anchors.leftMargin: 14
+        anchors.left: lead.right
+        anchors.leftMargin: lead.children.length > 0 ? 12 : 0
         anchors.right: ctl.left
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
