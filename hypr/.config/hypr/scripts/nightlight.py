@@ -4,7 +4,7 @@
   nightlight.py daemon                 keep the screen in step with the schedule (run at login)
   nightlight.py status                 print the state as JSON (on = what the screen is doing now)
   nightlight.py toggle on|off          turn it on or off right now
-  nightlight.py temp <K> [preview]     set the warmth; "preview" changes the screen but doesn't save
+  nightlight.py temp <K> [preview]     set the warmth; "preview" shows it even while off, without saving
   nightlight.py auto on|off            switch the schedule on or off
   nightlight.py times <HH:MM> <HH:MM>  when the schedule turns it on and off
   nightlight.py apply                  apply the saved state once
@@ -17,6 +17,7 @@ import datetime, fcntl, json, os, subprocess, sys, time
 
 HOME = os.path.expanduser("~")
 STATE = f"{HOME}/.config/quickshell/state/nightlight.json"
+PREVIEW = f"{HOME}/.cache/nightlight.preview"
 DEFAULT = {"enabled": False, "temp": 4500, "auto": False, "start": "20:00", "end": "07:00", "ovr": None, "sched": None}
 
 
@@ -94,8 +95,13 @@ def main():
         except OSError:
             return
         while True:
-            apply(load())
-            time.sleep(15)
+            try:
+                previewing = time.time() - os.path.getmtime(PREVIEW) < 4
+            except OSError:
+                previewing = False
+            if not previewing:
+                apply(load())
+            time.sleep(2 if previewing else 15)
     elif cmd == "status":
         on = effective(s)
         print(json.dumps({**s, "on": on}))
@@ -111,8 +117,8 @@ def main():
     elif cmd == "temp" and len(a) >= 2:
         t = max(1000, min(10000, int(a[1])))
         if len(a) > 2 and a[2] == "preview":
-            if effective(s):
-                show(True, t)
+            show(True, t)                      # even while off; the next saved change puts it back
+            open(PREVIEW, "w").close()         # tells the daemon to leave the screen alone for a moment
         else:
             s["temp"] = t
             apply(s)
