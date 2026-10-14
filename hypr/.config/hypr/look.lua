@@ -39,15 +39,23 @@ hl.config({
         },
     },
     animations = {
-        enabled = false,   -- off, as it has been since HyprMod set it; the curves below apply if you turn this on
+        enabled = prefs.animations ~= false,   -- Settings > Windows > Animations (on by default)
     },
 })
 
-hl.curve("easeOut", { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.0} } })
+-- Quick and snappy: short durations and an ease-out that starts fast and settles.
+-- speed is in tenths of a second; Settings > Windows > Animation speed scales all of them.
+local scale = prefs.anim_scale or 1.0
+local function sp(x) return x * scale end
 
-hl.animation({ leaf = "windows",    enabled = true, speed = 5, bezier = "easeOut" })
-hl.animation({ leaf = "windowsOut", enabled = true, speed = 5, bezier = "easeOut" })
-hl.animation({ leaf = "border",     enabled = true, speed = 5, bezier = "default" })
-hl.animation({ leaf = "fade",       enabled = true, speed = 4, bezier = "default" })
-hl.animation({ leaf = "workspaces", enabled = true, speed = 6, bezier = "default", style = "slidefadevert" }) -- styles: "slide", "slidefade", "slidevert", "slidefadevert"
+hl.curve("snap",  { type = "bezier", points = { {0.16, 1.0}, {0.3, 1.0} } })    -- fast start, soft landing
+hl.curve("quick", { type = "bezier", points = { {0.4, 0.0}, {0.6, 1.0} } })      -- even, for fades and borders
+
+hl.animation({ leaf = "windowsIn",   enabled = true, speed = sp(2.6), bezier = "snap",  style = "popin 88%" })
+hl.animation({ leaf = "windowsOut",  enabled = true, speed = sp(2.0), bezier = "quick", style = "popin 90%" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = sp(2.8), bezier = "snap" })
+hl.animation({ leaf = "fade",        enabled = true, speed = sp(2.0), bezier = "quick" })
+hl.animation({ leaf = "border",      enabled = true, speed = sp(3.0), bezier = "quick" })
+hl.animation({ leaf = "workspaces",  enabled = true, speed = sp(3.0), bezier = "snap",  style = "slidefade 15%" })
+hl.animation({ leaf = "specialWorkspace", enabled = true, speed = sp(3.0), bezier = "snap", style = "slidefadevert 15%" })
 
