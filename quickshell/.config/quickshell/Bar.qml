@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -17,7 +16,7 @@ Scope {
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
         statsMode: "compact", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
-        windowText: "title", windowIcon: true, windowMaxW: 260, wsStyle: "underline", wsColor: "white", windowIconColor: false,
+        windowText: "title", windowMaxW: 260, wsStyle: "underline", wsColor: "white",
         hidden: "stats,wall,settings",
         startMods: "stats,ws,window",
         centerMods: "clock",
@@ -53,8 +52,6 @@ Scope {
             property string wsStyle: root.defaults.wsStyle       // workspaces module look: see wsStyles
             property string wsColor: root.defaults.wsColor       // "white" | "accent"
             property string windowText: root.defaults.windowText // active window module: "title" | "app"
-            property bool windowIcon: root.defaults.windowIcon
-            property bool windowIconColor: root.defaults.windowIconColor // false: the icon is drawn in greyscale to match the bar
             property int windowMaxW: root.defaults.windowMaxW    // widest the title may get (px at scale 1)
             property string hidden: root.defaults.hidden         // comma list of disabled modules
             property string startMods: root.defaults.startMods
@@ -173,7 +170,7 @@ Scope {
         switch (id) {
         case "stats":   return !vertical || cfg.statsMode === "compact";   // compact fits vertical bars
         case "media":   return Marquee.player !== null && Marquee.title !== "";
-        case "window":  return ToplevelManager.activeToplevel !== null && ToplevelManager.activeToplevel.appId !== "";
+        case "window":  return !vertical && ToplevelManager.activeToplevel !== null && ToplevelManager.activeToplevel.appId !== "";   // a title doesn't fit a vertical bar
         case "battery": return battery !== null;
         default:        return true;
         }
@@ -917,7 +914,7 @@ Scope {
         }
     }
 
-    // The focused window: its app icon and wTitle (or app name). Icon only on vertical bars.
+    // The focused window's title (or app name), in the same text style as the media module.
     Component {
         id: windowC
         Interactive {
@@ -926,57 +923,22 @@ Scope {
             readonly property var wEntry: wAppId !== "" ? DesktopEntries.heuristicLookup(wAppId) : null
             readonly property string wName: wEntry && wEntry.name ? wEntry.name : wAppId.replace(/[-_.]/g, " ").replace(/\b\w/g, c => c.toUpperCase())
             readonly property string wTitle: wTop && wTop.title !== "" ? wTop.title : wName
-            readonly property string wIcon: {
-                const n = wEntry && wEntry.icon ? wEntry.icon : wAppId.toLowerCase();
-                const p = Quickshell.iconPath(n, true);
-                return p !== "" ? p : Quickshell.iconPath("application-x-executable", true);
-            }
-            readonly property bool wShowIcon: cfg.windowIcon || root.vertical
 
             interactive: false
             tip: wName !== wTitle ? wName + ": " + wTitle : wTitle
-            implicitWidth: root.vertical ? root.panelThick : row.implicitWidth + 8
-            implicitHeight: root.vertical ? 28 : Math.max(root.panelThick - 2, 18)
+            implicitWidth: label.width + 20
+            implicitHeight: Math.max(root.panelThick - 2, 18)
 
-            Row {
-                id: row
+            Text {
+                id: label
                 anchors.centerIn: parent
-                spacing: 8
-                Item {
-                    visible: parent.parent.wShowIcon && parent.parent.wIcon !== ""
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: visible ? root.sz.icon : 0
-                    height: width
-                    Image {
-                        id: wImg
-                        anchors.fill: parent
-                        visible: cfg.windowIconColor
-                        source: parent.parent.parent.wIcon
-                        sourceSize: Qt.size(root.sz.icon * 2, root.sz.icon * 2)
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                    }
-                    // Greyscale and slightly brightened, so it sits with the white text instead of adding colour.
-                    MultiEffect {
-                        anchors.fill: parent
-                        visible: !cfg.windowIconColor
-                        source: wImg
-                        saturation: -1.0
-                        brightness: 0.25
-                        contrast: 0.1
-                    }
-                }
-                Text {
-                    visible: !root.vertical
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: Math.min(implicitWidth, root.s(cfg.windowMaxW))
-                    text: cfg.windowText === "app" ? parent.parent.wName : parent.parent.wTitle
-                    color: Theme.text
-                    elide: Text.ElideRight
-                    font.family: Theme.iconFont
-                    font.pixelSize: root.sz.stat
-                    renderType: Text.NativeRendering
-                }
+                width: Math.min(implicitWidth, root.s(cfg.windowMaxW))
+                text: cfg.windowText === "app" ? parent.wName : parent.wTitle
+                color: Theme.text
+                elide: Text.ElideRight
+                font.family: Theme.iconFont
+                font.pixelSize: root.sz.marquee
+                renderType: Text.NativeRendering
             }
         }
     }
