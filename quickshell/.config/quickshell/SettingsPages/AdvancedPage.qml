@@ -76,7 +76,7 @@ SetPage {
             { label: "Hyprland", path: "~/.config/hypr/hyprland.lua", hint: "Autostart, environment, general setup" },
             { label: "Appearance", path: "~/.config/hypr/look.lua", hint: "Animations and colours" },
             { label: "Window rules", path: "~/.config/hypr/rules.lua", hint: "Per-app behaviour" },
-            { label: "Lock screen", path: "~/.config/hypr/hyprlock.conf", hint: "" },
+            { label: "Lock screen", path: "~/.config/qylock/themes/clockwork/orbital/theme.conf", hint: "How the lock screen looks" },
             { label: "Launcher", path: "~/.config/rofi/config.rasi", hint: "" },
             { label: "Shell theme", path: "~/.config/quickshell/Theme.qml", hint: "Fonts, sizes and animation timing for the bar and popups" }
         ]

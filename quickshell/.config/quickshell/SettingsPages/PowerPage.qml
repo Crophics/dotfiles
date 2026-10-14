@@ -170,7 +170,7 @@ SetPage {
     SetSection { text: "Now" }
     SetRow {
         label: "Lock the screen"
-        SetButton { label: "Lock"; onClicked: Quickshell.execDetached(["loginctl", "lock-session"]) }
+        SetButton { label: "Lock"; onClicked: Quickshell.execDetached([Quickshell.env("HOME") + "/.config/qylock/lock.sh"]) }
     }
     SetRow {
         label: "Suspend the laptop"

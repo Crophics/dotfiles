@@ -62,7 +62,7 @@ local actions = {
     ["popupsettings"]  = { exec("qs ipc call mediaosd settings") },
 
     -- Session
-    ["lock"]    = { exec("hyprlock") },
+    ["lock"]    = { exec(home .. "/.config/qylock/lock.sh") },
     ["suspend"] = { exec(home .. "/.config/hypr/scripts/suspend.sh") },
 
     -- Windows
