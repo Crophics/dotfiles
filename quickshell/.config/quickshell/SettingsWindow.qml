@@ -23,6 +23,7 @@ PanelWindow {
     function toggle() { showing = !showing }
     // Open the settings on a page, by its file name ("BarPage") or its label ("Bar").
     function openPage(name) {
+        if (pageAliases[name]) name = pageAliases[name]
         for (var i = 0; i < navItems.length; i++) {
             if (navItems[i].page === name || navItems[i].name.toLowerCase() === String(name).toLowerCase()) {
                 selectedIndex = i
@@ -183,7 +184,7 @@ PanelWindow {
             root.openPage("AudioPage")
         }
         function network(): void {
-            root.openPage("NetworkPage")
+            root.openPage("ConnectionsPage")
         }
         function page(name: string): void {
             root.openPage(name)
@@ -234,21 +235,21 @@ PanelWindow {
     }
 
     property var navItems: [
-        { name: "System", icon: "󰒓", page: "SystemPage" },
-        { name: "Audio", icon: "\uf028", page: "AudioPage" },
-        { name: "Display", icon: "\uf108", page: "DisplayPage" },
-        { name: "Network", icon: "\uf1eb", page: "NetworkPage" },
-        { name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
-        { name: "Storage", icon: "󰋊", page: "StoragePage" },
-        { name: "Power", icon: "󰐥", page: "PowerPage" },
-        { name: "Session", icon: "󰌾", page: "SessionPage" },
-        { name: "Bar", icon: "󰕮", page: "BarPage" },
-        { name: "Popups", icon: "󰍡", page: "PopupsPage" },
-        { name: "Windows", icon: "󰖲", page: "WindowsPage" },
-        { name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
-        { name: "Configs", icon: "󰧮",  page: "ConfigsPage" },
-        { name: "Themes", icon: "󰉼",  page: "ThemesPage" }
+        { group: "Appearance", name: "Themes", icon: "󰉼", page: "ThemesPage" },
+        { group: "Appearance", name: "Windows", icon: "󰖲", page: "WindowsPage" },
+        { group: "Appearance", name: "Bar", icon: "󰕮", page: "BarPage" },
+        { group: "Appearance", name: "Popups", icon: "󰍡", page: "PopupsPage" },
+        { group: "Input", name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
+        { group: "Display", name: "Display", icon: "\uf108", page: "DisplayPage" },
+        { group: "System", name: "Audio", icon: "\uf028", page: "AudioPage" },
+        { group: "System", name: "Power", icon: "󰐥", page: "PowerPage" },
+        { group: "System", name: "Session", icon: "󰌾", page: "SessionPage" },
+        { group: "System", name: "Storage", icon: "󰋊", page: "StoragePage" },
+        { group: "Connections", name: "Connections", icon: "\uf1eb", page: "ConnectionsPage" },
+        { group: "Advanced", name: "Configs", icon: "󰧮", page: "ConfigsPage" }
     ]
+    // Old page names still resolve (IPC, bar buttons).
+    readonly property var pageAliases: ({ NetworkPage: "ConnectionsPage", BluetoothPage: "ConnectionsPage", Network: "ConnectionsPage", Bluetooth: "ConnectionsPage", SystemPage: "StoragePage", System: "StoragePage" })
 
     property int selectedIndex: 0
 
@@ -547,9 +548,25 @@ PanelWindow {
 
                             Repeater {
                                 model: root.navItems
-                                delegate: Rectangle {
+                                delegate: Column {
                                     required property var modelData
                                     required property int index
+                                    width: sidebar.width
+                                    spacing: 4
+
+                                    Text {
+                                        visible: index === 0 || root.navItems[index - 1].group !== modelData.group
+                                        height: visible ? implicitHeight + 10 : 0
+                                        verticalAlignment: Text.AlignBottom
+                                        leftPadding: 16
+                                        text: modelData.group.toUpperCase()
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 10
+                                        font.letterSpacing: 2
+                                        color: Theme.accent
+                                    }
+
+                                Rectangle {
                                     width: sidebar.width
                                     height: 38
                                     radius: Theme.radius
@@ -606,6 +623,7 @@ PanelWindow {
                                         anchors.fill: parent
                                         onClicked: root.selectedIndex = index
                                     }
+                                }
                                 }
                             }
                         }
