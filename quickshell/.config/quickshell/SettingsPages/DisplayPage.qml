@@ -172,6 +172,8 @@ SetPage {
             required property var modelData
             width: parent ? parent.width : 0
             spacing: 10
+            property bool popupOpen: false    // set by a dropdown inside: draw this whole block above what follows
+            z: popupOpen ? 100 : 0
             readonly property var others: page.cfg.filter(c => c.name !== modelData.name && c.enabled)
 
             SetSection { text: modelData.name + (modelData.desc ? "  ·  " + modelData.desc : "") }
