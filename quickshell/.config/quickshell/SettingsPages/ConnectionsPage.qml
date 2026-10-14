@@ -13,6 +13,8 @@ SetPage {
     property string btDevices: ""
 
     function refresh() { pWifi.running = true; pBt.running = true }
+    // gnome-control-center hides panels unless it thinks it's on GNOME.
+    function gcc(panel) { run("command -v gnome-control-center >/dev/null && XDG_CURRENT_DESKTOP=GNOME gnome-control-center " + panel + " || notify-send 'Connections' 'Install gnome-control-center to manage this'") }
     function run(cmd) { runner.command = ["sh", "-c", cmd]; runner.running = true }
 
     Component.onCompleted: refresh()
@@ -50,8 +52,13 @@ SetPage {
     }
     SetRow {
         label: "Networks"
-        hint: "Pick a network, enter passwords, VPNs and advanced settings"
-        SetButton { label: "Network editor"; onClicked: page.run("nm-connection-editor") }
+        hint: "Scan, connect, saved networks and passwords"
+        SetButton { label: "Wi-Fi"; primary: true; onClicked: page.gcc("wifi") }
+    }
+    SetRow {
+        label: "Ethernet, VPN, hotspot"
+        hint: "Wired profiles, VPNs, proxy and sharing your connection"
+        SetButton { label: "Network"; onClicked: page.gcc("network") }
     }
 
     SetSection { text: "Bluetooth" }
@@ -63,6 +70,11 @@ SetPage {
     SetRow {
         label: "Devices"
         hint: "Pair, connect and remove devices"
-        SetButton { label: "Bluetooth manager"; onClicked: page.run("blueman-manager") }
+        SetButton { label: "Bluetooth"; primary: true; onClicked: page.gcc("bluetooth") }
+    }
+    SetRow {
+        label: "Tethering"
+        hint: "Use a phone's internet over Bluetooth (Blueman)"
+        SetButton { label: "Blueman"; onClicked: page.run("blueman-manager") }
     }
 }
