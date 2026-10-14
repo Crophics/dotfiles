@@ -5,6 +5,16 @@
 # fish shell, interactive or not, without needing to log out.
 fish_add_path -g ~/.local/bin
 
+# Cursor theme and size for the whole session. Hyprland is started from this login shell, so it
+# has the right cursor from its first frame instead of changing a few seconds in. Settings > Style
+# writes this file (environment.d/cursor-theme.conf).
+if test -r ~/.config/environment.d/cursor-theme.conf
+    for line in (string match -r '^[A-Z_]+=.*$' < ~/.config/environment.d/cursor-theme.conf)
+        set -l kv (string split -m1 = $line)
+        set -gx $kv[1] $kv[2]
+    end
+end
+
 # $EDITOR was unset, so yazi's default text-file opener
 # (${EDITOR:-vi} %s) fell back to the literal command "vi" - which isn't
 # installed on this system (only vim/nvim are), so opening any text file

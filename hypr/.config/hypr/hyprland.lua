@@ -37,6 +37,8 @@ end)
 
 hl.env("XCURSOR_THEME", cursorTheme)
 hl.env("XCURSOR_SIZE", cursorSize)
+hl.env("HYPRCURSOR_THEME", cursorTheme)
+hl.env("HYPRCURSOR_SIZE", cursorSize)
 hl.env("QT_QPA_PLATFORM", "wayland")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
