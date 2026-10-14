@@ -6,6 +6,8 @@ Item {
     id: s
     property string label: ""
     property string hint: ""
+    property bool popupOpen: false    // a dropdown inside is open: draw above what follows
+    z: popupOpen ? 100 : 0
     default property alias controls: ctl.data
 
     width: parent ? parent.width : 0

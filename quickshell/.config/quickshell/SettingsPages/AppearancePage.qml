@@ -40,10 +40,12 @@ SetPage {
     SetRow {
         label: "Cursor size"
         hint: "Already open windows keep their old size"
-        SetSeg {
-            options: ["16", "20", "24", "28", "32", "40", "48"]
-            current: String(page.info.cursorSize)
-            onPicked: v => page.apply(["cursor", page.info.cursor, v])
+        SetSelect {
+            implicitWidth: 110
+            readonly property var sizes: ["16", "20", "24", "28", "32", "40", "48"]
+            options: sizes.map(v => v + " px")
+            currentIndex: sizes.indexOf(String(page.info.cursorSize))
+            onPicked: i => page.apply(["cursor", page.info.cursor, sizes[i]])
         }
     }
 

@@ -188,12 +188,12 @@ SetPage {
             SetRow {
                 visible: modelData.enabled
                 label: "Resolution"
-                controlWidth: 430
-                SetChips {
-                    width: 430
+                SetSelect {
+                    implicitWidth: 180
                     options: page.resolutions(modelData)
-                    current: modelData.res
-                    onPicked: v => {
+                    currentIndex: page.resolutions(modelData).indexOf(modelData.res)
+                    onPicked: i => {
+                        var v = page.resolutions(modelData)[i]
                         var r = page.rates(modelData, v)
                         var rate = r.indexOf(modelData.rate) >= 0 ? modelData.rate : r.slice().sort((a, b) => b - a)[0]
                         var next = Object.assign({}, modelData, { res: v })
@@ -204,10 +204,11 @@ SetPage {
             SetRow {
                 visible: modelData.enabled && page.rates(modelData, modelData.res).length > 1
                 label: "Refresh rate"
-                SetSeg {
+                SetSelect {
+                    implicitWidth: 140
                     options: page.rates(modelData, modelData.res).map(page.rateLabel)
-                    current: page.rateLabel(modelData.rate)
-                    onPicked: v => page.edit(modelData.name, { rate: page.rates(modelData, modelData.res)[options.indexOf(v)] })
+                    currentIndex: page.rates(modelData, modelData.res).indexOf(modelData.rate)
+                    onPicked: i => page.edit(modelData.name, { rate: page.rates(modelData, modelData.res)[i] })
                 }
             }
             SetRow {
@@ -215,15 +216,11 @@ SetPage {
                 label: "Scale"
                 hint: "Larger makes everything bigger. Every size this screen can show exactly"
                 wrapHint: true
-                controlWidth: 460
-                SetChips {
-                    width: 460
+                SetSelect {
+                    implicitWidth: 140
                     options: page.scales(modelData).map(page.scaleLabel)
-                    current: page.scaleLabel(page.scaleNear(modelData))
-                    onPicked: v => {
-                        var list = page.scales(modelData)
-                        page.edit(modelData.name, { scale: list[options.indexOf(v)] / 100 })
-                    }
+                    currentIndex: page.scales(modelData).indexOf(page.scaleNear(modelData))
+                    onPicked: i => page.edit(modelData.name, { scale: page.scales(modelData)[i] / 100 })
                 }
             }
             SetRow {
@@ -249,13 +246,12 @@ SetPage {
                 visible: modelData.enabled && mon.others.length > 0
                 label: "Position"
                 hint: "Where this screen sits next to " + (page.placeTarget(modelData) || "the other one")
-                controlWidth: 420
-                SetChips {
-                    width: 420
+                SetSelect {
+                    implicitWidth: 160
                     options: ["Right of", "Left of", "Above", "Below", "Mirror"]
-                    current: ({ "right-of": "Right of", "left-of": "Left of", "above": "Above", "below": "Below", "mirror": "Mirror" })[page.placeSide(modelData)] || ""
-                    onPicked: v => {
-                        var side = ({ "Right of": "right-of", "Left of": "left-of", "Above": "above", "Below": "below", "Mirror": "mirror" })[v]
+                    currentIndex: ["right-of", "left-of", "above", "below", "mirror"].indexOf(page.placeSide(modelData))
+                    onPicked: i => {
+                        var side = ["right-of", "left-of", "above", "below", "mirror"][i]
                         page.edit(modelData.name, { place: side + ":" + (page.placeTarget(modelData) || mon.others[0].name) })
                     }
                 }

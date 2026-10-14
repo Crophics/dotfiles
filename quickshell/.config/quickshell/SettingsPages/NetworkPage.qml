@@ -491,10 +491,13 @@ SetPage {
     SetRow {
         label: "DNS for all networks"
         hint: "Applies to every saved Wi-Fi and wired network"
-        SetSeg {
-            options: ["Per network", "Cloudflare", "Google", "Quad9"]
-            current: page.dnsAll
-            onPicked: v => {
+        SetSelect {
+            implicitWidth: 150
+            readonly property var names: ["Per network", "Cloudflare", "Google", "Quad9"]
+            options: names
+            currentIndex: names.indexOf(page.dnsAll)
+            onPicked: i => {
+                var v = names[i]
                 page.dnsAll = v
                 var d = v === "Cloudflare" ? "1.1.1.1 1.0.0.1" : v === "Google" ? "8.8.8.8 8.8.4.4" : v === "Quad9" ? "9.9.9.9 149.112.112.112" : ""
                 nm2.run([["sh", "-c", "nmcli -t -f NAME,TYPE connection show | grep -E ':(802-11-wireless|802-3-ethernet)$' | sed 's/:[^:]*$//' | while IFS= read -r n; do nmcli connection modify id \"$n\" ipv4.dns \"$1\" ipv4.ignore-auto-dns $2; done", "sh", d, d === "" ? "no" : "yes"]])

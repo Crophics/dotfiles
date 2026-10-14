@@ -38,8 +38,16 @@ SetRow {
         checked: r.value === true
         onToggled: v => r.changed(v)
     }
+    readonly property bool longList: (opt.options || []).length > 4
+    SetSelect {
+        visible: r.opt.type === "seg" && r.longList
+        implicitWidth: 160
+        options: r.opt.options || []
+        currentIndex: (r.opt.values || []).findIndex(x => x === r.value)
+        onPicked: i => r.changed(r.opt.values[i])
+    }
     SetSeg {
-        visible: r.opt.type === "seg"
+        visible: r.opt.type === "seg" && !r.longList
         options: r.opt.options || []
         current: r.labelFor(r.value)
         onPicked: v => r.changed(r.opt.values[r.opt.options.indexOf(v)])

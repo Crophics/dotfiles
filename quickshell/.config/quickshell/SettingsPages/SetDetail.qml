@@ -5,6 +5,8 @@ import "../"
 Rectangle {
     id: d
     default property alias content: col.data
+    property bool popupOpen: false    // a dropdown inside is open: draw above what follows
+    z: popupOpen ? 100 : 0
     width: parent ? parent.width : 0
     height: col.implicitHeight + 24
     radius: Theme.radius

@@ -20,7 +20,7 @@ Item {
     onOpenChanged: {
         var p = parent
         while (p) {
-            if (p.popupOpen !== undefined) { p.popupOpen = open; break }
+            if (p.popupOpen !== undefined) p.popupOpen = open
             p = p.parent
         }
     }
