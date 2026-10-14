@@ -10,5 +10,21 @@
   "integrations": [],
   "theme": {
     "policy": "off"
+  },
+  "general": {
+    "closeOnSelection": true,
+    "filterBarAlwaysVisible": false
+  },
+  "components": {
+    "wallpaperSelector": {
+      "displayMode": "slices",
+      "sliceSpacing": -30,
+      "sliceWidth": 68,
+      "sliceHeight": 270,
+      "expandedWidth": 480,
+      "visibleCount": 18,
+      "skewOffset": 20,
+      "roundCorners": false
+    }
   }
 }
