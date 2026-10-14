@@ -188,12 +188,12 @@ SetPage {
             SetRow {
                 visible: modelData.enabled
                 label: "Resolution"
-                controlWidth: 430
-                SetChips {
-                    width: 430
+                SetSelect {
+                    implicitWidth: 180
                     options: page.resolutions(modelData)
-                    current: modelData.res
-                    onPicked: v => {
+                    currentIndex: page.resolutions(modelData).indexOf(modelData.res)
+                    onPicked: i => {
+                        var v = page.resolutions(modelData)[i]
                         var r = page.rates(modelData, v)
                         var rate = r.indexOf(modelData.rate) >= 0 ? modelData.rate : r.slice().sort((a, b) => b - a)[0]
                         var next = Object.assign({}, modelData, { res: v })
@@ -204,10 +204,11 @@ SetPage {
             SetRow {
                 visible: modelData.enabled
                 label: "Refresh rate"
-                SetSeg {
+                SetSelect {
+                    implicitWidth: 140
                     options: page.rates(modelData, modelData.res).map(page.rateLabel)
-                    current: page.rateLabel(modelData.rate)
-                    onPicked: v => page.edit(modelData.name, { rate: page.rates(modelData, modelData.res)[options.indexOf(v)] })
+                    currentIndex: page.rates(modelData, modelData.res).indexOf(modelData.rate)
+                    onPicked: i => page.edit(modelData.name, { rate: page.rates(modelData, modelData.res)[i] })
                 }
             }
             SetRow {
