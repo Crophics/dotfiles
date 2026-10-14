@@ -57,7 +57,7 @@ local actions = {
     ["settings"]       = { exec("qs ipc call settings toggle") },
     ["notifications"]  = { exec("qs ipc call notifications toggle") },
     ["togglebar"]      = { exec("qs ipc call bar toggle") },
-    ["wallpapers"]     = { exec("qs -n -p ~/.config/quickshell/hyprquickpaper") },
+    ["wallpapers"]     = { exec(home .. "/.config/hypr/scripts/wallpaper-picker.sh") },
     ["opacity"]        = { exec(home .. "/.config/hypr/scripts/opacity.sh") },
     ["popupsettings"]  = { exec("qs ipc call mediaosd settings") },
 

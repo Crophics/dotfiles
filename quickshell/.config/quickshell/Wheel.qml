@@ -23,7 +23,7 @@ PanelWindow {
         { icon: "\udb81\udc93", name: "Settings",  cmd: ["qs", "ipc", "call", "settings", "toggle"] },
         { icon: "\udb80\udd00", name: "Capture",   cmd: ["sh", "-c", "sleep 0.25; f=$HOME/Pictures/$(date +%s).png; grim \"$f\"; wl-copy < \"$f\"; qs ipc call screenshot notify \"$f\""] },
         { icon: "\uf125", name: "Area",      cmd: ["sh", "-c", "sleep 0.15; f=$HOME/Pictures/$(date +%s).png; grim -g \"$(slurp)\" \"$f\"; wl-copy < \"$f\"; qs ipc call screenshot notify \"$f\""] },
-        { icon: "\uf03e", name: "Wallpaper", cmd: ["sh", "-c", "qs -n -p ~/.config/quickshell/hyprquickpaper"] },
+        { icon: "\uf03e", name: "Wallpaper", cmd: ["sh", "-c", "$HOME/.config/hypr/scripts/wallpaper-picker.sh"] },
         { icon: "\uf0f3", name: "Notifs",    cmd: ["qs", "ipc", "call", "notifications", "toggle"] },
         { icon: "\udb80\udd68", name: "Opacity",   cmd: ["sh", "-c", "$HOME/.config/hypr/scripts/opacity.sh"] }
     ]

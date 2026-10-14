@@ -132,7 +132,7 @@ Scope {
                                               hint: "Open network settings" },
         { id: "notif",    l: "Notifications", cmd: "qs ipc call notifications toggle", g: "\uDB80\uDC9A",
                                               tip: "Notifications", hint: "Toggle notification panel" },
-        { id: "wall",     l: "Wallpapers",    cmd: "qs -n -p ~/.config/quickshell/hyprquickpaper", g: "\uDB80\uDEE9",
+        { id: "wall",     l: "Wallpapers",    cmd: "~/.config/hypr/scripts/wallpaper-picker.sh", g: "\uDB80\uDEE9",
                                               tip: "Wallpapers", hint: "Open wallpaper picker" },
         { id: "settings", l: "Settings",      cmd: "qs ipc call settings toggle", g: "\uDB81\uDC93",
                                               tip: "Settings", hint: "Open settings" },
