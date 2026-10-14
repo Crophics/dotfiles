@@ -1,0 +1,4 @@
+# The NVIDIA dGPU has no driver loaded here (on purpose, see CLAUDE.md), so nothing lets it
+# power down: it idled in D0 and cost ~15 W (27 W -> 12 W total, CPU 58 -> 48 C once allowed).
+# Install: sudo cp 70-nvidia-runtime-pm.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo udevadm trigger -s pci
+ACTION=="add|bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x03[0-9a-f][0-9a-f][0-9a-f][0-9a-f]", ATTR{power/control}="auto"
