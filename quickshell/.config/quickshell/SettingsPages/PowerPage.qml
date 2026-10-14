@@ -133,12 +133,12 @@ SetPage {
 
     SetSection { text: "Lid" }
     SetRow {
-        label: "Skip lock if reopened within"
-        hint: "Closing the lid always suspends. A quick close and open shows the desktop"
+        label: "Keep the screen off, then lock"
+        hint: "Closing the lid only turns the screen off. If it stays closed this long, it locks and suspends. Reopen sooner and you are back at your desktop"
         SetSlider {
-            from: 0; to: 300; step: 5
+            from: 0; to: 600; step: 5
             value: page.graceSec
-            displayText: value === 0 ? "Always lock" : value + " s"
+            displayText: value === 0 ? "Suspend at once" : value + " s"
             onMoved: v => page.graceSec = v
             onCommitted: page.commit()
         }

@@ -155,6 +155,10 @@ hl.bind(mainMod .. " + Equal", function() zoomfunction(0.3) end, { repeating = t
 hl.bind(mainMod .. " + code:82", function() zoomfunction(-0.3) end, { repeating = true })
 hl.bind(mainMod .. " + code:86", function() zoomfunction(0.3) end, { repeating = true })
 
+-- Lid: screen off, then lock + suspend after the skip-lock time (scripts/lid.sh; logind's own lid action is blocked)
+hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/lid.sh close"), { locked = true })
+hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/lid.sh open"), { locked = true })
+
 -- Media, volume, brightness and mic keys
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
