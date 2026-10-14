@@ -236,6 +236,7 @@ PanelWindow {
 
     property var navItems: [
         { group: "Appearance", name: "Themes", icon: "󰉼", page: "ThemesPage" },
+        { group: "Appearance", name: "Style", icon: "󰏘", page: "AppearancePage" },
         { group: "Appearance", name: "Windows", icon: "󰖲", page: "WindowsPage" },
         { group: "Appearance", name: "Bar", icon: "󰕮", page: "BarPage" },
         { group: "Appearance", name: "Popups", icon: "󰍡", page: "PopupsPage" },
@@ -243,6 +244,7 @@ PanelWindow {
         { group: "Input", name: "Keybinds", icon: "󰌌", page: "KeybindsPage" },
         { group: "Display", name: "Display", icon: "\uf108", page: "DisplayPage" },
         { group: "System", name: "Audio", icon: "\uf028", page: "AudioPage" },
+        { group: "System", name: "Apps", icon: "󰀻", page: "AppsPage" },
         { group: "System", name: "Power", icon: "󰐥", page: "PowerPage" },
         { group: "System", name: "Session", icon: "󰌾", page: "SessionPage" },
         { group: "System", name: "Storage", icon: "󰋊", page: "StoragePage" },

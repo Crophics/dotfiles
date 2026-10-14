@@ -1,6 +1,12 @@
 -- ~/.config/hypr/hyprland.lua
 -- Docs: https://wiki.hypr.land/Configuring/Start/
 
+-- Cursor theme and size from Settings > Appearance (hypr/appearance.lua, written by scripts/appearance.py).
+local oka, appearance = pcall(require, "appearance")
+if not oka then appearance = {} end
+local cursorTheme = appearance.cursor_theme or "Adwaita"
+local cursorSize  = tostring(appearance.cursor_size or 24)
+
 ---- MY PROGRAMS ----
 
 mainMod    = "SUPER"
@@ -17,8 +23,8 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("/usr/lib/hyprpolkitagent/hyprpolkitagent")
-    hl.exec_cmd("hyprctl setcursor Adwaita 24")
-    hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor Adwaita 24'")   -- once more after the session has settled
+    hl.exec_cmd("hyprctl setcursor " .. cursorTheme .. " " .. cursorSize)
+    hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'")   -- once more after the session has settled
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")
 
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")
@@ -29,8 +35,8 @@ end)
 
 ---- ENVIRONMENT VARIABLES ----
 
-hl.env("XCURSOR_THEME", "Adwaita")
-hl.env("XCURSOR_SIZE", "24")
+hl.env("XCURSOR_THEME", cursorTheme)
+hl.env("XCURSOR_SIZE", cursorSize)
 hl.env("QT_QPA_PLATFORM", "wayland")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
@@ -73,5 +79,6 @@ require("monitors")
 require("keybinds")
 require("look")
 require("rules")
+pcall(require, "startup")   -- your own login apps (Settings > Apps, written by scripts/startup.py)
 pcall(require, "options")   -- Settings app changes (hypr/options.lua, written by scripts/options.py); loaded last so it wins
 
