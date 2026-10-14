@@ -120,6 +120,7 @@ hwinfo
 hypridle
 hyprland
 hyprpicker
+hyprpolkitagent
 hyprsunset
 ifuse
 imv
@@ -161,6 +162,7 @@ linux-firmware
 linux-headers
 logrotate
 lolcat
+loupe
 lsb-release
 lsscsi
 lvm2
@@ -211,6 +213,8 @@ os-prober
 ouch
 pacman-contrib
 pamixer
+papers
+papirus-folders
 papirus-icon-theme
 passt
 pavucontrol
@@ -244,11 +248,13 @@ qemu-full
 qrencode
 qt5-wayland
 qt6ct
+qt6-imageformats
 qt6-wayland
 quickshell
 realtime-privileges
 rebuild-detector
 reflector
+rofi
 rsync
 rtkit
 rust
