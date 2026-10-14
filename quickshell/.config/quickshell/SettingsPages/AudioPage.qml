@@ -79,7 +79,6 @@ SetPage {
                 value: modelData.audio?.volume ?? 0
                 onMoved: v => { if (modelData.audio) { modelData.audio.muted = false; modelData.audio.volume = v } }
             }
-            SetToggle { checked: modelData.audio?.muted ?? false; onToggled: v => { if (modelData.audio) modelData.audio.muted = v } }
         }
     }
     Text {
