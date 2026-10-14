@@ -1,395 +1,92 @@
 import QtQuick
-import QtQuick.Controls
-import Quickshell.Io
 import Quickshell
+import Quickshell.Io
 import "../"
 
-Item {
+// Colours: follow the wallpaper or use a preset, light or dark. Runs ~/.config/43pr/bin/theme.py.
+SetPage {
     id: page
-    property real marginLeft: 0
-    property real marginRight: 55
-    property real marginTop: 0
-    property real marginBottom: 0
-    property real sectionSpacing: 6
+    title: "THEMES"
 
-    function editConfig(path) {
-        Quickshell.execDetached([
-            "xed",
-            path.replace(/^~/, Quickshell.env("HOME"))
-        ])
-    }
-
-    function runTheme(themeCommand) {
-        console.log("Running theme:", themeCommand)
-
-        Quickshell.execDetached([
-            "/bin/sh",
-            "-c",
-            "python3 \"$HOME/.config/43pr/bin/theme.py\" " + themeCommand
-        ])
-
-        // Re-read state.json shortly after, so the buttons reflect the new
-        // colorgen / appearance (presets can change the appearance too).
-        reloadTimer.restart()
-    }
-
+    readonly property string home: Quickshell.env("HOME")
+    readonly property string theme: home + "/.config/43pr/bin/theme.py"
+    property var presets: []           // [{ name, desc }]
     property bool colorGen: true
-    property bool darkMode: true
+    property bool dark: true
+    property string mode: "wallpaper"  // "wallpaper" or "preset"
+    property string preset: "default"
+    property string wallpaper: ""
 
-    FileView {
-        id: stateView
-        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state"))
-              + "/43pr/state.json"
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: {
-            page.colorGen = stateAdapter.colorgen
-            page.darkMode = stateAdapter.mode_appearance !== "light"
+    function reload() { pState.running = true }
+    function apply(args) { run.run([[theme].concat(args)]) }
+    function pretty(n) { return n.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) }
+    Component.onCompleted: { pState.running = true; pList.running = true }
+
+    NmRun { id: run; onFinished: ok => page.reload() }
+    Process {
+        id: pState
+        command: ["cat", (Quickshell.env("XDG_STATE_HOME") || (page.home + "/.local/state")) + "/43pr/state.json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var s = JSON.parse(text)
+                    page.colorGen = s.colorgen !== false
+                    page.dark = s.mode_appearance !== "light"
+                    page.mode = s.mode || "wallpaper"
+                    page.preset = s.preset || "default"
+                    page.wallpaper = s.wallpaper || ""
+                } catch (e) {}
+            }
         }
-        adapter: JsonAdapter {
-            id: stateAdapter
-            property bool colorgen: true
-            property string mode_appearance: "dark"
+    }
+    Process {
+        id: pList
+        command: [page.theme, "list"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var out = []
+                text.split("\n").forEach(l => {
+                    var m = l.trim().match(/^(\S+)\s+(.*)$/)
+                    if (m) out.push({ name: m[1], desc: m[2] })
+                })
+                page.presets = out
+            }
         }
     }
 
-    Timer {
-        id: reloadTimer
-        interval: 700
-        onTriggered: stateView.reload()
+    SetSection { text: "Colours" }
+    SetRow {
+        label: "Colours from the wallpaper"
+        hint: "The whole desktop takes its colours from your wallpaper. Turn off to keep a preset"
+        wrapHint: true
+        SetToggle { checked: page.colorGen; onToggled: v => { page.colorGen = v; page.apply(["colorgen", v ? "on" : "off"]) } }
     }
-
-    function setColorGen(on) {
-        page.colorGen = on
-        runTheme("colorgen " + (on ? "on" : "off"))
-    }
-
-    function toggleMode() {
-        page.darkMode = !page.darkMode      // optimistic; state.json reload corrects it
-        runTheme("toggle")
-    }
-
-    component ToggleButton: Rectangle {
-        required property string label
-        required property bool checked
-        property string valueText: checked ? "ON" : "OFF"
-        signal toggled()
-
-        width: parent.width
-        height: 42
-        radius: Theme.radius
-        color: "#00000000"
-        border.width: 1
-        border.color: checked ? Theme.accent : Theme.border
-
-        Text {
-            anchors.fill: parent
-            anchors.leftMargin: 6
-            anchors.rightMargin: 6
-            text: label + ": " + valueText
-            color: checked ? Theme.accent : Theme.textDim
-            font.family: Theme.fontFamily
-            font.pixelSize: 11
-            font.bold: true
-            font.letterSpacing: 1
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            wrapMode: Text.WordWrap
-            maximumLineCount: 2
-            elide: Text.ElideRight
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-
-            onEntered: {
-                parent.color = Theme.alpha(Theme.accent, 0.08)
-                parent.border.color = Theme.accent
-            }
-
-            onExited: {
-                parent.color = "#00000000"
-                parent.border.color = parent.checked ? Theme.accent : Theme.border
-            }
-
-            onClicked: parent.toggled()
+    SetRow {
+        label: "Light or dark"
+        SetSeg {
+            options: ["Dark", "Light"]
+            current: page.dark ? "Dark" : "Light"
+            onPicked: v => { page.dark = v === "Dark"; page.apply(["mode", v.toLowerCase()]) }
         }
     }
-
-    component ConfigButton: Rectangle {
-        required property string label
-        required property string path
-
-        width: parent.width
-        height: 42
-        radius: Theme.radius
-        color: "#00000000"
-        border.width: 1
-        border.color: Theme.border
-
-        Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 14
-            anchors.verticalCenter: parent.verticalCenter
-            text: label
-            color: Theme.textDim
-            font.family: Theme.fontFamily
-            font.pixelSize: 13
-            font.bold: true
-            font.letterSpacing: 2
+    SetRow {
+        label: "Preset"
+        hint: page.mode === "preset" ? "" : "Using wallpaper colours. Pick one to switch to it"
+        SetSelect {
+            implicitWidth: 240
+            listWidth: 360
+            placeholder: "Wallpaper colours"
+            options: page.presets.map(p => page.pretty(p.name) + "  ·  " + p.desc)
+            currentIndex: page.mode === "preset" ? page.presets.findIndex(p => p.name === page.preset) : -1
+            onPicked: i => { var n = page.presets[i].name; page.apply(n === "default" ? ["default"] : ["preset", n]) }
         }
-
-        Row {
-            anchors.right: parent.right
-            anchors.rightMargin: 14
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 8
-
-            Text {
-                text: "\uf120"
-                color: Theme.textDim
-                font.family: Theme.iconFont
-                font.pixelSize: 13
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Text {
-                text: "EDIT " + path.split("/").pop().toUpperCase()
-                color: Theme.textDim
-                font.family: Theme.fontFamily
-                font.pixelSize: 12
-                font.bold: true
-                font.letterSpacing: 1
-                anchors.verticalCenter: parent.verticalCenter
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-
-            onEntered: {
-                parent.color = Theme.alpha(Theme.accent, 0.08)
-                parent.border.color = Theme.accent
-            }
-
-            onExited: {
-                parent.color = "#00000000"
-                parent.border.color = Theme.border
-            }
-
-            onClicked: page.editConfig(path)
-        }
+        SetButton { visible: page.mode === "preset"; label: "Use wallpaper"; onClicked: page.apply(["auto"]) }
     }
 
-    component ThemeButton: Rectangle {
-        required property string label
-        required property string command
-
-        width: (parent.width - (parent.columns - 1) * parent.spacing) / parent.columns
-        height: 42
-        radius: Theme.radius
-        color: "#00000000"
-        border.width: 1
-        border.color: Theme.border
-
-        Text {
-            anchors.fill: parent
-            anchors.leftMargin: 6
-            anchors.rightMargin: 6
-            text: label
-            color: Theme.textDim
-            font.family: Theme.fontFamily
-            font.pixelSize: 11
-            font.bold: true
-            font.letterSpacing: 1
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            wrapMode: Text.WordWrap
-            maximumLineCount: 2
-            elide: Text.ElideRight
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-
-            onEntered: {
-                parent.color = Theme.alpha(Theme.accent, 0.08)
-                parent.border.color = Theme.accent
-            }
-
-            onExited: {
-                parent.color = "#00000000"
-                parent.border.color = Theme.border
-            }
-
-            onClicked: page.runTheme(command)
-        }
-    }
-
-    Flickable {
-        id: flick
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.leftMargin: page.marginLeft
-        anchors.rightMargin: page.marginRight
-        anchors.topMargin: page.marginTop
-        anchors.bottomMargin: page.marginBottom
-        contentWidth: width
-        contentHeight: content.height
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-
-        ScrollBar.vertical: ScrollBar {
-            id: scrollBar
-
-            background: Rectangle {
-                color: Theme.alpha(Theme.border, 0.3)
-                radius: width / 2
-            }
-
-            contentItem: Rectangle {
-                color: Theme.accent
-                radius: width / 2
-            }
-        }
-
-        Column {
-            id: content
-            width: flick.width
-            spacing: 14
-
-            Text {
-                text: "THEMES"
-                color: Theme.text
-                font.family: Theme.fontFamily
-                font.pixelSize: 19
-                font.letterSpacing: 3
-            }
-
-            Rectangle {
-                width: parent.width
-                height: 1
-                color: Theme.border
-            }
-
-            Column {
-                width: parent.width
-                spacing: page.sectionSpacing
-
-                Row {
-                    width: parent.width
-                    spacing: page.sectionSpacing
-
-                    ToggleButton {
-                        width: (parent.width - parent.spacing) / 2
-                        label: "COLOR GENERATION"
-                        checked: page.colorGen
-                        onToggled: page.setColorGen(!page.colorGen)
-                    }
-
-                    ToggleButton {
-                        width: (parent.width - parent.spacing) / 2
-                        label: "MODE"
-                        checked: true
-                        valueText: page.darkMode ? "DARK" : "LIGHT"
-                        onToggled: page.toggleMode()
-                    }
-                }
-
-                Grid {
-                    width: parent.width
-                    columns: 3
-                    spacing: page.sectionSpacing
-
-                    ThemeButton {
-                        label: "DEFAULT"
-                        command: "default"
-                    }
-                    ThemeButton {
-                        label: "WHITE"
-                        command: "preset white"
-                    }
-                    ThemeButton {
-                        label: "METAL"
-                        command: "preset metal"
-                    }
-                    ThemeButton {
-                        label: "SLATE"
-                        command: "preset slate"
-                    }
-                    ThemeButton {
-                        label: "LIGHT GRAY"
-                        command: "preset light-gray"
-                    }
-                    ThemeButton {
-                        label: "BEIGE"
-                        command: "preset beige"
-                    }
-                    ThemeButton {
-                        label: "SILVER"
-                        command: "preset silver"
-                    }
-                    ThemeButton {
-                        label: "GOLD"
-                        command: "preset gold"
-                    }
-                    ThemeButton {
-                        label: "NORD"
-                        command: "preset nord"
-                    }
-                    ThemeButton {
-                        label: "TOKYO NIGHT"
-                        command: "preset tokyo-night"
-                    }
-                    ThemeButton {
-                        label: "CATPPUCCIN MOCHA"
-                        command: "preset catppuccin-mocha"
-                    }
-                    ThemeButton {
-                        label: "EVERFOREST DARK"
-                        command: "preset everforest-dark"
-                    }
-                    ThemeButton {
-                        label: "DRACULA"
-                        command: "preset dracula"
-                    }
-                    ThemeButton {
-                        label: "ONE DARK"
-                        command: "preset one-dark"
-                    }
-                    ThemeButton {
-                        label: "KANAGAWA"
-                        command: "preset kanagawa"
-                    }
-                    ThemeButton {
-                        label: "ROSE PINE"
-                        command: "preset rose-pine"
-                    }
-                    ThemeButton {
-                        label: "RED"
-                        command: "preset red"
-                    }
-                    ThemeButton {
-                        label: "MATRIX"
-                        command: "preset matrix"
-                    }
-                }
-            }
-
-            Column {
-                width: parent.width
-                spacing: page.sectionSpacing
-
-                ConfigButton {
-                    label: "THEME"
-                    path: "~/.config/quickshell/Theme.qml"
-                }
-            }
-        }
+    SetSection { text: "Wallpaper" }
+    SetRow {
+        label: "Wallpaper"
+        hint: page.wallpaper !== "" ? page.wallpaper.split("/").pop() : "None chosen yet"
+        SetButton { label: "Choose"; primary: true; onClicked: Quickshell.execDetached([page.home + "/.config/hypr/scripts/wallpaper-picker.sh"]) }
     }
 }

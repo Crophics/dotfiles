@@ -1,20 +1,16 @@
 import QtQuick
-import QtQuick.Controls
 import Quickshell.Io
 import "../"
 
-Item {
+// Drives and cleanup, in the same style as the other settings pages.
+SetPage {
     id: page
+    title: "STORAGE"
+
     property var drives: []
     property var filesystems: []
     property var cleanupInfo: ({yay:0, pacman:0, journal:0, trash:0, flatpak:0, cliphist:0, thumbs:0})
-    property real marginLeft: 0
-    property real marginRight: 55
-    property real marginTop: 0
-    property real marginBottom: 0
-    property string pendingAction: ""
-    property string pendingTitle: ""
-    property string pendingMessage: ""
+    property string confirming: ""     // key of the cleanup row waiting for a second click
 
     readonly property var cleanupDefaults: ({yay:0, pacman:0, journal:0, trash:0, flatpak:0, cliphist:0, thumbs:0})
     readonly property var sizeUnits: ({
@@ -131,7 +127,6 @@ Item {
 
     function runCommand(c) { commandProcess.command = ["sh", "-c", c]; commandProcess.running = true }
     function refreshAll() { pDrives.running = pStorage.running = pCleanup.running = true }
-    function confirmAction(t, m, c) { pendingTitle = t; pendingMessage = m; pendingAction = c; confirmPopup.visible = true }
 
     Process {
         id: pDrives
@@ -192,203 +187,72 @@ Item {
         onRunningChanged: { if (!running) page.refreshAll() }
     }
 
-    Rectangle {
-        id: confirmPopup
-        visible: false; anchors.centerIn: parent; z: 100
-        width: Math.min(parent.width - 30, 420); height: 190; radius: Theme.radius
-        color: Theme.bg; border.width: 1; border.color: Theme.accent
-
-        Column {
-            anchors.fill: parent; anchors.margins: 18; spacing: 12
-            Text {
-                text: page.pendingTitle; color: Theme.text
-                font.family: Theme.fontFamily; font.pixelSize: 17; font.bold: true
-            }
-            Text {
-                width: parent.width; text: page.pendingMessage; color: Theme.textDim
-                font.family: Theme.fontFamily; font.pixelSize: 13; wrapMode: Text.WordWrap
-            }
-            Item { width: 1; height: 1 }
-            Row {
-                width: parent.width; spacing: 10
-                ToolButton {
-                    width: (parent.width - 8) / 2; label: "CANCEL"
-                    onClicked: confirmPopup.visible = false
-                }
-                ToolButton {
-                    width: (parent.width - 8) / 2; label: "CONFIRM"; accent: true
-                    onClicked: { confirmPopup.visible = false; page.runCommand(page.pendingAction) }
-                }
-            }
-        }
-    }
-
     Timer { interval: 10000; running: true; repeat: true; onTriggered: page.refreshAll() }
+    Timer { id: confirmTimer; interval: 4000; onTriggered: page.confirming = "" }
     Component.onCompleted: page.refreshAll()
 
-    Column {
-        anchors.fill: parent
-        anchors.leftMargin: page.marginLeft; anchors.rightMargin: page.marginRight
-        anchors.topMargin: page.marginTop; anchors.bottomMargin: page.marginBottom
-        spacing: 14
+    // ── drives ──
+    Repeater {
+        model: page.drives
+        delegate: Column {
+            id: drive
+            required property var modelData
+            width: parent ? parent.width : 0
+            spacing: 10
+            readonly property var parts: page.partitionsOf(modelData.name)
+            readonly property real used: parts.reduce(function (s, p) { return s + p.used }, 0)
 
-        Text {
-            text: "STORAGE"; color: Theme.text
-            font.family: Theme.fontFamily; font.pixelSize: 19; font.letterSpacing: 3
-        }
+            SetSection { text: modelData.name + "  ·  " + (modelData.model || "").trim() + (modelData.tran ? "  ·  " + modelData.tran : "") }
 
-        Rectangle { width: parent.width; height: 1; color: Theme.border }
-
-        Item {
-            width: parent.width; height: parent.height - y
-
-            Flickable {
-                id: flick
-                anchors.fill: parent; clip: true
-                contentWidth: width; contentHeight: list.height
-                boundsBehavior: Flickable.StopAtBounds
-
-                ScrollBar.vertical: ScrollBar {
-                    id: scrollBar
-                    background: Rectangle {
-                        color: Theme.alpha(Theme.border, 0)
-                        radius: width / 2
-                    }
-                    contentItem: Rectangle {
-                        color: Theme.accent
-                        radius: width / 2
-                    }
-                }
+            Rectangle {
+                width: parent.width
+                height: card.implicitHeight + 28
+                radius: Theme.radius
+                color: "transparent"
+                border.width: 1
+                border.color: Theme.border
 
                 Column {
-                    id: list
-                    width: parent.width; spacing: 10
+                    id: card
+                    x: 14; y: 14
+                    width: parent.width - 28
+                    spacing: 10
 
-                    // ── Drives: one bar per drive, split by partition ──
-                    Repeater {
-                        model: page.drives
-                        delegate: Column {
-                            id: drive
-                            required property var modelData
-                            readonly property var parts: page.partitionsOf(modelData.name)
-                            readonly property real usedSum: parts.reduce(function (a, p) { return a + p.used }, 0)
-                            readonly property real size: Math.max(1, modelData.size)
-                            width: list.width
-                            spacing: 10
-
-                            Item {
-                                width: parent.width; height: 20
-                                Text {
-                                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                                    width: parent.width - sizeLabel.width - 12
-                                    text: (modelData.model || modelData.name || "DRIVE").trim()
-                                          + (modelData.tran ? "   " + modelData.tran.toUpperCase() : "")
-                                    color: Theme.text; elide: Text.ElideRight
-                                    font.family: Theme.fontFamily; font.pixelSize: 14; font.bold: true; font.letterSpacing: 1
-                                }
-                                Text {
-                                    id: sizeLabel
-                                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                                    text: page.formatBytes(modelData.size)
-                                    color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 12
-                                }
-                            }
-
-                            Rectangle {
-                                id: stack
-                                width: parent.width; height: 30; radius: 7
-                                color: Theme.trackBg; border.width: 1; border.color: Theme.border
-                                clip: true
-
-                                Row {
-                                    anchors.fill: parent; anchors.margins: 1
-                                    Repeater {
-                                        model: drive.parts
-                                        delegate: Rectangle {
-                                            required property var modelData
-                                            required property int index
-                                            width: Math.max(2, (stack.width - 2) * modelData.used / drive.size)
-                                            height: parent.height
-                                            color: page.segmentColor(index)
-                                            Text {
-                                                visible: parent.width > 90
-                                                anchors.left: parent.left; anchors.leftMargin: 9
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                text: modelData.mount + "  " + page.formatBytes(modelData.used)
-                                                color: Theme.bg; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true
-                                            }
-                                        }
-                                    }
-                                    Item {
-                                        width: Math.max(0, (stack.width - 2) * (drive.size - drive.usedSum) / drive.size)
-                                        height: parent.height
-                                        Text {
-                                            visible: parent.width > 110
-                                            anchors.left: parent.left; anchors.leftMargin: 10
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            text: "free  " + page.formatBytes(drive.size - drive.usedSum)
-                                            color: Theme.textFaint; font.family: Theme.fontFamily; font.pixelSize: 10
-                                        }
-                                    }
-                                }
-                            }
-
-                            Flow {
-                                width: parent.width; spacing: 18
-                                Repeater {
-                                    model: drive.parts
-                                    delegate: Row {
-                                        required property var modelData
-                                        required property int index
-                                        spacing: 7
-                                        Rectangle { width: 9; height: 9; radius: 2; color: page.segmentColor(index); anchors.verticalCenter: parent.verticalCenter }
-                                        Text {
-                                            text: modelData.mount + (modelData.others > 0 ? " +" + modelData.others : "")
-                                                  + "   " + page.formatBytes(modelData.used) + " / " + page.formatBytes(modelData.total)
-                                            color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                                        }
-                                    }
-                                }
-                                Row {
-                                    spacing: 7
-                                    Rectangle { width: 9; height: 9; radius: 2; color: Theme.trackBg; border.width: 1; border.color: Theme.border; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { text: "free"; color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                    Row {
+                        width: parent.width
+                        Text { text: page.formatBytes(drive.used) + " used of " + page.formatBytes(modelData.size); color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; width: parent.width / 2 }
+                        Text { text: page.formatBytes(Math.max(0, modelData.size - drive.used)) + " free"; color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 12; width: parent.width / 2; horizontalAlignment: Text.AlignRight }
+                    }
+                    Rectangle {
+                        width: parent.width; height: 12; radius: 6
+                        color: Theme.trackBg
+                        clip: true
+                        Row {
+                            anchors.fill: parent
+                            Repeater {
+                                model: drive.parts
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    required property int index
+                                    width: modelData.used / Math.max(1, drive.modelData.size) * parent.width
+                                    height: parent.height
+                                    color: page.segmentColor(index)
                                 }
                             }
                         }
                     }
-
-                    // ── Cleanup ──
-                    Item {
-                        width: list.width; height: 40
-                        Text {
-                            anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.bottomMargin: 6
-                            text: "CLEANUP"; color: Theme.accent
-                            font.family: Theme.fontFamily; font.pixelSize: 11; font.letterSpacing: 2.5
-                        }
-                        Text {
-                            anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.bottomMargin: 6
-                            text: page.reclaimable > 0 ? page.formatBytes(page.reclaimable) + " can be reclaimed" : "Nothing to clean"
-                            color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 11
-                        }
-                    }
-
-                    Repeater {
-                        model: page.cleanupItems
-                        delegate: CleanRow {
-                            required property var modelData
-                            width: list.width
-                            label: modelData.label
-                            value: modelData.key === "cliphist" ? page.formatCount(page.cleanupInfo.cliphist) : page.formatBytes(page.cleanupInfo[modelData.key])
-                            actionText: modelData.action
-                            empty: !modelData.amount
-                            onClicked: page.confirmAction(
-                                modelData.title,
-                                modelData.message === "CACHE_PLACEHOLDER"
-                                    ? page.formatBytes(page.cleanupInfo.yay) + " currently in ~/.cache/yay"
-                                    : modelData.message,
-                                modelData.command
-                            )
+                    Flow {
+                        width: parent.width
+                        spacing: 18
+                        Repeater {
+                            model: drive.parts
+                            delegate: Row {
+                                required property var modelData
+                                required property int index
+                                spacing: 6
+                                Rectangle { width: 8; height: 8; radius: 4; anchors.verticalCenter: parent.verticalCenter; color: page.segmentColor(index) }
+                                Text { text: modelData.mount + "  " + page.formatBytes(modelData.used) + " of " + page.formatBytes(modelData.total); color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 10 }
+                            }
                         }
                     }
                 }
@@ -396,73 +260,34 @@ Item {
         }
     }
 
-    component ToolButton: Rectangle {
-        property string label: ""
-        property bool accent: false
-        signal clicked()
-        height: 38; radius: Theme.radius; color: "#00000000"
-        border.width: 1; border.color: Theme.border
-
-        Text {
-            anchors.centerIn: parent; text: parent.label
-            color: parent.accent ? Theme.accent : Theme.textDim
-            font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true; font.letterSpacing: .5
-        }
-
-        MouseArea {
-            anchors.fill: parent; hoverEnabled: true
-            onEntered: { parent.color = Theme.alpha(Theme.accent, 0.08); parent.border.color = Theme.accent }
-            onExited: { parent.color = "#00000000"; parent.border.color = Theme.border }
-            onClicked: parent.clicked()
-        }
+    // ── cleanup ──
+    SetSection { text: "Cleanup" }
+    Text {
+        width: parent.width
+        text: page.reclaimable > 0 ? page.formatBytes(page.reclaimable) + " can be freed" : "Nothing to clean right now"
+        color: Theme.textDim
+        font.family: Theme.fontFamily
+        font.pixelSize: 11
     }
-
-    // One cleanup item: name, size, and its action. Items with nothing to clean are dimmed and inert.
-    component CleanRow: Rectangle {
-        id: row
-        required property string label
-        required property string value
-        required property string actionText
-        property bool empty: false
-        signal clicked()
-
-        height: 42
-        color: area.containsMouse && !empty ? Theme.alpha(Theme.accent, 0.06) : "transparent"
-        opacity: empty ? 0.45 : 1
-
-        Rectangle { anchors.top: parent.top; width: parent.width; height: 1; color: Theme.border }
-
-        Text {
-            anchors.left: parent.left; anchors.leftMargin: 4; anchors.verticalCenter: parent.verticalCenter
-            text: row.label; color: Theme.text
-            font.family: Theme.fontFamily; font.pixelSize: 12; font.letterSpacing: 1.5
-        }
-        Row {
-            anchors.right: parent.right; anchors.rightMargin: 4; anchors.verticalCenter: parent.verticalCenter
-            spacing: 14
-            Text {
-                text: row.value; color: Theme.textDim; anchors.verticalCenter: parent.verticalCenter
-                font.family: Theme.fontFamily; font.pixelSize: 12
-            }
-            Rectangle {
-                width: actionLabel.implicitWidth + 22; height: 26; radius: Theme.radius
-                anchors.verticalCenter: parent.verticalCenter
-                color: "transparent"; border.width: 1
-                border.color: row.empty ? Theme.border : (area.containsMouse ? Theme.accent : Theme.accent2)
-                Text {
-                    id: actionLabel
-                    anchors.centerIn: parent; text: row.actionText
-                    color: row.empty ? Theme.textDim : Theme.accent
-                    font.family: Theme.fontFamily; font.pixelSize: 10; font.letterSpacing: 1.5
+    Repeater {
+        model: page.cleanupItems
+        delegate: SetRow {
+            required property var modelData
+            readonly property bool waiting: page.confirming === modelData.key
+            label: modelData.label
+            hint: waiting ? modelData.message.replace("CACHE_PLACEHOLDER", "Deletes everything in ~/.cache/yay.")
+                          : (modelData.key === "cliphist" ? page.formatCount(modelData.amount) : page.formatBytes(modelData.amount))
+            wrapHint: true
+            enabled: modelData.amount > 0
+            SetButton {
+                label: waiting ? "Confirm" : modelData.action.toLowerCase()
+                primary: waiting
+                onClicked: {
+                    if (!waiting) { page.confirming = modelData.key; confirmTimer.restart(); return }
+                    page.confirming = ""
+                    page.runCommand(modelData.command)
                 }
             }
-        }
-        MouseArea {
-            id: area
-            anchors.fill: parent; hoverEnabled: true
-            enabled: !row.empty
-            cursorShape: row.empty ? Qt.ArrowCursor : Qt.PointingHandCursor
-            onClicked: row.clicked()
         }
     }
 }

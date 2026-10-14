@@ -77,7 +77,8 @@ SetPage {
             { label: "Appearance", path: "~/.config/hypr/look.lua", hint: "Animations and colours" },
             { label: "Window rules", path: "~/.config/hypr/rules.lua", hint: "Per-app behaviour" },
             { label: "Lock screen", path: "~/.config/hypr/hyprlock.conf", hint: "" },
-            { label: "Launcher", path: "~/.config/rofi/config.rasi", hint: "" }
+            { label: "Launcher", path: "~/.config/rofi/config.rasi", hint: "" },
+            { label: "Shell theme", path: "~/.config/quickshell/Theme.qml", hint: "Fonts, sizes and animation timing for the bar and popups" }
         ]
         delegate: SetRow {
             required property var modelData
