@@ -86,15 +86,38 @@ SetPage {
     }
     NmRun { id: nm2; onFinished: ok => { if (!ok) page.status = nm2.error; page.refresh(); pGen.running = true } }
 
+    // Joining goes through its own runner so a bad or missing password can reopen the password
+    // panel here, instead of a separate window popping up (nm-applet used to do that).
+    property string joiningSsid: ""
+    NmRun {
+        id: join
+        onFinished: ok => {
+            if (ok) { page.status = ""; page.expanded = ""; page.joinPw = ""; page.refresh(); return }
+            page.refresh()
+            if (/secrets|password|802\.1x|supplicant|auth/i.test(join.error)) {
+                page.joinPw = ""
+                page.expanded = page.joiningSsid
+                page.status = "Couldn't join " + page.joiningSsid + ". Check the password and try again."
+            } else {
+                page.status = join.error
+            }
+        }
+    }
     function connectTo(ssid, pw, hidden) {
         status = ""
+        joiningSsid = ssid
         var s = savedFor(ssid)
-        if (s && pw === "" && !hidden) { nm.run([["nmcli", "connection", "up", "id", s.name]]); return }
+        if (s && !hidden) {
+            var cmds = []
+            if (pw !== "") cmds.push(["nmcli", "connection", "modify", "id", s.name, "wifi-sec.psk", pw])
+            cmds.push(["nmcli", "connection", "up", "id", s.name])
+            join.run(cmds)
+            return
+        }
         var cmd = ["nmcli", "device", "wifi", "connect", ssid]
         if (pw !== "") cmd = cmd.concat(["password", pw])
         if (hidden) cmd = cmd.concat(["hidden", "yes"])
-        nm.run([cmd])
-        expanded = ""; joinPw = ""
+        join.run([cmd])
     }
 
     // ── data ──
