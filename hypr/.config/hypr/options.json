@@ -1,0 +1,381 @@
+{
+ "options": [
+  {
+   "id": "windows.opacity",
+   "page": "Windows",
+   "section": "Opacity",
+   "label": "Window opacity",
+   "hint": "Also applies to the bar, panels and launcher",
+   "type": "slider",
+   "min": 0.4,
+   "max": 1,
+   "step": 0.05,
+   "percent": true,
+   "default": 0.9,
+   "pref": "opacity",
+   "hook": "opacity",
+   "apply": "reload"
+  },
+  {
+   "id": "windows.opacity_preset",
+   "page": "Windows",
+   "section": "Opacity",
+   "label": "Presets",
+   "type": "seg",
+   "mirror": "windows.opacity",
+   "options": [
+    "100%",
+    "90%",
+    "80%",
+    "70%",
+    "50%"
+   ],
+   "values": [
+    1.0,
+    0.9,
+    0.8,
+    0.7,
+    0.5
+   ]
+  },
+  {
+   "id": "general.border_size",
+   "page": "Windows",
+   "section": "Borders and gaps",
+   "label": "Border",
+   "hint": "Accent border on the focused window. 0 turns it off",
+   "type": "slider",
+   "min": 0,
+   "max": 6,
+   "step": 1,
+   "unit": " px",
+   "default": 2,
+   "path": "general.border_size"
+  },
+  {
+   "id": "decoration.rounding",
+   "page": "Windows",
+   "section": "Borders and gaps",
+   "label": "Corner radius",
+   "type": "slider",
+   "min": 0,
+   "max": 20,
+   "step": 1,
+   "unit": " px",
+   "default": 8,
+   "path": "decoration.rounding"
+  },
+  {
+   "id": "general.gaps_in",
+   "page": "Windows",
+   "section": "Borders and gaps",
+   "label": "Gap between windows",
+   "type": "slider",
+   "min": 0,
+   "max": 20,
+   "step": 1,
+   "unit": " px",
+   "default": 4,
+   "path": "general.gaps_in"
+  },
+  {
+   "id": "decoration.blur.enabled",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Blur",
+   "hint": "Frosted glass behind translucent windows",
+   "type": "toggle",
+   "default": true,
+   "path": "decoration.blur.enabled"
+  },
+  {
+   "id": "decoration.blur.size",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Blur size",
+   "type": "slider",
+   "min": 1,
+   "max": 12,
+   "step": 1,
+   "default": 5,
+   "path": "decoration.blur.size",
+   "enabledIf": "decoration.blur.enabled"
+  },
+  {
+   "id": "decoration.blur.passes",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Blur passes",
+   "hint": "More passes look smoother but cost more GPU",
+   "type": "slider",
+   "min": 1,
+   "max": 4,
+   "step": 1,
+   "default": 1,
+   "path": "decoration.blur.passes",
+   "enabledIf": "decoration.blur.enabled"
+  },
+  {
+   "id": "decoration.shadow.enabled",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Shadow",
+   "type": "toggle",
+   "default": true,
+   "path": "decoration.shadow.enabled"
+  },
+  {
+   "id": "decoration.shadow.range",
+   "page": "Windows",
+   "section": "Blur and shadow",
+   "label": "Shadow size",
+   "type": "slider",
+   "min": 0,
+   "max": 30,
+   "step": 1,
+   "unit": " px",
+   "default": 4,
+   "path": "decoration.shadow.range",
+   "enabledIf": "decoration.shadow.enabled"
+  },
+  {
+   "id": "decoration.dim_inactive",
+   "page": "Windows",
+   "section": "Focus",
+   "label": "Dim inactive windows",
+   "type": "toggle",
+   "default": false,
+   "path": "decoration.dim_inactive"
+  },
+  {
+   "id": "decoration.dim_strength",
+   "page": "Windows",
+   "section": "Focus",
+   "label": "Dim strength",
+   "type": "slider",
+   "min": 0.05,
+   "max": 0.6,
+   "step": 0.05,
+   "decimals": 2,
+   "default": 0.5,
+   "path": "decoration.dim_strength",
+   "enabledIf": "decoration.dim_inactive"
+  },
+  {
+   "id": "windows.animations",
+   "page": "Windows",
+   "section": "Animations",
+   "label": "Animations",
+   "hint": "Windows pop in and out, workspaces slide",
+   "type": "toggle",
+   "default": true,
+   "pref": "animations",
+   "apply": "reload"
+  },
+  {
+   "id": "windows.anim_speed",
+   "page": "Windows",
+   "section": "Animations",
+   "label": "Animation speed",
+   "hint": "Fast is snappier, relaxed is slower",
+   "type": "seg",
+   "options": [
+    "fast",
+    "normal",
+    "relaxed"
+   ],
+   "values": [
+    0.7,
+    1.0,
+    1.5
+   ],
+   "default": 1.0,
+   "pref": "anim_scale",
+   "apply": "reload",
+   "enabledIf": "windows.animations"
+  },
+  {
+   "id": "input.kb_layout",
+   "page": "Input",
+   "section": "Keyboard",
+   "label": "Layout",
+   "hint": "Language codes, like us or us,de (the first is active)",
+   "type": "text",
+   "default": "us",
+   "path": "input.kb_layout",
+   "placeholder": "us"
+  },
+  {
+   "id": "input.repeat_rate",
+   "page": "Input",
+   "section": "Keyboard",
+   "label": "Repeat rate",
+   "hint": "Characters per second while a key is held",
+   "type": "slider",
+   "min": 5,
+   "max": 60,
+   "step": 1,
+   "unit": "/s",
+   "default": 25,
+   "path": "input.repeat_rate"
+  },
+  {
+   "id": "input.repeat_delay",
+   "page": "Input",
+   "section": "Keyboard",
+   "label": "Repeat delay",
+   "hint": "How long to hold a key before it repeats",
+   "type": "slider",
+   "min": 150,
+   "max": 800,
+   "step": 10,
+   "unit": " ms",
+   "default": 600,
+   "path": "input.repeat_delay"
+  },
+  {
+   "id": "input.numlock_by_default",
+   "page": "Input",
+   "section": "Keyboard",
+   "label": "Num Lock on at start",
+   "type": "toggle",
+   "default": false,
+   "path": "input.numlock_by_default"
+  },
+  {
+   "id": "input.sensitivity",
+   "page": "Input",
+   "section": "Mouse",
+   "label": "Pointer speed",
+   "hint": "Negative is slower, positive is faster",
+   "type": "slider",
+   "min": -1,
+   "max": 1,
+   "step": 0.1,
+   "decimals": 1,
+   "default": 0.5,
+   "path": "input.sensitivity"
+  },
+  {
+   "id": "input.accel_profile",
+   "page": "Input",
+   "section": "Mouse",
+   "label": "Acceleration",
+   "hint": "Flat moves the same distance at any speed",
+   "type": "seg",
+   "options": [
+    "flat",
+    "adaptive"
+   ],
+   "values": [
+    "flat",
+    "adaptive"
+   ],
+   "default": "flat",
+   "path": "input.accel_profile"
+  },
+  {
+   "id": "input.left_handed",
+   "page": "Input",
+   "section": "Mouse",
+   "label": "Left-handed buttons",
+   "type": "toggle",
+   "default": false,
+   "path": "input.left_handed"
+  },
+  {
+   "id": "input.follow_mouse",
+   "page": "Input",
+   "section": "Mouse",
+   "label": "Focus follows mouse",
+   "hint": "Which window gets keyboard focus",
+   "type": "seg",
+   "options": [
+    "Off",
+    "Follow",
+    "Click only"
+   ],
+   "values": [
+    0,
+    1,
+    2
+   ],
+   "default": 1,
+   "path": "input.follow_mouse"
+  },
+  {
+   "id": "input.touchpad.natural_scroll",
+   "page": "Input",
+   "section": "Touchpad",
+   "label": "Natural scrolling",
+   "hint": "Content follows your fingers",
+   "type": "toggle",
+   "default": true,
+   "path": "input.touchpad.natural_scroll"
+  },
+  {
+   "id": "input.touchpad.tap_to_click",
+   "page": "Input",
+   "section": "Touchpad",
+   "label": "Tap to click",
+   "type": "toggle",
+   "default": true,
+   "path": "input.touchpad.tap_to_click"
+  },
+  {
+   "id": "input.touchpad.clickfinger_behavior",
+   "page": "Input",
+   "section": "Touchpad",
+   "label": "Two-finger right click",
+   "hint": "Click with one, two or three fingers for left, right and middle",
+   "type": "toggle",
+   "default": true,
+   "path": "input.touchpad.clickfinger_behavior"
+  },
+  {
+   "id": "input.touchpad.disable_while_typing",
+   "page": "Input",
+   "section": "Touchpad",
+   "label": "Disable while typing",
+   "type": "toggle",
+   "default": true,
+   "path": "input.touchpad.disable_while_typing"
+  },
+  {
+   "id": "input.touchpad.scroll_factor",
+   "page": "Input",
+   "section": "Touchpad",
+   "label": "Scroll speed",
+   "type": "slider",
+   "min": 0.2,
+   "max": 2,
+   "step": 0.1,
+   "decimals": 1,
+   "default": 1.0,
+   "path": "input.touchpad.scroll_factor"
+  },
+  {
+   "id": "cursor.hide_on_key_press",
+   "page": "Input",
+   "section": "Cursor",
+   "label": "Hide while typing",
+   "type": "toggle",
+   "default": false,
+   "path": "cursor.hide_on_key_press"
+  },
+  {
+   "id": "cursor.inactive_timeout",
+   "page": "Input",
+   "section": "Cursor",
+   "label": "Hide when idle",
+   "hint": "Seconds before the pointer disappears. 0 keeps it visible",
+   "type": "slider",
+   "min": 0,
+   "max": 10,
+   "step": 1,
+   "unit": " s",
+   "default": 0,
+   "path": "cursor.inactive_timeout"
+  }
+ ]
+}

@@ -72,4 +72,5 @@ require("monitors")
 require("keybinds")
 require("look")
 require("rules")
+pcall(require, "options")   -- Settings app changes (hypr/options.lua, written by scripts/options.py); loaded last so it wins
 
