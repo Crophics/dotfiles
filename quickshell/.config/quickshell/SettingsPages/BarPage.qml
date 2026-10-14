@@ -62,6 +62,16 @@ SetPage {
         SetToggle { checked: page.cfg?.windowIcon ?? true; onToggled: v => page.cfg.windowIcon = v }
     }
     SetRow {
+        label: "Icon colour"
+        hint: "Greyscale keeps the bar to white and grey"
+        enabled: page.cfg?.windowIcon ?? true
+        SetSeg {
+            options: ["Greyscale", "Colour"]
+            current: page.cfg?.windowIconColor ? "Colour" : "Greyscale"
+            onPicked: v => page.cfg.windowIconColor = v === "Colour"
+        }
+    }
+    SetRow {
         label: "Longest title"
         hint: "Longer titles are cut with …"
         SetSlider {

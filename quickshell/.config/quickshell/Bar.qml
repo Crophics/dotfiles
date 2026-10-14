@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -16,7 +17,7 @@ Scope {
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
         statsMode: "compact", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
-        windowText: "title", windowIcon: true, windowMaxW: 260, wsStyle: "underline", wsColor: "white",
+        windowText: "title", windowIcon: true, windowMaxW: 260, wsStyle: "underline", wsColor: "white", windowIconColor: false,
         hidden: "stats,wall,settings",
         startMods: "stats,ws,window",
         centerMods: "clock",
@@ -53,6 +54,7 @@ Scope {
             property string wsColor: root.defaults.wsColor       // "white" | "accent"
             property string windowText: root.defaults.windowText // active window module: "title" | "app"
             property bool windowIcon: root.defaults.windowIcon
+            property bool windowIconColor: root.defaults.windowIconColor // false: the icon is drawn in greyscale to match the bar
             property int windowMaxW: root.defaults.windowMaxW    // widest the title may get (px at scale 1)
             property string hidden: root.defaults.hidden         // comma list of disabled modules
             property string startMods: root.defaults.startMods
@@ -940,15 +942,29 @@ Scope {
                 id: row
                 anchors.centerIn: parent
                 spacing: 8
-                Image {
-                    visible: parent.parent.wShowIcon && source !== ""
+                Item {
+                    visible: parent.parent.wShowIcon && parent.parent.wIcon !== ""
                     anchors.verticalCenter: parent.verticalCenter
                     width: visible ? root.sz.icon : 0
                     height: width
-                    source: parent.parent.wIcon
-                    sourceSize: Qt.size(root.sz.icon * 2, root.sz.icon * 2)
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
+                    Image {
+                        id: wImg
+                        anchors.fill: parent
+                        visible: cfg.windowIconColor
+                        source: parent.parent.parent.wIcon
+                        sourceSize: Qt.size(root.sz.icon * 2, root.sz.icon * 2)
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
+                    // Greyscale and slightly brightened, so it sits with the white text instead of adding colour.
+                    MultiEffect {
+                        anchors.fill: parent
+                        visible: !cfg.windowIconColor
+                        source: wImg
+                        saturation: -1.0
+                        brightness: 0.25
+                        contrast: 0.1
+                    }
                 }
                 Text {
                     visible: !root.vertical
