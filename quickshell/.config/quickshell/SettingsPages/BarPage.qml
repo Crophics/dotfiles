@@ -26,6 +26,17 @@ SetPage {
         SetSeg { options: page.bar ? page.bar.statsModes : []; current: page.cfg?.statsMode ?? ""; onPicked: v => page.cfg.statsMode = v }
     }
 
+    SetSection { text: "Workspaces" }
+    SetRow {
+        label: "Style"
+        hint: "Vertical bars always use the pill"
+        SetSeg {
+            options: ["Underline", "Pill", "Brackets", "Squares", "Dots"]
+            current: { var c = page.cfg?.wsStyle ?? "underline"; return c.charAt(0).toUpperCase() + c.slice(1) }
+            onPicked: v => page.cfg.wsStyle = v.toLowerCase()
+        }
+    }
+
     SetSection { text: "Active window" }
     SetRow {
         label: "Show"

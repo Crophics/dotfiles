@@ -16,7 +16,7 @@ Scope {
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
         statsMode: "compact", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
-        windowText: "title", windowIcon: true, windowMaxW: 260,
+        windowText: "title", windowIcon: true, windowMaxW: 260, wsStyle: "underline",
         hidden: "stats,wall,settings",
         startMods: "stats,ws,window",
         centerMods: "clock",
@@ -27,6 +27,7 @@ Scope {
     readonly property var sections: ["start", "center", "end"]
     readonly property var statsModes: ["default", "compact"]
     readonly property var windowTexts: ["title", "app"]
+    readonly property var wsStyles: ["underline", "pill", "brackets", "squares", "dots"]
 
     FileView {
         id: cfgFile
@@ -48,6 +49,7 @@ Scope {
             property string clockFormat: root.defaults.clockFormat   // Qt date/time format (Settings > Bar > Clock)
             property bool tooltips: root.defaults.tooltips
             property bool tooltipHints: root.defaults.tooltipHints // show "Left click: ..." lines in tooltips
+            property string wsStyle: root.defaults.wsStyle       // workspaces module look: see wsStyles
             property string windowText: root.defaults.windowText // active window module: "title" | "app"
             property bool windowIcon: root.defaults.windowIcon
             property int windowMaxW: root.defaults.windowMaxW    // widest the title may get (px at scale 1)
@@ -748,6 +750,10 @@ Scope {
             // True while the special workspace (scratchpad) is shown on the focused monitor.
             property bool inSpecial: false
 
+            // Vertical bars always use the pill; the line, bracket and shape styles read left to right.
+            readonly property string look: root.vertical ? "pill" : cfg.wsStyle
+            readonly property bool drawnPill: look === "pill" || look === "underline"
+
             Connections {
                 target: Hyprland
                 // data is "<special workspace name>,<monitor>"; the name is empty when it closes.
@@ -768,13 +774,14 @@ Scope {
             // Sliding highlight behind the numbers (drawn first, so it sits under them).
             Rectangle {
                 id: wsPill
-                visible: wsRoot.focusItem !== null && !wsRoot.inSpecial
-                radius: Math.min(width, height) / 2
+                readonly property bool line: wsRoot.look === "underline"
+                visible: wsRoot.focusItem !== null && !wsRoot.inSpecial && wsRoot.drawnPill
+                radius: line ? 0 : Math.min(width, height) / 2
                 color: Theme.accent
-                x: wsRoot.focusItem ? wsLane.x + wsRoot.focusItem.x : 0
-                y: wsRoot.focusItem ? wsLane.y + wsRoot.focusItem.y : 0
-                width: wsRoot.focusItem ? wsRoot.focusItem.width : 0
-                height: wsRoot.focusItem ? wsRoot.focusItem.height : 0
+                x: wsRoot.focusItem ? wsLane.x + wsRoot.focusItem.x + (line ? 4 : 0) : 0
+                y: wsRoot.focusItem ? wsLane.y + wsRoot.focusItem.y + (line ? wsRoot.focusItem.height - 2 : 0) : 0
+                width: wsRoot.focusItem ? wsRoot.focusItem.width - (line ? 8 : 0) : 0
+                height: wsRoot.focusItem ? (line ? 2 : wsRoot.focusItem.height) : 0
                 Behavior on x { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
                 Behavior on y { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
                 Behavior on width { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
@@ -832,14 +839,17 @@ Scope {
                         Text {
                             id: wsText
                             anchors.centerIn: parent
-                            text: String(dot.modelData.id)
+                            text: wsRoot.look === "brackets" ? (dot.isFocused ? "[" + dot.modelData.id + "]" : String(dot.modelData.id))
+                                : wsRoot.look === "squares" ? (dot.isFocused ? "\u25C6" : dot.occupied ? "\u25A0" : "\u25A1")
+                                : wsRoot.look === "dots" ? (dot.isFocused || dot.occupied ? "\u25CF" : "\u25CB")
+                                : String(dot.modelData.id)
                             color: dot.modelData.urgent ? Theme.danger
-                                 : dot.isFocused ? Theme.bgPanel
+                                 : dot.isFocused ? (wsRoot.drawnPill && wsRoot.look === "pill" ? Theme.bgPanel : Theme.accent)
                                  : dotMa.containsMouse ? Theme.accent2
                                  : dot.occupied ? Theme.text
                                  : Qt.alpha(Theme.textFaint, 0.7)
                             font.family: Theme.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: wsRoot.look === "dots" && !dot.isFocused ? 10 : 12
                             font.bold: dot.isFocused
                             Behavior on color { ColorAnimation { duration: Theme.animFast } }
                         }
