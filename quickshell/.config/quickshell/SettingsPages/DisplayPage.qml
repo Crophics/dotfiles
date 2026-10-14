@@ -202,7 +202,7 @@ SetPage {
                 }
             }
             SetRow {
-                visible: modelData.enabled && page.rates(modelData, modelData.res).length > 1
+                visible: modelData.enabled
                 label: "Refresh rate"
                 SetSeg {
                     options: page.rates(modelData, modelData.res).map(page.rateLabel)
