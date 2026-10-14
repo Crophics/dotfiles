@@ -291,6 +291,37 @@
    "apply": "reload"
   },
   {
+   "id": "windows.anim_preset",
+   "page": "Windows",
+   "section": "Animations",
+   "label": "Animation style",
+   "hint": "Snappy is the original. The others are ready-made sets from the ML4W dotfiles",
+   "type": "seg",
+   "control": "select",
+   "options": [
+    "Snappy",
+    "Material",
+    "Fast",
+    "Standard",
+    "Smooth",
+    "Moving",
+    "Slide"
+   ],
+   "values": [
+    "snappy",
+    "material",
+    "fast",
+    "standard",
+    "smooth",
+    "moving",
+    "slide"
+   ],
+   "default": "snappy",
+   "pref": "anim_preset",
+   "apply": "reload",
+   "enabledIf": "windows.animations"
+  },
+  {
    "id": "windows.anim_speed",
    "page": "Windows",
    "section": "Animations",

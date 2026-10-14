@@ -52,14 +52,35 @@ hl.curve("snap",  { type = "bezier", points = { {0.16, 1.0}, {0.3, 1.0} } })    
 hl.curve("pop",   { type = "bezier", points = { {0.33, 1.0}, {0.68, 1.0} } })   -- ease-out cubic: visible motion, soft landing
 hl.curve("quick", { type = "bezier", points = { {0.4, 0.0}, {0.6, 1.0} } })      -- even, for fades and borders
 
--- A window opens from 80% size while fading in (about a quarter of a second), and closes the other way.
-hl.animation({ leaf = "windowsIn",   enabled = true, speed = sp(2.4), bezier = "pop",   style = "popin 80%" })
-hl.animation({ leaf = "windowsOut",  enabled = true, speed = sp(1.8), bezier = "pop",   style = "popin 85%" })
-hl.animation({ leaf = "windowsMove", enabled = true, speed = sp(2.4), bezier = "snap" })
-hl.animation({ leaf = "fadeIn",      enabled = true, speed = sp(1.8), bezier = "pop" })
-hl.animation({ leaf = "fadeOut",     enabled = true, speed = sp(1.5), bezier = "quick" })
-hl.animation({ leaf = "fade",        enabled = true, speed = sp(1.8), bezier = "quick" })
-hl.animation({ leaf = "border",      enabled = true, speed = sp(2.5), bezier = "quick" })
-hl.animation({ leaf = "workspaces",  enabled = true, speed = sp(2.4), bezier = "snap",  style = "slidefade 12%" })
-hl.animation({ leaf = "specialWorkspace", enabled = true, speed = sp(2.4), bezier = "snap", style = "slidefadevert 12%" })
+-- Animation style from Settings > Windows (prefs.anim_preset). "snappy" is the set below; the others are
+-- ready-made files in hypr/animation-presets/, loaded with their speeds scaled by the speed setting.
+local function loadPreset(name)
+    local path = os.getenv("HOME") .. "/.config/hypr/animation-presets/" .. name .. ".lua"
+    local f = io.open(path, "r")
+    if not f then return false end
+    f:close()
+    local real = hl.animation
+    hl.animation = function(t)
+        local c = {}
+        for k, v in pairs(t) do c[k] = v end
+        if c.speed then c.speed = math.max(0.1, math.min(100, c.speed * scale)) end
+        return real(c)
+    end
+    local ok = pcall(dofile, path)
+    hl.animation = real
+    return ok
+end
 
+local usePreset = prefs.animations ~= false and prefs.anim_preset ~= nil and prefs.anim_preset ~= "snappy"
+if not (usePreset and loadPreset(prefs.anim_preset)) then
+    -- A window opens from 80% size while fading in (about a quarter of a second), and closes the other way.
+    hl.animation({ leaf = "windowsIn",   enabled = true, speed = sp(2.4), bezier = "pop",   style = "popin 80%" })
+    hl.animation({ leaf = "windowsOut",  enabled = true, speed = sp(1.8), bezier = "pop",   style = "popin 85%" })
+    hl.animation({ leaf = "windowsMove", enabled = true, speed = sp(2.4), bezier = "snap" })
+    hl.animation({ leaf = "fadeIn",      enabled = true, speed = sp(1.8), bezier = "pop" })
+    hl.animation({ leaf = "fadeOut",     enabled = true, speed = sp(1.5), bezier = "quick" })
+    hl.animation({ leaf = "fade",        enabled = true, speed = sp(1.8), bezier = "quick" })
+    hl.animation({ leaf = "border",      enabled = true, speed = sp(2.5), bezier = "quick" })
+    hl.animation({ leaf = "workspaces",  enabled = true, speed = sp(2.4), bezier = "snap",  style = "slidefade 12%" })
+    hl.animation({ leaf = "specialWorkspace", enabled = true, speed = sp(2.4), bezier = "snap", style = "slidefadevert 12%" })
+end
