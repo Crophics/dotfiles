@@ -1,0 +1,38 @@
+{
+  "compositor": "hyprland",
+  "monitor": "",
+  "general": {
+    "closeOnSelection": true,
+    "reopenAtLastSelection": false,
+    "filterBarAlwaysVisible": false
+  },
+  "paths": {
+    "wallpaper": "~/Pictures/Wallpapers"
+  },
+  "features": {
+    "matugen": false,
+    "ollama": false,
+    "steam": false,
+    "wallhaven": true
+  },
+  "components": {
+    "wallpaperSelector": {
+      "displayMode": "slices",
+      "sliceSpacing": -30,
+      "sliceWidth": 68,
+      "sliceHeight": 270,
+      "expandedWidth": 480,
+      "visibleCount": 18,
+      "skewOffset": 20,
+      "roundCorners": false
+    }
+  },
+  "pickOnlyMode": true,
+  "postProcessOnRestore": false,
+  "postProcessing": [
+    {
+      "command": "$HOME/.config/hypr/scripts/set-wallpaper.sh \"%path%\"",
+      "type": "all"
+    }
+  ]
+}

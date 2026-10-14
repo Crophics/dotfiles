@@ -1,0 +1,40 @@
+# Skwd-wall v1 (the QML picker), built from upstream's v1 branch at a pinned commit.
+# The AUR package skwd-wall builds from `main`, which is now the v2 rewrite, so it cannot be used for v1.
+pkgname=skwd-wall-v1
+pkgver=r104.49a2f5c
+pkgrel=1
+pkgdesc='Skwd-wall v1: Quickshell wallpaper selector (upstream v1 branch, pinned commit)'
+arch=('any')
+url='https://github.com/liixini/skwd-wall'
+license=('MIT')
+depends=(
+  'skwd-daemon'
+  'quickshell'
+  'qt6-multimedia'
+  'qt6-declarative'
+  'qt6-imageformats'
+  'matugen'
+  'curl'
+  'file'
+  'inotify-tools'
+  'ttf-nerd-fonts-symbols'
+  'ttf-roboto'
+)
+provides=('skwd-wall')
+conflicts=('skwd-wall' 'skwd-wall-v2' 'skwd-wall-v2-bin')
+install=skwd-wall-v1.install
+source=("skwd-wall::git+https://github.com/liixini/skwd-wall.git#commit=49a2f5c0bdc711cde5b70f145ff659380954882a")
+sha256sums=('SKIP')
+
+package() {
+  cd skwd-wall
+  local _sharedir="$pkgdir/usr/share/skwd-wall"
+  install -dm755 "$_sharedir"
+  cp -a shell.qml qml/ "$_sharedir/"
+  install -dm755 "$_sharedir/data"
+  cp -a data/matugen/ "$_sharedir/data/"
+  cp -a data/scripts/ "$_sharedir/data/"
+  install -Dm644 data/config.json.example "$_sharedir/data/config.json.example"
+  install -Dm644 data/skwd-wall.desktop "$pkgdir/usr/share/applications/skwd-wall.desktop"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
