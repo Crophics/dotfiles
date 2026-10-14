@@ -113,13 +113,10 @@ Column {
 
     SetSub {
         label: "DNS"
-        SetSelect {
-            implicitWidth: 150
-            readonly property var names: ["Router", "Cloudflare", "Google", "Quad9", "Custom"]
-            options: names
-            currentIndex: names.indexOf(o.dnsChoice)
-            onPicked: i => {
-                var v = names[i]
+        SetSeg {
+            options: ["Router", "Cloudflare", "Google", "Quad9", "Custom"]
+            current: o.dnsChoice
+            onPicked: v => {
                 if (v === "Router") o.setDns("")
                 else if (v === "Custom") { o.customDns = true }
                 else o.setDns(o.dnsPresets[v])
