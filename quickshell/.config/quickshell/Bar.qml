@@ -926,7 +926,7 @@ Scope {
 
             interactive: false
             tip: wName !== wTitle ? wName + ": " + wTitle : wTitle
-            implicitWidth: label.width + 20
+            implicitWidth: label.width + 8
             implicitHeight: Math.max(root.panelThick - 2, 18)
 
             Text {
