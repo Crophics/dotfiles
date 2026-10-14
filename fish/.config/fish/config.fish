@@ -47,16 +47,7 @@ if status is-interactive
     # Colors: kitty gets its theme from matugen.conf (43pr theme.py), so don't
     # override it with the old illogical-impulse sequences.txt.
 
-    # System info on startup (kitty only)
-    # Deferred to the first prompt (like kitty's own shell-integration setup)
-    # so it isn't wiped by a startup window-resize clearing the screen before
-    # the first real prompt is marked.
-    if test "$TERM" = xterm-kitty
-        function __show_fastfetch_once --on-event fish_prompt
-            functions --erase __show_fastfetch_once
-            fastfetch
-        end
-    end
+    # No system info on startup. Run `fastfetch` yourself when you want it.
 
     zoxide init fish | source
     fzf --fish | source
