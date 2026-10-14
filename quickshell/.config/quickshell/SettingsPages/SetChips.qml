@@ -8,10 +8,18 @@ Flow {
     property string current: ""
     signal picked(string value)
     spacing: 4
-    layoutDirection: Qt.RightToLeft
+
+    // A single row hugs the right edge (like SetSeg); several rows read left to right.
+    readonly property real estimate: {
+        var w = 0
+        for (var i = 0; i < options.length; i++) w += options[i].length * 8 + 22 + spacing
+        return w
+    }
+    readonly property bool oneRow: estimate <= width
+    layoutDirection: oneRow ? Qt.RightToLeft : Qt.LeftToRight
 
     Repeater {
-        model: chips.options
+        model: chips.oneRow ? chips.options.slice().reverse() : chips.options
         delegate: Rectangle {
             required property string modelData
             readonly property bool on: modelData === chips.current
