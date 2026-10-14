@@ -1,0 +1,14 @@
+{
+  "pickOnlyMode": true,
+  "postProcessOnRestore": false,
+  "postProcessing": [
+    {
+      "command": "$HOME/.config/hypr/scripts/set-wallpaper.sh %path%",
+      "type": "all"
+    }
+  ],
+  "integrations": [],
+  "theme": {
+    "policy": "off"
+  }
+}
