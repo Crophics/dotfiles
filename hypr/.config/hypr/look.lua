@@ -48,14 +48,15 @@ hl.config({
 local scale = prefs.anim_scale or 1.0
 local function sp(x) return x * scale end
 
-hl.curve("snap",  { type = "bezier", points = { {0.16, 1.0}, {0.3, 1.0} } })    -- fast start, soft landing
+hl.curve("snap",  { type = "bezier", points = { {0.16, 1.0}, {0.3, 1.0} } })    -- very fast start, for moves and workspaces
+hl.curve("pop",   { type = "bezier", points = { {0.33, 1.0}, {0.68, 1.0} } })   -- ease-out cubic: visible motion, soft landing
 hl.curve("quick", { type = "bezier", points = { {0.4, 0.0}, {0.6, 1.0} } })      -- even, for fades and borders
 
--- A new window starts almost full size and is visible right away, so opening feels instant.
-hl.animation({ leaf = "windowsIn",   enabled = true, speed = sp(1.5), bezier = "snap",  style = "popin 94%" })
-hl.animation({ leaf = "windowsOut",  enabled = true, speed = sp(1.5), bezier = "quick", style = "popin 94%" })
-hl.animation({ leaf = "windowsMove", enabled = true, speed = sp(2.2), bezier = "snap" })
-hl.animation({ leaf = "fadeIn",      enabled = true, speed = sp(1.2), bezier = "snap" })
+-- A window opens from 80% size while fading in (about a quarter of a second), and closes the other way.
+hl.animation({ leaf = "windowsIn",   enabled = true, speed = sp(2.4), bezier = "pop",   style = "popin 80%" })
+hl.animation({ leaf = "windowsOut",  enabled = true, speed = sp(1.8), bezier = "pop",   style = "popin 85%" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = sp(2.4), bezier = "snap" })
+hl.animation({ leaf = "fadeIn",      enabled = true, speed = sp(1.8), bezier = "pop" })
 hl.animation({ leaf = "fadeOut",     enabled = true, speed = sp(1.5), bezier = "quick" })
 hl.animation({ leaf = "fade",        enabled = true, speed = sp(1.8), bezier = "quick" })
 hl.animation({ leaf = "border",      enabled = true, speed = sp(2.5), bezier = "quick" })
