@@ -16,7 +16,7 @@ Scope {
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
         statsMode: "compact", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
-        windowText: "title", windowIcon: true, windowMaxW: 260, wsStyle: "underline",
+        windowText: "title", windowIcon: true, windowMaxW: 260, wsStyle: "underline", wsColor: "white",
         hidden: "stats,wall,settings",
         startMods: "stats,ws,window",
         centerMods: "clock",
@@ -50,6 +50,7 @@ Scope {
             property bool tooltips: root.defaults.tooltips
             property bool tooltipHints: root.defaults.tooltipHints // show "Left click: ..." lines in tooltips
             property string wsStyle: root.defaults.wsStyle       // workspaces module look: see wsStyles
+            property string wsColor: root.defaults.wsColor       // "white" | "accent"
             property string windowText: root.defaults.windowText // active window module: "title" | "app"
             property bool windowIcon: root.defaults.windowIcon
             property int windowMaxW: root.defaults.windowMaxW    // widest the title may get (px at scale 1)
@@ -753,6 +754,7 @@ Scope {
             // Vertical bars always use the pill; the line, bracket and shape styles read left to right.
             readonly property string look: root.vertical ? "pill" : cfg.wsStyle
             readonly property bool drawnPill: look === "pill" || look === "underline"
+            readonly property color tint: cfg.wsColor === "accent" ? Theme.accent : Theme.text
 
             Connections {
                 target: Hyprland
@@ -777,7 +779,7 @@ Scope {
                 readonly property bool line: wsRoot.look === "underline"
                 visible: wsRoot.focusItem !== null && !wsRoot.inSpecial && wsRoot.drawnPill
                 radius: line ? 0 : Math.min(width, height) / 2
-                color: Theme.accent
+                color: wsRoot.tint
                 x: wsRoot.focusItem ? wsLane.x + wsRoot.focusItem.x + (line ? 4 : 0) : 0
                 y: wsRoot.focusItem ? wsLane.y + wsRoot.focusItem.y + (line ? wsRoot.focusItem.height - 2 : 0) : 0
                 width: wsRoot.focusItem ? wsRoot.focusItem.width - (line ? 8 : 0) : 0
@@ -844,9 +846,9 @@ Scope {
                                 : wsRoot.look === "dots" ? (dot.isFocused || dot.occupied ? "\u25CF" : "\u25CB")
                                 : String(dot.modelData.id)
                             color: dot.modelData.urgent ? Theme.danger
-                                 : dot.isFocused ? (wsRoot.drawnPill && wsRoot.look === "pill" ? Theme.bgPanel : Theme.accent)
-                                 : dotMa.containsMouse ? Theme.accent2
-                                 : dot.occupied ? Theme.text
+                                 : dot.isFocused ? (wsRoot.look === "pill" ? Theme.bgPanel : wsRoot.tint)
+                                 : dotMa.containsMouse ? wsRoot.tint
+                                 : dot.occupied ? Qt.alpha(Theme.text, cfg.wsColor === "accent" ? 1 : 0.7)
                                  : Qt.alpha(Theme.textFaint, 0.7)
                             font.family: Theme.fontFamily
                             font.pixelSize: wsRoot.look === "dots" && !dot.isFocused ? 10 : 12

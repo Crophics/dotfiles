@@ -37,6 +37,16 @@ SetPage {
         }
     }
 
+    SetRow {
+        label: "Colour"
+        hint: "White matches the rest of the bar. Accent follows your wallpaper"
+        SetSeg {
+            options: ["White", "Accent"]
+            current: page.cfg?.wsColor === "accent" ? "Accent" : "White"
+            onPicked: v => page.cfg.wsColor = v.toLowerCase()
+        }
+    }
+
     SetSection { text: "Active window" }
     SetRow {
         label: "Show"
