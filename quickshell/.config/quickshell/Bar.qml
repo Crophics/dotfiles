@@ -16,8 +16,9 @@ Scope {
         position: "top", style: "joined", thickness: 20, margin: 4,
         scale: 1.0, bgOpacity: 1.0, border: false,
         statsMode: "compact", clockFormat: "ddd d MMM  HH:mm", tooltips: true, tooltipHints: true,
+        windowText: "title", windowIcon: true, windowMaxW: 260,
         hidden: "stats,wall,settings",
-        startMods: "stats,ws",
+        startMods: "stats,ws,window",
         centerMods: "clock",
         endMods: "media,volume,battery,net,notif,wall,settings,power"
     })
@@ -25,6 +26,7 @@ Scope {
     readonly property var styles: ["floating", "joined", "strip"]
     readonly property var sections: ["start", "center", "end"]
     readonly property var statsModes: ["default", "compact"]
+    readonly property var windowTexts: ["title", "app"]
 
     FileView {
         id: cfgFile
@@ -46,6 +48,9 @@ Scope {
             property string clockFormat: root.defaults.clockFormat   // Qt date/time format (Settings > Bar > Clock)
             property bool tooltips: root.defaults.tooltips
             property bool tooltipHints: root.defaults.tooltipHints // show "Left click: ..." lines in tooltips
+            property string windowText: root.defaults.windowText // active window module: "title" | "app"
+            property bool windowIcon: root.defaults.windowIcon
+            property int windowMaxW: root.defaults.windowMaxW    // widest the title may get (px at scale 1)
             property string hidden: root.defaults.hidden         // comma list of disabled modules
             property string startMods: root.defaults.startMods
             property string centerMods: root.defaults.centerMods
@@ -125,6 +130,7 @@ Scope {
     readonly property var moduleDefs: [
         { id: "stats",    l: "CPU / Temp / RAM" },
         { id: "ws",       l: "Workspaces" },
+        { id: "window",   l: "Active window" },
         { id: "media",    l: "Media" },
         { id: "volume",   l: "Volume" },
         { id: "battery",  l: "Battery" },
@@ -142,7 +148,7 @@ Scope {
     readonly property var moduleIds: moduleDefs.map(d => d.id)
     readonly property var defMap: moduleDefs.reduce((m, d) => { m[d.id] = d; return m; }, {})
     readonly property var comps: ({
-        stats: statsC, ws: wsC, media: mediaC, volume: volumeC, battery: batteryC, icon: iconC
+        stats: statsC, ws: wsC, window: windowC, media: mediaC, volume: volumeC, battery: batteryC, icon: iconC
     })
 
     function csv(str) { return str === "" ? [] : str.split(","); }
@@ -162,6 +168,7 @@ Scope {
         switch (id) {
         case "stats":   return !vertical || cfg.statsMode === "compact";   // compact fits vertical bars
         case "media":   return Marquee.player !== null && Marquee.title !== "";
+        case "window":  return ToplevelManager.activeToplevel !== null && ToplevelManager.activeToplevel.appId !== "";
         case "battery": return battery !== null;
         default:        return true;
         }
@@ -892,6 +899,56 @@ Scope {
                 width: parent.len
                 height: 18
                 rotation: root.vertical ? (cfg.position === "left" ? -90 : 90) : 0
+            }
+        }
+    }
+
+    // The focused window: its app icon and wTitle (or app name). Icon only on vertical bars.
+    Component {
+        id: windowC
+        Interactive {
+            readonly property var wTop: ToplevelManager.activeToplevel
+            readonly property string wAppId: wTop ? wTop.appId : ""
+            readonly property var wEntry: wAppId !== "" ? DesktopEntries.heuristicLookup(wAppId) : null
+            readonly property string wName: wEntry && wEntry.name ? wEntry.name : wAppId.replace(/[-_.]/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+            readonly property string wTitle: wTop && wTop.title !== "" ? wTop.title : wName
+            readonly property string wIcon: {
+                const n = wEntry && wEntry.icon ? wEntry.icon : wAppId.toLowerCase();
+                const p = Quickshell.iconPath(n, true);
+                return p !== "" ? p : Quickshell.iconPath("application-x-executable", true);
+            }
+            readonly property bool wShowIcon: cfg.windowIcon || root.vertical
+
+            interactive: false
+            tip: wName !== wTitle ? wName + ": " + wTitle : wTitle
+            implicitWidth: root.vertical ? root.panelThick : row.implicitWidth + 20
+            implicitHeight: root.vertical ? 28 : Math.max(root.panelThick - 2, 18)
+
+            Row {
+                id: row
+                anchors.centerIn: parent
+                spacing: 8
+                Image {
+                    visible: parent.parent.wShowIcon && source !== ""
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: visible ? root.sz.icon : 0
+                    height: width
+                    source: parent.parent.wIcon
+                    sourceSize: Qt.size(root.sz.icon * 2, root.sz.icon * 2)
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                }
+                Text {
+                    visible: !root.vertical
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Math.min(implicitWidth, root.s(cfg.windowMaxW))
+                    text: cfg.windowText === "app" ? parent.parent.wName : parent.parent.wTitle
+                    color: Theme.text
+                    elide: Text.ElideRight
+                    font.family: Theme.iconFont
+                    font.pixelSize: root.sz.stat
+                    renderType: Text.NativeRendering
+                }
             }
         }
     }

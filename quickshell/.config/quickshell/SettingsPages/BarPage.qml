@@ -26,6 +26,30 @@ SetPage {
         SetSeg { options: page.bar ? page.bar.statsModes : []; current: page.cfg?.statsMode ?? ""; onPicked: v => page.cfg.statsMode = v }
     }
 
+    SetSection { text: "Active window" }
+    SetRow {
+        label: "Show"
+        hint: "The Active window module has to be on in the list below"
+        SetSeg {
+            options: ["Title", "App name"]
+            current: page.cfg?.windowText === "app" ? "App name" : "Title"
+            onPicked: v => page.cfg.windowText = v === "App name" ? "app" : "title"
+        }
+    }
+    SetRow {
+        label: "App icon"
+        SetToggle { checked: page.cfg?.windowIcon ?? true; onToggled: v => page.cfg.windowIcon = v }
+    }
+    SetRow {
+        label: "Longest title"
+        hint: "Longer titles are cut with …"
+        SetSlider {
+            from: 100; to: 600; step: 20; unit: " px"
+            value: page.cfg?.windowMaxW ?? 260
+            onMoved: v => page.cfg.windowMaxW = v
+        }
+    }
+
     SetSection { text: "Size" }
     SetRow {
         label: "Thickness"
