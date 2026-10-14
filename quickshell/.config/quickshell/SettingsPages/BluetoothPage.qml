@@ -105,6 +105,15 @@ SetPage {
         font.pixelSize: 11
     }
 
+    Text {
+        visible: page.adapter && !page.adapter.enabled
+        width: parent.width
+        text: "Bluetooth is off. Turn it on to see and connect devices."
+        color: Theme.textFaint
+        font.family: Theme.fontFamily
+        font.pixelSize: 11
+    }
+
     // ── Adapter ──
     SetSection { text: "Adapter"; visible: page.adapter }
     SetRow {

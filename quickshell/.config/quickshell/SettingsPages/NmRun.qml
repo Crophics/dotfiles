@@ -17,13 +17,11 @@ Item {
         if (!_queue.length) { busy = false; finished(error === ""); return }
         var c = _queue.shift()
         _code = -1; _got = false
-        console.log("NmRun:", JSON.stringify(c))
         p.command = ["sh", "-c", "\"$@\" 2>&1", "sh"].concat(c)
         p.running = true
     }
     function _check() {
         if (_code < 0 || !_got) return
-        console.log("NmRun done:", _code, out.text.trim().slice(0, 200))
         if (_code !== 0) { error = out.text.trim() || ("failed (" + _code + ")"); _queue = [] }
         _next()
     }
