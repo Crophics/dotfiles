@@ -17,7 +17,7 @@ fi
 
 # --run: the long-lived wrapper. One instance only.
 exec 9>"$RUN/qylock.guard"; flock -n 9 || exit 0
-rm -f "$MARK"
+rm -f "$MARK"; : > "$RUN/qylock.log"
 
 export QML2_IMPORT_PATH="$DIR/imports:${QML2_IMPORT_PATH:-}"
 export QML_XHR_ALLOW_FILE_READ=1
@@ -33,7 +33,7 @@ fi
 fails=0
 while :; do
     start=$(date +%s)
-    (exec 9>&-; exec quickshell -p "$DIR/lock_shell.qml") && { rm -f "$MARK"; exit 0; }
+    (exec 9>&-; exec quickshell -p "$DIR/lock_shell.qml" >>"$RUN/qylock.log" 2>&1) && { rm -f "$MARK"; exit 0; }
     rm -f "$MARK"
     [ $(( $(date +%s) - start )) -ge 3 ] && fails=0 || fails=$((fails + 1))
     [ "$fails" -ge 3 ] && sleep 2

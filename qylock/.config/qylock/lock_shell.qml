@@ -15,6 +15,7 @@ import "./shim"
 
 ShellRoot {
     id: shellRoot
+    Component.onDestruction: console.warn("qylock: shell exiting")
 
     property string activeTheme: Quickshell.env("QS_THEME") || "clockwork/orbital"
     property string themePath: Quickshell.env("QS_THEME_PATH") || (Quickshell.shellDir + "/themes/" + activeTheme)
@@ -48,6 +49,7 @@ ShellRoot {
     Connections {
         target: sddmShim.sddm
         function onLoginSucceeded() {
+            console.warn("qylock: login succeeded")
             if (!shellRoot.lockSecure || !sddmShim.loginSessionActive)
                 return
             unlockTimer.start()
@@ -139,7 +141,9 @@ ShellRoot {
         id: lock
         locked: shellRoot.sessionLocked
 
+        onLockedChanged: console.warn("qylock: locked ->", lock.locked)
         onSecureChanged: {
+            console.warn("qylock: secure ->", lock.secure)
             shellRoot.lockSecure = lock.secure
             if (lock.secure) {
                 marker.set(true)
