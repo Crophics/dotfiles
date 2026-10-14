@@ -12,6 +12,7 @@ SetPage {
     property int lockMin: 5
     property int suspendMin: 15
     property int graceSec: 60
+    property bool dim: true
 
     readonly property string home: Quickshell.env("HOME")
     readonly property var nt: Refs.notifications
@@ -27,6 +28,7 @@ SetPage {
                 if (typeof s.lockMin === "number") page.lockMin = s.lockMin
                 if (typeof s.suspendMin === "number") page.suspendMin = s.suspendMin
                 if (typeof s.graceSec === "number") page.graceSec = s.graceSec
+                if (typeof s.dim === "boolean") page.dim = s.dim
             } catch (e) {
                 console.warn("session: could not read saved state:", e)
             }
@@ -36,7 +38,7 @@ SetPage {
     function minutes(m) { return m === 0 ? "Never" : m + " min" }
 
     function commit() {
-        file.setText(JSON.stringify({ lockMin: page.lockMin, suspendMin: page.suspendMin, graceSec: page.graceSec }))
+        file.setText(JSON.stringify({ lockMin: page.lockMin, suspendMin: page.suspendMin, graceSec: page.graceSec, dim: page.dim }))
     }
 
     property string profile: "balanced"
@@ -114,6 +116,12 @@ SetPage {
             onMoved: v => page.suspendMin = v
             onCommitted: page.commit()
         }
+    }
+
+    SetRow {
+        label: "Dim the screen first"
+        hint: "Dims for the last 30 seconds before locking or suspending. Any key or touch brings it back"
+        SetToggle { checked: page.dim; onToggled: v => { page.dim = v; page.commit() } }
     }
 
     SetSection { text: "Lid" }

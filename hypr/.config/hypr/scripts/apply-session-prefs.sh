@@ -10,6 +10,13 @@ out="$HOME/.config/hypr/hypridle-user.conf"
 
 lock=$(jq -r '.lockMin // 5' "$state")
 suspend=$(jq -r '.suspendMin // 15' "$state")
+dim=$(jq -r '.dim // true' "$state")
+
+# Dim 30 s before the first timer fires.
+first=0
+for m in "$lock" "$suspend"; do
+    [ "$m" -gt 0 ] && { [ "$first" -eq 0 ] || [ "$((m * 60))" -lt "$first" ] ; } && first=$((m * 60))
+done
 
 {
     cat <<'CONF'
@@ -20,6 +27,9 @@ general {
     after_sleep_cmd = ~/.config/hypr/scripts/sleep-hook.sh after
 }
 CONF
+    if [ "$dim" = true ] && [ "$first" -gt 30 ]; then
+        printf '\nlistener {\n    timeout = %s\n    on-timeout = brightnessctl -s set 10%%\n    on-resume = brightnessctl -r\n}\n' "$((first - 30))"
+    fi
     if [ "$lock" -gt 0 ]; then
         printf '\nlistener {\n    timeout = %s\n    on-timeout = loginctl lock-session\n}\n' "$((lock * 60))"
     fi
