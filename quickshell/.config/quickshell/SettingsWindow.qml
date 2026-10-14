@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Shapes
@@ -37,6 +38,26 @@ PanelWindow {
     function prevPage() { selectedIndex = (selectedIndex - 1 + navItems.length) % navItems.length }
 
     onShowingChanged: if (!showing) dragging = false
+
+    // Windows can't draw above this panel, so when nm-applet asks for a Wi-Fi password the panel
+    // steps aside while that dialog is open and comes back when it closes.
+    property string dialogAddr: ""
+    property bool reopenAfterDialog: false
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "openwindow") {
+                var p = event.data.split(",")
+                if (/nm-applet|nm-connection/i.test(p[2] || "") || /Authentication required/i.test(p.slice(3).join(","))) {
+                    root.dialogAddr = p[0]
+                    if (root.showing) { root.reopenAfterDialog = true; root.hide() }
+                }
+            } else if (event.name === "closewindow" && root.dialogAddr !== "" && event.data === root.dialogAddr) {
+                root.dialogAddr = ""
+                if (root.reopenAfterDialog) { root.reopenAfterDialog = false; root.show() }
+            }
+        }
+    }
 
     property real cardMargin: 40
     property real dragMargin: 8

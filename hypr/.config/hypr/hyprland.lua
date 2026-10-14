@@ -21,6 +21,7 @@ hl.on("hyprland.start", function()
     -- hl.exec_cmd("dunst") replaced with quickshell 
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
+    hl.exec_cmd("nm-applet")   -- Wi-Fi password prompts; the Settings panel steps aside while its dialog is open
     hl.exec_cmd("/usr/lib/hyprpolkitagent/hyprpolkitagent")
     hl.exec_cmd("hyprctl setcursor " .. cursorTheme .. " " .. cursorSize)
     hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'")   -- once more after the session has settled
