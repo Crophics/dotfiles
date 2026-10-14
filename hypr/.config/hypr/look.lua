@@ -39,7 +39,7 @@ hl.config({
         },
     },
     animations = {
-        enabled = true,
+        enabled = false,   -- off, as it has been since HyprMod set it; the curves below apply if you turn this on
     },
 })
 

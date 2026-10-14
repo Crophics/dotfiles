@@ -41,9 +41,11 @@ hl.config({
         kb_layout = "us",
         follow_mouse = 1,
         sensitivity = 0.5,
+        accel_profile = "flat",
         touchpad = {
-            natural_scroll = false,
+            natural_scroll = true,
             tap_to_click = true,
+            clickfinger_behavior = true,
         },
     },
 })
@@ -71,5 +73,3 @@ require("keybinds")
 require("look")
 require("rules")
 
--- HyprMod managed settings
-require("hyprland-gui")
