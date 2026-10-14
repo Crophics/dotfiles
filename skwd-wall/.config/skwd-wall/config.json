@@ -5,7 +5,7 @@
     "closeOnSelection": true,
     "reopenAtLastSelection": false,
     "filterBarAlwaysVisible": false,
-    "notifyOnWallpaperChange": false
+    "notifyOnWallpaperChange": true
   },
   "paths": {
     "wallpaper": "~/Pictures/Wallpapers"
@@ -35,5 +35,6 @@
       "command": "$HOME/.config/hypr/scripts/set-wallpaper.sh \"%path%\"",
       "type": "all"
     }
-  ]
+  ],
+  "restoreOnStartup": false
 }
