@@ -18,6 +18,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("/usr/lib/hyprpolkitagent/hyprpolkitagent")
     hl.exec_cmd("hyprctl setcursor Adwaita 24")
+    hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor Adwaita 24'")   -- once more after the session has settled
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")
 
     hl.exec_cmd("awww-daemon")
