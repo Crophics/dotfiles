@@ -23,6 +23,7 @@ close)
     ;;
 open)
     stop_timer
-    dpms on
+    # If the laptop was asleep, sleep-screen.sh lights the screen once the lock has drawn.
+    [ -e "$D/sleep-screen" ] || dpms on
     ;;
 esac
