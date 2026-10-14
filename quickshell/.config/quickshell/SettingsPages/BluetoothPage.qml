@@ -153,7 +153,29 @@ SetPage {
                 hint: page.kind(modelData.icon) + " · " + page.stateText(modelData)
                 leading: [Text { text: page.glyph(modelData.icon); color: Theme.accent2; font.family: Theme.iconFont; font.pixelSize: 16; width: 20; horizontalAlignment: Text.AlignHCenter }]
                 onClicked: page.expanded = dcol.open ? "" : modelData.address
-                Text { visible: page.battery(modelData) !== ""; height: 26; verticalAlignment: Text.AlignVCenter; text: "BAT " + page.battery(modelData); color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 10; font.letterSpacing: 1.5 }
+                Row {
+                    visible: page.battery(modelData) !== ""
+                    height: 26
+                    spacing: 6
+                    Item {
+                        width: 20; height: 26
+                        Rectangle {
+                            id: shell
+                            width: 17; height: 9; radius: 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: "transparent"
+                            border.width: 1
+                            border.color: Theme.textDim
+                            Rectangle {
+                                x: 2; y: 2; height: parent.height - 4; radius: 1
+                                width: Math.max(1, (parent.width - 4) * (modelData.battery || 0))
+                                color: Theme.textDim
+                            }
+                        }
+                        Rectangle { x: shell.width + 1; width: 2; height: 4; radius: 1; anchors.verticalCenter: parent.verticalCenter; color: Theme.textDim }
+                    }
+                    Text { height: 26; verticalAlignment: Text.AlignVCenter; text: page.battery(modelData); color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 10; font.letterSpacing: 1 }
+                }
                 SetButton {
                     label: modelData.connected ? "Disconnect" : "Connect"
                     primary: !modelData.connected
