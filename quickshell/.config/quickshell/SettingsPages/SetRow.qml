@@ -15,7 +15,7 @@ Rectangle {
     signal clicked()
 
     width: parent ? parent.width : 0
-    height: Math.max(hint !== "" ? 52 : 44, labels.implicitHeight + 24)
+    height: Math.max(hint !== "" ? 52 : 44, labels.implicitHeight + 24, ctl.implicitHeight + 16)
     radius: Theme.radius
     color: hover.hovered ? Theme.alpha(Theme.accent, 0.05) : "transparent"
     border.width: 1

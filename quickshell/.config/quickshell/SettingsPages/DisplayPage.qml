@@ -1,816 +1,309 @@
 import QtQuick
-import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import "../"
 
-Item {
+// Monitors, brightness and night light. Monitor changes go through scripts/display.py and
+// start a 15 second countdown: unless you press Keep, the old settings come back.
+SetPage {
     id: page
+    title: "DISPLAY"
 
-    property var monitors: []
-    property var savedState: ({})
-    property real marginLeft: 0
-    property real marginRight: 55
-    property real marginTop: 0
-    property real marginBottom: 0
-    property real brightnessValue: 0.6
-    property real nightlightValue: 0.5
-    property bool nightlightEnabled: false
-    property real sliderMarginRight: 10
-    property real labelWidth: 96
-    readonly property string stateDir: Quickshell.env("HOME") + "/.config/quickshell/state"
-    readonly property var activeMonitors: monitors.filter(m => !m.disabled)
+    readonly property string home: Quickshell.env("HOME")
+    readonly property string displayScript: home + "/.config/hypr/scripts/display.py"
+    readonly property string nightScript: home + "/.config/hypr/scripts/nightlight.sh"
+
+    property var cfg: []                 // one entry per monitor, what the user is editing
+    property int countdown: 0            // seconds left to confirm, 0 = nothing pending
+    property real brightness: 0.6
+    property bool hasBacklight: false
+    property bool nightOn: false
+    property int nightTemp: 4500
+
+    readonly property var rotations: ["Normal", "90°", "180°", "270°"]
+    readonly property var vrrNames: ["Off", "On", "Fullscreen only"]
+
+    function uniq(arr) { return arr.filter((v, i) => arr.indexOf(v) === i) }
+    function resolutions(c) { return uniq(c.modes.map(m => m.res)) }
+    function rates(c, res) { return c.modes.filter(m => m.res === res).map(m => m.rate) }
+    function rateLabel(r) { return parseFloat(r).toFixed(0) + " Hz" }
+    // Scales that give a whole-pixel desktop, shown as clean percentages.
+    function scales(c) {
+        var w = parseInt(c.res.split("x")[0]), h = parseInt(c.res.split("x")[1]), out = []
+        for (var k = 60; k <= 360; k++) {
+            if ((w * 120) % k === 0 && (h * 120) % k === 0 && (k * 100) % 120 === 0) out.push(k * 100 / 120)
+        }
+        return out.filter(p => p >= 75 && p <= 300)
+    }
+    function find(name) { return cfg.find(c => c.name === name) }
+    function logicalSize(c) {
+        var w = parseInt(c.res.split("x")[0]), h = parseInt(c.res.split("x")[1])
+        if (c.transform % 2 === 1) { var t = w; w = h; h = t }
+        return [Math.round(w / c.scale), Math.round(h / c.scale)]
+    }
+    function placeSide(c) {
+        if (c.place.indexOf(":") > 0 && c.place.indexOf("at:") !== 0) return c.place.split(":")[0]
+        var o = cfg.find(x => x.name !== c.name && x.enabled)
+        if (!o || c.place.indexOf("at:") !== 0) return ""
+        var p = c.place.slice(3).split("x").map(Number), q = o.place.slice(3).split("x").map(Number)
+        var ow = logicalSize(o), cw = logicalSize(c)
+        if (p[0] === q[0] + ow[0]) return "right-of"
+        if (p[0] === q[0] - cw[0]) return "left-of"
+        if (p[1] === q[1] - cw[1]) return "above"
+        if (p[1] === q[1] + ow[1]) return "below"
+        return ""
+    }
+    function placeTarget(c) {
+        if (c.place.indexOf(":") > 0 && c.place.indexOf("at:") !== 0) return c.place.split(":")[1]
+        var o = cfg.find(x => x.name !== c.name && x.enabled)
+        return o ? o.name : ""
+    }
+
+    function edit(name, patch) {
+        cfg = cfg.map(c => c.name === name ? Object.assign({}, c, patch) : c)
+        send()
+    }
+    function send() {
+        var list = cfg.map(c => ({ name: c.name, enabled: c.enabled, mode: c.res + "@" + c.rate, scale: c.scale,
+                                   transform: c.transform, vrr: c.vrr, place: c.place }))
+        run.run([[displayScript, "apply", JSON.stringify(list)]])
+        countdown = 15
+    }
+    function keep() { countdown = 0; run.run([[displayScript, "keep"]]) }
+    function revert() { countdown = 0; run.run([[displayScript, "revert"]]); reloadSoon.restart() }
+
+    NmRun { id: run; onFinished: ok => reloadSoon.restart() }
+    Timer { id: reloadSoon; interval: 700; onTriggered: pMon.running = true }
+    Timer {
+        interval: 1000; repeat: true; running: page.countdown > 0
+        onTriggered: { page.countdown--; if (page.countdown === 0) page.revert() }
+    }
+    Component.onCompleted: { pMon.running = true; pBr.running = true; pNight.running = true }
 
     Process {
-        id: brightnessGet
+        id: pMon
+        command: ["hyprctl", "monitors", "all", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var out = []
+                try {
+                    JSON.parse(text).forEach(m => {
+                        var modes = (m.availableModes || []).map(s => {
+                            var p = s.replace("Hz", "").split("@")
+                            return { res: p[0], rate: p[1] }
+                        })
+                        var res = m.width + "x" + m.height
+                        var near = modes.filter(x => x.res === res).sort((a, b) => Math.abs(a.rate - m.refreshRate) - Math.abs(b.rate - m.refreshRate))[0]
+                        out.push({
+                            name: m.name, desc: m.description, enabled: !m.disabled, modes: modes,
+                            res: res, rate: near ? near.rate : m.refreshRate.toFixed(2),
+                            scale: Math.round(m.scale * 10000) / 10000, transform: m.transform, vrr: m.vrr ? 1 : 0,
+                            place: m.mirrorOf && m.mirrorOf !== "none" ? "mirror:" + m.mirrorOf : "at:" + m.x + "x" + m.y
+                        })
+                    })
+                } catch (e) {}
+                page.cfg = out
+            }
+        }
+    }
+    Process {
+        id: pBr
         command: ["brightnessctl", "-m"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const parts = text.trim().split(",")
-                if (parts.length >= 4) {
-                    const pct = parseInt(parts[3])
-                    if (!isNaN(pct)) page.brightnessValue = pct / 100
-                }
+                var p = text.trim().split(",")
+                if (p.length >= 4 && !isNaN(parseInt(p[3]))) { page.brightness = parseInt(p[3]) / 100; page.hasBacklight = true }
             }
         }
     }
-
-    Process { id: brightnessSet }
-
-    function commitBrightness(value) {
-        const pct = Math.round(value * 100) + "%"
-        brightnessSet.command = ["brightnessctl", "set", pct]
-        brightnessSet.running = true
-    }
-
-    Process { id: nightlightProcess }
-
-    function nightlightTemperature(value) { return Math.round(2500 + value * 4000) }
-
-    function startNightlight(value, delay) {
-        const temp = nightlightTemperature(value)
-        nightlightProcess.command = [
-            "sh", "-c",
-            "pkill -x gammastep 2>/dev/null; " +
-            "sleep " + delay + "; " +
-            "nohup gammastep -O " + temp + " >/dev/null 2>&1 &"
-        ]
-        nightlightProcess.running = true
-    }
-
-    function nightlightOn() { nightlightEnabled = true; startNightlight(nightlightValue, "0.05") }
-
-    function nightlightOff() {
-        nightlightEnabled = false
-        nightlightProcess.command = ["pkill", "-x", "gammastep"]
-        nightlightProcess.running = true
-    }
-
-    function commitNightlight(value) {
-        nightlightValue = value
-        nightlightSaveTimer.restart()
-        if (nightlightEnabled) startNightlight(value, "0.03")
-    }
-
-    FileView {
-        id: nightlightFile
-        path: Quickshell.dataDir + "/nightlight.json"
-        blockLoading: true
-    }
-
-    function loadNightlight() {
-        try {
-            const saved = JSON.parse(nightlightFile.text())
-            if (typeof saved.value === "number") nightlightValue = saved.value
-        } catch (error) {}
-    }
-
-    Timer {
-        id: nightlightSaveTimer
-        interval: 300
-        onTriggered: {
-            nightlightFile.setText(JSON.stringify({ value: page.nightlightValue }))
-        }
-    }
-
+    Process { id: brSet }
     Process {
-        id: nightlightCheck
-        command: ["pgrep", "-x", "gammastep"]
-        onExited: exitCode => {
-            page.nightlightEnabled = exitCode === 0
-        }
-    }
-
-    Process {
-        id: stateDirProcess
-        command: ["mkdir", "-p", page.stateDir]
-    }
-
-    FileView {
-        id: displayFile
-        path: page.stateDir + "/display.json"
-        blockLoading: true
-    }
-
-    FileView {
-        id: displayLua
-        path: page.stateDir + "/display.lua"
-    }
-
-    function loadState() {
-        try {
-            const saved = JSON.parse(displayFile.text())
-            if (saved && typeof saved.monitors === "object" && saved.monitors !== null) {
-                savedState = saved.monitors
-            }
-        } catch (error) {}
-    }
-
-    function luaFileText() {
-        const lines = []
-        const names = Object.keys(savedState)
-        for (let i = 0; i < names.length; i++) {
-            const entry = savedState[names[i]]
-            if (!entry) continue
-            if (entry.disabled === true) {
-                lines.push(monitorLua({ name: names[i] }, { disabled: true }))
-                continue
-            }
-            if (typeof entry.mode !== "string") continue
-            lines.push(monitorLua({ name: names[i] }, {
-                mode: entry.mode,
-                position: typeof entry.position === "string" ? entry.position : "auto",
-                scale: typeof entry.scale === "number" ? entry.scale : 1
-            }))
-        }
-        return lines.join("\n") + "\n"
-    }
-
-    Timer {
-        id: stateSaveTimer
-        interval: 300
-        onTriggered: {
-            try {
-                displayFile.setText(JSON.stringify({ monitors: page.savedState }, null, 2))
-                displayLua.setText(page.luaFileText())
-            } catch (error) {}
-        }
-    }
-
-    function monitorPosition(mon) {
-        return page.activeMonitors.length <= 1 ? "auto" : mon.x + "x" + mon.y
-    }
-
-    function rememberMonitor(mon, fields) {
-        if (!mon || !mon.name) return
-        const next = Object.assign({}, savedState)
-        next[mon.name] = Object.assign({}, next[mon.name] || {}, fields)
-        savedState = next
-        stateSaveTimer.restart()
-    }
-
-    Process {
-        id: pReset
-        onExited: exitCode => {
-            refreshTimer.restart()
-        }
-    }
-
-    function resetToConfig() {
-        stateSaveTimer.stop()
-        savedState = ({})
-        pReset.command = [
-            "sh", "-c",
-            "rm -f '" + page.stateDir + "/display.json' '" + page.stateDir + "/display.lua'; hyprctl reload"
-        ]
-        pReset.running = true
-    }
-
-    function monitorMode(mon) { return mon.width + "x" + mon.height + "@" + mon.refreshRate.toFixed(2) }
-
-    function luaString(value) { return String(value).replace(/\\/g, "\\\\").replace(/"/g, "\\\"") }
-
-    function monitorLua(mon, options = {}) {
-        const values = ["output = \"" + luaString(mon.name) + "\""]
-        if (options.mode !== undefined) values.push("mode = \"" + luaString(options.mode) + "\"")
-        if (options.position !== undefined) values.push("position = \"" + luaString(options.position) + "\"")
-        if (options.scale !== undefined) values.push("scale = " + options.scale)
-        if (options.disabled !== undefined) values.push("disabled = " + options.disabled)
-        if (options.mirrorOf !== undefined) values.push("mirrorOf = \"" + luaString(options.mirrorOf) + "\"")
-        return "hl.monitor({" + values.join(",") + "})"
-    }
-
-    function isMain(mon) {
-        return !mon.disabled && page.activeMonitors.length > 0 && mon.x === 0 && mon.y === 0
-    }
-
-    Process {
-        id: pShell
-        onExited: exitCode => {
-            refreshTimer.restart()
-        }
-    }
-
-    function layoutCommands(ordered) {
-        const cmds = []
-        let x = 0
-        for (let i = 0; i < ordered.length; i++) {
-            const m = ordered[i]
-            const mode = monitorMode(m)
-            const pos = x + "x0"
-            rememberMonitor(m, { mode: mode, scale: m.scale, position: pos, disabled: false })
-            cmds.push("hyprctl eval '" + monitorLua(m, { mode: mode, position: pos, scale: m.scale }) + "'")
-            x += Math.round(m.width / m.scale)
-        }
-        if (ordered.length > 0) cmds.push("hyprctl dispatch focusmonitor '" + ordered[0].name + "'")
-        return cmds
-    }
-
-    function setMainMonitor(main) {
-        if (!main || !main.name || main.disabled) return
-        const others = page.activeMonitors.filter(m => m.name !== main.name).sort((a, b) => a.x - b.x)
-        const cmds = layoutCommands([main].concat(others))
-        pShell.command = ["sh", "-c", cmds.join("; ")]
-        pShell.running = true
-    }
-
-    function setMonitorEnabled(mon, enabled) {
-        if (!mon || !mon.name) return
-        let cmds = []
-        if (enabled) {
-            const entry = savedState[mon.name] || {}
-            const mode = typeof entry.mode === "string" ? entry.mode : "preferred"
-            const scale = typeof entry.scale === "number" ? entry.scale : 1
-            rememberMonitor(mon, { mode: mode, scale: scale, position: "auto", disabled: false })
-            cmds.push("hyprctl eval '" + monitorLua(mon, { mode: mode, position: "auto", scale: scale }) + "'")
-        } else {
-            if (page.activeMonitors.length <= 1) return
-            const wasMain = isMain(mon)
-            rememberMonitor(mon, { mode: monitorMode(mon), scale: mon.scale, disabled: true })
-            cmds.push("hyprctl eval '" + monitorLua(mon, { disabled: true }) + "'")
-            if (wasMain) {
-                const rest = page.activeMonitors.filter(m => m.name !== mon.name).sort((a, b) => a.x - b.x)
-                cmds = cmds.concat(layoutCommands(rest))
-            }
-        }
-        pShell.command = ["sh", "-c", cmds.join("; ")]
-        pShell.running = true
-    }
-
-    Process {
-        id: pList
-        command: ["hyprctl", "monitors", "all", "-j"]
-        running: true
+        id: pNight
+        command: ["sh", "-c", "cat \"$HOME/.config/quickshell/state/nightlight.json\" 2>/dev/null"]
         stdout: StdioCollector {
             onStreamFinished: {
-                try {
-                    page.monitors = JSON.parse(text)
-                } catch (error) {
-                    page.monitors = []
-                }
+                try { var s = JSON.parse(text); page.nightOn = s.enabled === true; page.nightTemp = s.temp || 4500 } catch (e) {}
             }
         }
-        stderr: StdioCollector {
-            onStreamFinished: {}
-        }
+    }
+    Process { id: nightSet }
+    function setNight(on, temp) {
+        nightOn = on; nightTemp = temp
+        nightSet.command = [nightScript, "set", on ? "on" : "off", String(temp)]
+        nightSet.running = true
     }
 
-    function refresh() {
-        pList.running = true
-    }
+    // ── one block per monitor ──
+    Repeater {
+        model: page.cfg
+        delegate: Column {
+            id: mon
+            required property var modelData
+            width: parent ? parent.width : 0
+            spacing: 10
+            readonly property var others: page.cfg.filter(c => c.name !== modelData.name && c.enabled)
 
-    Process {
-        id: pApply
-        property var pendingMon: null
+            SetSection { text: modelData.name + (modelData.desc ? "  ·  " + modelData.desc : "") }
 
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const out = text.trim()
-                if (out.length === 0) return
-
-                const match = out.match(/using suggested scale:\s*([\d.]+)/i)
-                if (match && pApply.pendingMon) {
-                    const suggested = parseFloat(match[1])
-                    page.setScale(pApply.pendingMon, suggested, true)
+            SetRow {
+                visible: page.cfg.length > 1
+                label: "Enabled"
+                hint: "Turn this screen off. At least one has to stay on"
+                SetToggle {
+                    checked: modelData.enabled
+                    onToggled: v => { if (v || mon.others.length > 0) page.edit(modelData.name, { enabled: v }) }
                 }
             }
-        }
-        stderr: StdioCollector {
-            onStreamFinished: {}
-        }
-        onExited: exitCode => {
-            refreshTimer.restart()
-        }
-    }
-
-    function gcd(a, b) { while (b) { [a, b] = [b, a % b] }; return a }
-
-    function validScale(mon, requested) {
-        const width = mon.width
-        const height = mon.height
-        let best = requested
-        let bestDistance = Infinity
-
-        for (let i = 84; i <= 1560; i++) {
-            const scale = i / 120
-            if (scale < 0.7 || scale > 1.3) continue
-
-            const logicalWidth = width / scale
-            const logicalHeight = height / scale
-
-            if (Math.abs(logicalWidth - Math.round(logicalWidth)) < 0.0001 &&
-                Math.abs(logicalHeight - Math.round(logicalHeight)) < 0.0001) {
-                const distance = Math.abs(scale - requested)
-                if (distance < bestDistance) {
-                    best = scale
-                    bestDistance = distance
-                }
-            }
-        }
-
-        return best
-    }
-
-    function setScale(mon, scale, isRetry = false) {
-        const requested = scale
-        const applied = isRetry ? scale : validScale(mon, requested)
-
-        const idx = page.monitors.findIndex(m => m.name === mon.name)
-        if (idx !== -1) {
-            const updated = page.monitors.slice()
-            updated[idx] = Object.assign({}, updated[idx], { scale: applied })
-            page.monitors = updated
-        }
-
-        rememberMonitor(mon, { mode: monitorMode(mon), scale: applied, position: monitorPosition(mon) })
-
-        pApply.pendingMon = mon
-        pApply.command = [
-            "hyprctl", "eval",
-            monitorLua(mon, { mode: monitorMode(mon), position: mon.x + "x" + mon.y, scale: applied })
-        ]
-        pApply.running = true
-    }
-
-    Process {
-        id: pResolution
-        stdout: StdioCollector {
-            onStreamFinished: {}
-        }
-        stderr: StdioCollector {
-            onStreamFinished: {}
-        }
-        onExited: exitCode => {
-            refreshTimer.restart()
-        }
-    }
-
-    function resolutionList(mon) {
-        if (!mon || !mon.availableModes) return []
-        const seen = {}
-        const items = []
-        for (let i = 0; i < mon.availableModes.length; i++) {
-            const match = String(mon.availableModes[i]).match(/^(\d+)x(\d+)@/)
-            if (!match) continue
-            const key = match[1] + "x" + match[2]
-            if (seen[key]) continue
-            seen[key] = true
-            items.push({ key: key, width: parseInt(match[1]), height: parseInt(match[2]) })
-        }
-        items.sort((a, b) => (b.width * b.height - a.width * a.height) || (b.width - a.width))
-        return items.slice(0, 6).map(item => item.key)
-    }
-
-    function bestMode(mon, resolution) {
-        if (!mon || !mon.availableModes) return null
-        const prefix = resolution + "@"
-        let bestRate = null
-        let bestDistance = Infinity
-        for (let i = 0; i < mon.availableModes.length; i++) {
-            const mode = String(mon.availableModes[i])
-            if (mode.indexOf(prefix) !== 0) continue
-            const rate = parseFloat(mode.substring(prefix.length))
-            if (isNaN(rate)) continue
-            const distance = Math.abs(rate - mon.refreshRate)
-            if (distance < bestDistance || (distance === bestDistance && rate > bestRate)) {
-                bestRate = rate
-                bestDistance = distance
-            }
-        }
-        return bestRate === null ? null : prefix + bestRate.toFixed(2)
-    }
-
-    function setResolution(mon, resolution) {
-        if (!mon || !mon.name || !resolution) {
-            return
-        }
-        const scale = mon.scale !== undefined ? mon.scale : 1
-        rememberMonitor(mon, { mode: resolution, scale: scale, position: monitorPosition(mon) })
-        const lua = monitorLua(mon, {
-            mode: resolution,
-            position: mon.x + "x" + mon.y,
-            scale: scale
-        })
-        try {
-            pResolution.command = ["hyprctl", "eval", lua]
-            pResolution.running = true
-        } catch (error) {}
-    }
-
-    function refreshRates(mon) {
-        if (!mon || !mon.availableModes) return []
-        const prefix = mon.width + "x" + mon.height + "@"
-        const seen = {}
-        const rates = []
-        for (let i = 0; i < mon.availableModes.length; i++) {
-            const mode = String(mon.availableModes[i])
-            if (mode.indexOf(prefix) !== 0) continue
-            const match = mode.match(/@([\d.]+)/)
-            if (!match) continue
-            const rate = parseFloat(match[1])
-            if (isNaN(rate)) continue
-            const key = rate.toFixed(2)
-            if (seen[key]) continue
-            seen[key] = true
-            rates.push(rate)
-        }
-        rates.sort((a, b) => b - a)
-        return rates
-    }
-
-    function setRefreshRate(mon, rate) {
-        if (!mon || !mon.name || rate === undefined) {
-            return
-        }
-        const mode = mon.width + "x" + mon.height + "@" + rate.toFixed(2)
-        const scale = mon.scale !== undefined ? mon.scale : 1
-        rememberMonitor(mon, { mode: mode, scale: scale, position: monitorPosition(mon) })
-        const lua = monitorLua(mon, {
-            mode: mode,
-            position: mon.x + "x" + mon.y,
-            scale: scale
-        })
-        try {
-            pResolution.command = ["hyprctl", "eval", lua]
-            pResolution.running = true
-        } catch (error) {}
-    }
-
-    Timer { id: refreshTimer; interval: 250; onTriggered: page.refresh() }
-
-    Process {
-        id: pEditConfig
-        command: ["sh", "-c", "xed ~/.config/hypr/monitors.lua"]
-        onExited: exitCode => {}
-    }
-
-    function editConfig() {
-        if (pEditConfig.running) {
-            return
-        }
-        pEditConfig.running = true
-    }
-
-    Flickable {
-        id: flick
-        anchors.fill: parent
-        anchors.leftMargin: page.marginLeft; anchors.rightMargin: page.marginRight
-        anchors.topMargin: page.marginTop; anchors.bottomMargin: page.marginBottom
-        contentWidth: width
-        contentHeight: content.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-
-        ScrollBar.vertical: ScrollBar {
-            id: scrollBar
-
-            background: Rectangle {
-                color: "transparent"
-                radius: width / 2
-            }
-
-            contentItem: Rectangle {
-                color: "transparent"
-                radius: width / 2
-            }
-        }
-
-        Column {
-            id: content
-            width: flick.width
-            spacing: 14
-
-            Text {
-                text: "DISPLAY"; color: Theme.text
-                font.family: Theme.fontFamily; font.pixelSize: 19; font.letterSpacing: 3
-            }
-
-            Rectangle { width: parent.width; height: 1; color: Theme.border }
-
-            Row {
-                width: parent.width; height: 38; spacing: 8
-
-                Rectangle {
-                    width: 28; height: 28; radius: Theme.radius; anchors.verticalCenter: parent.verticalCenter
-                    color: Theme.alpha(Theme.accent2, 0.10); border.width: 1; border.color: Theme.border
-                    Text {
-                        anchors.centerIn: parent; text: "\uf185"; color: Theme.accent2
-                        font.family: Theme.iconFont; font.pixelSize: 12
-                    }
-                }
-
-                Text {
-                    width: page.labelWidth; anchors.verticalCenter: parent.verticalCenter
-                    text: "BRIGHTNESS"; color: Theme.text
-                    font.family: Theme.fontFamily; font.pixelSize: 15
-                }
-
-                Slider {
-                    width: parent.width - 28 - page.labelWidth - 16 - page.sliderMarginRight
-                    height: 72; anchors.verticalCenter: parent.verticalCenter
-                    label: ""; icon: ""; value: page.brightnessValue; accentColor: Theme.accent2
-                    onCommitted: value => page.commitBrightness(value)
-                }
-            }
-
-            Row {
-                width: parent.width; height: 38; spacing: 10
-
-                Rectangle {
-                    width: 28; height: 28; radius: Theme.radius; anchors.verticalCenter: parent.verticalCenter
-                    color: page.nightlightEnabled ? Theme.alpha(Theme.accent, 0.10) : Theme.alpha("#A0A0A0", 0.15)
-                    border.width: 1; border.color: page.nightlightEnabled ? Theme.accent : Theme.border
-                    Text {
-                        anchors.centerIn: parent; text: "\uf186"
-                        color: page.nightlightEnabled ? Theme.accent : "#A0A0A0"
-                        font.family: Theme.iconFont; font.pixelSize: 12
-                    }
-                    MouseArea {
-                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                        onClicked: page.nightlightEnabled ? page.nightlightOff() : page.nightlightOn()
-                    }
-                }
-
-                Text {
-                    width: page.labelWidth; anchors.verticalCenter: parent.verticalCenter
-                    text: "NIGHTLIGHT"; color: page.nightlightEnabled ? Theme.text : Theme.text
-                    font.family: Theme.fontFamily; font.pixelSize: 15
-                }
-
-                Slider {
-                    width: parent.width - 28 - page.labelWidth - 16 - page.sliderMarginRight
-                    height: 72; anchors.verticalCenter: parent.verticalCenter
-                    label: ""; icon: ""; value: page.nightlightValue; accentColor: Theme.accent2
-                    onMoved: value => page.commitNightlight(value)
-                }
-            }
-
-            Column {
-                width: parent.width; spacing: 8
-
-                Repeater {
-                    model: page.monitors
-
-                    delegate: Rectangle {
-                        id: card
-                        required property var modelData
-                        property bool off: modelData.disabled === true
-                        property bool main: page.isMain(modelData)
-                        width: parent.width
-                        height: cardColumn.implicitHeight + 20
-                        radius: Theme.radius
-                        color: "#00000000"; border.width: 1
-                        border.color: modelData.focused && !off ? "#454545" : Theme.border
-
-                        Column {
-                            id: cardColumn
-                            anchors.left: parent.left; anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.margins: 10
-                            spacing: 6
-
-                            Item {
-                                width: parent.width; height: 24
-
-                                Row {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 8
-
-                                    Text {
-                                        text: card.modelData.name
-                                        color: card.off ? Theme.textDim : Theme.text
-                                        font.family: Theme.fontFamily; font.pixelSize: 14; font.bold: true
-                                    }
-
-                                    Text {
-                                        visible: !card.off
-                                        text: card.modelData.width + "x" + card.modelData.height + " @ " + Math.round(card.modelData.refreshRate) + "Hz"
-                                        color: Theme.textDim; font.family: Theme.fontFamily; font.pixelSize: 12
-                                    }
-                                }
-
-                                Row {
-                                    anchors.right: parent.right
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 6
-
-                                    Rectangle {
-                                        visible: !card.off && page.activeMonitors.length > 1
-                                        width: 84; height: 24; radius: Theme.radius
-                                        color: card.main ? Theme.alpha(Theme.accent, 0.10) : (mainMouse.containsMouse ? Theme.alpha(Theme.accent, 0.08) : "#00000000")
-                                        border.width: 1
-                                        border.color: card.main || mainMouse.containsMouse ? Theme.accent : Theme.border
-
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: card.main ? "MAIN" : "SET MAIN"
-                                            color: card.main ? Theme.accent : Theme.text
-                                            font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1
-                                        }
-
-                                        MouseArea {
-                                            id: mainMouse
-                                            anchors.fill: parent; hoverEnabled: true
-                                            enabled: !card.main
-                                            cursorShape: card.main ? Qt.ArrowCursor : Qt.PointingHandCursor
-                                            onClicked: page.setMainMonitor(card.modelData)
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        visible: card.off || page.activeMonitors.length > 1
-                                        width: 72; height: 24; radius: Theme.radius
-                                        color: toggleMouse.containsMouse ? Theme.alpha(Theme.accent, 0.08) : "#00000000"
-                                        border.width: 1
-                                        border.color: toggleMouse.containsMouse ? Theme.accent : Theme.border
-
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: card.off ? "ENABLE" : "DISABLE"
-                                            color: Theme.text
-                                            font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true; font.letterSpacing: 1
-                                        }
-
-                                        MouseArea {
-                                            id: toggleMouse
-                                            anchors.fill: parent; hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: page.setMonitorEnabled(card.modelData, card.off)
-                                        }
-                                    }
-                                }
-                            }
-
-                            Row {
-                                visible: !card.off
-                                width: parent.width; spacing: 8
-
-                                Text {
-                                    id: scaleLabel
-                                    width: 36; anchors.verticalCenter: parent.verticalCenter
-                                    text: "SCALE"; color: Theme.textDim
-                                    font.family: Theme.fontFamily; font.pixelSize: 11
-                                }
-
-                                Slider {
-                                    width: parent.width - 36 - 44 - 16
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    icon: "\uf00e"
-                                    value: Math.max(0, Math.min(1, (card.modelData.scale - 0.7) / 0.6))
-                                    onCommitted: value => page.setScale(card.modelData, 0.7 + value * 0.6)
-                                }
-
-                                Text {
-                                    width: 44; anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Text.AlignRight
-                                    text: card.modelData.scale.toFixed(2) + "x"
-                                    color: Theme.text
-                                    font.family: Theme.fontFamily; font.pixelSize: 11
-                                }
-                            }
-
-                            Row {
-                                visible: !card.off
-                                width: parent.width; spacing: 8
-
-                                Text {
-                                    width: 36; height: 28
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: "RES"; color: Theme.textDim
-                                    font.family: Theme.fontFamily; font.pixelSize: 11
-                                }
-
-                                Flow {
-                                    width: parent.width - 36 - 8; spacing: 6
-
-                                    Repeater {
-                                        model: card.off ? [] : page.resolutionList(card.modelData)
-
-                                        delegate: Rectangle {
-                                            id: resButton
-                                            required property string modelData
-                                            property bool current: modelData === card.modelData.width + "x" + card.modelData.height
-                                            width: 92; height: 28; radius: Theme.radius
-                                            color: current ? Theme.alpha(Theme.accent, 0.10) : (resMouse.containsMouse ? Theme.alpha(Theme.accent, 0.08) : "#00000000")
-                                            border.width: 1
-                                            border.color: current || resMouse.containsMouse ? Theme.accent : Theme.border
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: resButton.modelData
-                                                color: Theme.text
-                                                font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: resMouse
-                                                anchors.fill: parent; hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    const mode = page.bestMode(card.modelData, resButton.modelData)
-                                                    if (mode) page.setResolution(card.modelData, mode)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            Row {
-                                visible: !card.off
-                                width: parent.width; spacing: 8
-
-                                Text {
-                                    width: 36; height: 28
-                                    verticalAlignment: Text.AlignVCenter
-                                    text: "HZ"; color: Theme.textDim
-                                    font.family: Theme.fontFamily; font.pixelSize: 11
-                                }
-
-                                Flow {
-                                    width: parent.width - 36 - 8; spacing: 6
-
-                                    Repeater {
-                                        model: card.off ? [] : page.refreshRates(card.modelData)
-
-                                        delegate: Rectangle {
-                                            id: rateButton
-                                            required property var modelData
-                                            property bool current: Math.abs(modelData - card.modelData.refreshRate) < 0.05
-                                            width: 76; height: 28; radius: Theme.radius
-                                            color: current ? Theme.alpha(Theme.accent, 0.10) : (rateMouse.containsMouse ? Theme.alpha(Theme.accent, 0.08) : "#00000000")
-                                            border.width: 1
-                                            border.color: current || rateMouse.containsMouse ? Theme.accent : Theme.border
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: rateButton.modelData.toFixed(2)
-                                                color: Theme.text
-                                                font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true
-                                            }
-
-                                            MouseArea {
-                                                id: rateMouse
-                                                anchors.fill: parent; hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: page.setRefreshRate(card.modelData, rateButton.modelData)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+            SetRow {
+                visible: modelData.enabled
+                label: "Resolution"
+                controlWidth: 430
+                SetChips {
+                    width: 430
+                    options: page.resolutions(modelData)
+                    current: modelData.res
+                    onPicked: v => {
+                        var r = page.rates(modelData, v)
+                        var rate = r.indexOf(modelData.rate) >= 0 ? modelData.rate : r.slice().sort((a, b) => b - a)[0]
+                        var sc = page.scales(Object.assign({}, modelData, { res: v }))
+                        var scale = sc.indexOf(Math.round(modelData.scale * 100)) >= 0 ? modelData.scale : (sc.indexOf(100) >= 0 ? 1 : sc[0] / 100)
+                        page.edit(modelData.name, { res: v, rate: rate, scale: scale })
                     }
                 }
             }
-
-            Rectangle {
-                width: parent.width; height: 34; radius: Theme.radius
-                color: resetMouse.containsMouse ? Theme.alpha(Theme.accent, 0.08) : "#00000000"
-                border.width: 1
-                border.color: resetMouse.containsMouse ? Theme.accent : Theme.border
-
-                Text {
-                    anchors.centerIn: parent; text: "RESET TO CONFIG"; color: Theme.text
-                    font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true; font.letterSpacing: 1
+            SetRow {
+                visible: modelData.enabled && page.rates(modelData, modelData.res).length > 1
+                label: "Refresh rate"
+                SetSeg {
+                    options: page.rates(modelData, modelData.res).map(page.rateLabel)
+                    current: page.rateLabel(modelData.rate)
+                    onPicked: v => page.edit(modelData.name, { rate: page.rates(modelData, modelData.res)[options.indexOf(v)] })
                 }
-
-                MouseArea {
-                    id: resetMouse
-                    anchors.fill: parent; hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: page.resetToConfig()
+            }
+            SetRow {
+                visible: modelData.enabled
+                label: "Scale"
+                hint: "Larger makes everything bigger. Only sizes that fit the screen exactly are listed"
+                wrapHint: true
+                controlWidth: 330
+                SetChips {
+                    width: 330
+                    options: page.scales(modelData).map(p => p + "%")
+                    current: Math.round(modelData.scale * 100) + "%"
+                    onPicked: v => page.edit(modelData.name, { scale: parseInt(v) / 100 })
+                }
+            }
+            SetRow {
+                visible: modelData.enabled
+                label: "Rotation"
+                SetSeg {
+                    options: page.rotations
+                    current: page.rotations[modelData.transform % 4] || "Normal"
+                    onPicked: v => page.edit(modelData.name, { transform: page.rotations.indexOf(v) })
+                }
+            }
+            SetRow {
+                visible: modelData.enabled
+                label: "Variable refresh rate"
+                hint: "Smoother games and video when the screen supports it"
+                SetSeg {
+                    options: page.vrrNames
+                    current: page.vrrNames[modelData.vrr] || "Off"
+                    onPicked: v => page.edit(modelData.name, { vrr: page.vrrNames.indexOf(v) })
+                }
+            }
+            SetRow {
+                visible: modelData.enabled && mon.others.length > 0
+                label: "Position"
+                hint: "Where this screen sits next to " + (page.placeTarget(modelData) || "the other one")
+                controlWidth: 420
+                SetChips {
+                    width: 420
+                    options: ["Right of", "Left of", "Above", "Below", "Mirror"]
+                    current: ({ "right-of": "Right of", "left-of": "Left of", "above": "Above", "below": "Below", "mirror": "Mirror" })[page.placeSide(modelData)] || ""
+                    onPicked: v => {
+                        var side = ({ "Right of": "right-of", "Left of": "left-of", "Above": "above", "Below": "below", "Mirror": "mirror" })[v]
+                        page.edit(modelData.name, { place: side + ":" + (page.placeTarget(modelData) || mon.others[0].name) })
+                    }
+                }
+            }
+            SetRow {
+                visible: modelData.enabled && mon.others.length > 1
+                label: "Relative to"
+                SetSeg {
+                    options: mon.others.map(c => c.name)
+                    current: page.placeTarget(modelData)
+                    onPicked: v => page.edit(modelData.name, { place: (page.placeSide(modelData) || "right-of") + ":" + v })
                 }
             }
         }
     }
 
-    Component.onCompleted: {
-        stateDirProcess.running = true
-        loadState()
-        brightnessGet.running = true
-        loadNightlight()
-        nightlightCheck.running = true
+    // ── Brightness ──
+    SetSection { text: "Brightness"; visible: page.hasBacklight }
+    SetRow {
+        visible: page.hasBacklight
+        label: "Screen brightness"
+        SetSlider {
+            from: 0.05; to: 1; step: 0.01
+            displayText: Math.round(value * 100) + "%"
+            value: page.brightness
+            onMoved: v => { page.brightness = v; brSet.command = ["brightnessctl", "set", Math.round(v * 100) + "%"]; if (!brSet.running) brSet.running = true }
+            onCommitted: v => { brSet.command = ["brightnessctl", "set", Math.round(v * 100) + "%"]; brSet.running = true }
+        }
+    }
+
+    // ── Night light ──
+    SetSection { text: "Night light" }
+    SetRow {
+        label: "Night light"
+        hint: "Warmer colours for the evening"
+        SetToggle { checked: page.nightOn; onToggled: v => page.setNight(v, page.nightTemp) }
+    }
+    SetRow {
+        label: "Warmth"
+        hint: "Lower is warmer"
+        enabled: page.nightOn
+        SetSlider {
+            from: 2500; to: 6500; step: 100; unit: " K"
+            value: page.nightTemp
+            onCommitted: v => page.setNight(true, v)
+        }
+    }
+
+    // ── confirm bar ──
+    Rectangle {
+        parent: page
+        visible: page.countdown > 0
+        z: 60
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.rightMargin: 45
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 8
+        height: 54
+        radius: Theme.radius
+        color: Theme.bgPanel
+        border.width: 1
+        border.color: Theme.accent
+
+        Text {
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            text: "KEEP THESE DISPLAY SETTINGS?  REVERTING IN " + page.countdown + " S"
+            color: Theme.text
+            font.family: Theme.fontFamily
+            font.pixelSize: 11
+            font.letterSpacing: 1.5
+        }
+        Row {
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 8
+            SetButton { label: "Revert"; onClicked: page.revert() }
+            SetButton { label: "Keep"; primary: true; onClicked: page.keep() }
+        }
     }
 }
