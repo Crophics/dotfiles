@@ -12,7 +12,7 @@ SetPage {
     property int lockMin: 5
     property int suspendMin: 15
     property int graceSec: 60
-    property bool dim: true
+    property int dimSec: 30
 
     readonly property string home: Quickshell.env("HOME")
     readonly property var nt: Refs.notifications
@@ -28,7 +28,8 @@ SetPage {
                 if (typeof s.lockMin === "number") page.lockMin = s.lockMin
                 if (typeof s.suspendMin === "number") page.suspendMin = s.suspendMin
                 if (typeof s.graceSec === "number") page.graceSec = s.graceSec
-                if (typeof s.dim === "boolean") page.dim = s.dim
+                if (typeof s.dimSec === "number") page.dimSec = s.dimSec
+                else if (s.dim === false) page.dimSec = 0
             } catch (e) {
                 console.warn("session: could not read saved state:", e)
             }
@@ -38,7 +39,7 @@ SetPage {
     function minutes(m) { return m === 0 ? "Never" : m + " min" }
 
     function commit() {
-        file.setText(JSON.stringify({ lockMin: page.lockMin, suspendMin: page.suspendMin, graceSec: page.graceSec, dim: page.dim }))
+        file.setText(JSON.stringify({ lockMin: page.lockMin, suspendMin: page.suspendMin, graceSec: page.graceSec, dimSec: page.dimSec }))
     }
 
     property string profile: "balanced"
@@ -119,9 +120,15 @@ SetPage {
     }
 
     SetRow {
-        label: "Dim the screen first"
-        hint: "Dims for the last 30 seconds before locking or suspending. Any key or touch brings it back"
-        SetToggle { checked: page.dim; onToggled: v => { page.dim = v; page.commit() } }
+        label: "Dim the screen before that"
+        hint: "The screen fades down this long before the first timer. Any key or touch brings it back"
+        SetSlider {
+            from: 0; to: 120; step: 5
+            value: page.dimSec
+            displayText: value === 0 ? "Off" : value + " s"
+            onMoved: v => page.dimSec = v
+            onCommitted: page.commit()
+        }
     }
 
     SetSection { text: "Lid" }
