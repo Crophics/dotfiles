@@ -73,7 +73,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        width: row.controlWidth > 0 ? row.controlWidth : childrenRect.width
+        width: row.controlWidth > 0 ? row.controlWidth : implicitWidth
         spacing: 8
     }
 }
