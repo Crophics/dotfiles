@@ -19,6 +19,9 @@ Rectangle {
     color: root.bgColor
 
     property bool isQuickshell: typeof sddm === "undefined" || sddm.hostName === undefined
+    // The in-session lock shim defines fingerprintHint (a real SDDM greeter never does). The lock runs on
+    // Hyprland, which draws the real cursor, so the greeter-only software cursor below must stay off there.
+    readonly property bool inSession: typeof sddm !== "undefined" && sddm.fingerprintHint !== undefined
 
     // --- Software cursor for the SDDM login screen --------------------------
     // weston (the greeter's compositor) implements no wp_cursor_shape, and its
@@ -29,14 +32,14 @@ Rectangle {
     // runs on the shell's own compositor, which draws a real cursor, so off there.
     HoverHandler {
         id: swPointer
-        enabled: !root.isQuickshell
+        enabled: !root.isQuickshell && !root.inSession
     }
     Canvas {
         id: swCursor
         width: 26 * root.s
         height: 26 * root.s
         z: 2000000
-        visible: !root.isQuickshell && swPointer.hovered
+        visible: !root.isQuickshell && !root.inSession && swPointer.hovered
         x: swPointer.point.position.x
         y: swPointer.point.position.y
         antialiasing: true
