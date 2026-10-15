@@ -5,9 +5,10 @@ import QtQuick
 
 // Brightness popup, styled like the volume popup in VolumeOsd.qml.
 // Triggered over IPC (the brightness keys call these):
-//   qs ipc call brightness up      raise by 5% and show the popup
-//   qs ipc call brightness down    lower by 5% (never fully off) and show the popup
-//   qs ipc call brightness show    just show the current level
+// The keys run hypr/scripts/brightness.sh directly (as fast as the volume keys); this popup
+// watches the backlight file and shows itself whenever the brightness changes.
+//   qs ipc call brightness quiet N  ignore changes for N ms (used by the idle dim fade)
+//   qs ipc call brightness show     just show the current level
 Scope {
     id: root
 
@@ -29,35 +30,53 @@ Scope {
         hideTimer.restart()
     }
 
-    // Key repeat can fire faster than brightnessctl returns. Instead of queueing one
-    // process per key press, add up the presses made meanwhile and apply them in one go.
-    property int pending: 0
-
-    function flush() {
-        if (proc.running || pending === 0) return
-        var n = pending
-        pending = 0
-        proc.command = ["brightnessctl", "-m", "-n", "set", (Math.abs(n) * step) + "%" + (n > 0 ? "+" : "-")]
-        proc.running = true
-    }
-
-    function adjust(dir) {
-        pending += dir
-        flush()
-    }
-
     function refresh() {
         if (proc.running) return
         proc.command = ["brightnessctl", "-m"]
         proc.running = true
     }
 
+    // Backlight files: the popup follows them, so any change shows it.
+    property string device: ""
+    property real maxLevel: 0
+    property bool armed: false      // the first read at start-up must not pop up
+    property bool quiet: false
+
+    Timer { id: quietTimer; onTriggered: root.quiet = false }
+
+    FileView {
+        id: maxFile
+        path: root.device === "" ? "" : "/sys/class/backlight/" + root.device + "/max_brightness"
+        printErrors: false
+        onLoaded: root.maxLevel = parseInt(maxFile.text()) || 0
+    }
+    FileView {
+        id: levelFile
+        path: root.device === "" ? "" : "/sys/class/backlight/" + root.device + "/brightness"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: {
+            var v = parseInt(levelFile.text())
+            if (isNaN(v) || root.maxLevel <= 0) return
+            root.level = Math.max(0, Math.min(1, v / root.maxLevel))
+            if (root.armed && !root.quiet) {
+                root.showing = true
+                hideTimer.restart()
+            }
+            root.armed = true
+        }
+    }
+
     Process {
         id: proc
         stdout: StdioCollector {
-            onStreamFinished: root.parse(text)
+            onStreamFinished: {
+                var f = text.trim().split("\n").pop().split(",")
+                if (root.device === "" && f.length > 0) { root.device = f[0]; return }   // start-up probe: no popup
+                root.parse(text)
+            }
         }
-        onExited: root.flush()
     }
 
     readonly property string statePath: Quickshell.env("HOME") + "/.config/quickshell/state/brightness-state.json"
@@ -89,10 +108,11 @@ Scope {
 
     IpcHandler {
         target: "brightness"
-        function up(): void { root.adjust(1) }
-        function down(): void { root.adjust(-1) }
         function show(): void { root.refresh() }
+        function quiet(ms: int): void { root.quiet = true; quietTimer.interval = ms; quietTimer.restart() }
     }
+
+    Component.onCompleted: refresh()
 
     Variants {
         model: Quickshell.screens

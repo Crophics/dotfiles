@@ -10,6 +10,7 @@ echo $$ > "$PIDF"
 
 fade() {   # fade <to> <milliseconds>; follows the clock, so slow brightnessctl calls don't stretch it
     local from to=$1 ms=$2 t0 now frac v
+    qs ipc call brightness quiet $(( ms + 600 )) >/dev/null 2>&1   # no brightness popup for the fade
     from=$(brightnessctl g)
     t0=${EPOCHREALTIME/./}
     while :; do
