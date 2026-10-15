@@ -28,6 +28,16 @@ ShellRoot {
     readonly property var keyboard: sddmShim.keyboard
     property bool sessionLocked: true
     property bool lockSecure: false
+    // "Ready" = the compositor confirmed the lock AND every screen's lock surface has drawn a few
+    // frames. Only then does the marker appear, so suspend never sleeps with a still-blank lock
+    // surface (on wake the desktop would show until the lock finished drawing).
+    property int surfacesReady: 0
+    function checkReady() {
+        console.warn("qylock: check ready: secure", lockSecure, "surfaces", surfacesReady, "of", Quickshell.screens.length)
+        if (lockSecure && surfacesReady >= Quickshell.screens.length)
+            marker.set(true)
+    }
+    onSurfacesReadyChanged: checkReady()
     readonly property string markerPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/qylock.locked"
 
     SddmShim {
@@ -90,6 +100,9 @@ ShellRoot {
     Component {
         id: themeComponent
         Loader {
+            id: inner
+            // true once the theme exists and has finished fading in (themes without uiOpacity: as soon as loaded)
+            readonly property bool settled: item !== null && (item.uiOpacity === undefined || item.uiOpacity >= 0.99)
             anchors.fill: parent
             source: "file://" + shellRoot.themePath + "/Main.qml"
             onLoaded: item.forceActiveFocus()
@@ -146,7 +159,7 @@ ShellRoot {
             console.warn("qylock: secure ->", lock.secure)
             shellRoot.lockSecure = lock.secure
             if (lock.secure) {
-                marker.set(true)
+                shellRoot.checkReady()
                 if (sddmShim.loginSessionActive) {
                     sddmShim.armWhenReady = true
                     sddmShim.sddm.surfaceRevealed()
@@ -171,7 +184,23 @@ ShellRoot {
                     onWheel: (wheel) => { wheel.accepted = true }
                 }
 
-                Loader { anchors.fill: parent; sourceComponent: themeComponent }
+                Item {
+                    id: drawn
+                    property int frames: 0
+                    property bool counted: false
+                    Connections {
+                        target: drawn.Window.window
+                        function onFrameSwapped() {
+                            if (!(themeHost.item && themeHost.item.settled)) return
+                            drawn.frames++
+                            if (!drawn.counted && drawn.frames >= 4) {
+                                drawn.counted = true
+                                shellRoot.surfacesReady++
+                            }
+                        }
+                    }
+                }
+                Loader { id: themeHost; anchors.fill: parent; sourceComponent: themeComponent }
                 Loader { anchors.fill: parent; sourceComponent: fpOverlayComponent }
             }
         }
