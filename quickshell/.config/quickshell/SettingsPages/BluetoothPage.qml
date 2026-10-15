@@ -207,7 +207,7 @@ SetPage {
                 BtAudioProfile { visible: modelData.connected && page.kind(modelData.icon) !== "Mouse" && page.kind(modelData.icon) !== "Keyboard"; address: modelData.address }
                 SetSub {
                     label: "Connect automatically"
-                    hint: "Reconnects whenever it's in range"
+                    hint: page.kind(modelData.icon) === "Mouse" || page.kind(modelData.icon) === "Keyboard" ? "Reconnects whenever it's in range" : "Connects when the device is switched on. The laptop never pulls it away from another device"
                     SetToggle {
                         checked: dcol.remembered && modelData.trusted
                         onToggled: v => {
