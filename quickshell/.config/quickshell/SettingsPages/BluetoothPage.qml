@@ -192,7 +192,14 @@ SetPage {
                 SetButton {
                     label: modelData.connected ? "Disconnect" : "Connect"
                     primary: !modelData.connected
-                    onClicked: modelData.connected ? modelData.disconnect() : modelData.connect()
+                    onClicked: {
+                        if (modelData.connected) {
+                            BluetoothState.forget(modelData.address)   // a manual disconnect must stick
+                            modelData.disconnect()
+                        } else {
+                            modelData.connect()
+                        }
+                    }
                 }
             }
             SetDetail {

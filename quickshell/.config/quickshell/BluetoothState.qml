@@ -140,6 +140,10 @@ Singleton {
                 continue
             if (d.state !== BluetoothDeviceState.Disconnected)
                 continue
+            // Headphones and speakers are never pulled back by the laptop: they reconnect on
+            // their own when switched on, and polling would steal them from a phone.
+            if (String(d.icon).indexOf("audio") === 0)
+                continue
             d.trusted = true
             d.connect()
         }
