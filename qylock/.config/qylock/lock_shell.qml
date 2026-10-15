@@ -26,9 +26,7 @@ ShellRoot {
     readonly property var userModel: sddmShim.userModel
     readonly property var sessionModel: sddmShim.sessionModel
     readonly property var keyboard: sddmShim.keyboard
-    // Runs in the background from login and locks on request (`qs -p lock_shell.qml ipc call lock engage`),
-    // so locking is instant instead of waiting for a program start. START_LOCKED re-locks after a crash.
-    property bool sessionLocked: Quickshell.env("QYLOCK_START_LOCKED") === "1"
+    property bool sessionLocked: true
     property bool lockSecure: false
     readonly property string markerPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/qylock.locked"
 
@@ -73,19 +71,20 @@ ShellRoot {
         }
     }
 
-    IpcHandler {
-        target: "lock"
-        function engage(): void { shellRoot.sessionLocked = true }
-    }
-
-    // Short pause so the theme can play its unlock animation, then release (the process keeps running).
+    // Short pause so the theme can play its unlock animation, then release.
     Timer {
         id: unlockTimer
         interval: 150
         onTriggered: {
             marker.set(false)
             shellRoot.sessionLocked = false
+            quitTimer.start()
         }
+    }
+    Timer {
+        id: quitTimer
+        interval: 250
+        onTriggered: Qt.quit()
     }
 
     Component {
@@ -145,7 +144,6 @@ ShellRoot {
         onLockedChanged: console.warn("qylock: locked ->", lock.locked)
         onSecureChanged: {
             console.warn("qylock: secure ->", lock.secure)
-            if (!lock.secure) marker.set(false)
             shellRoot.lockSecure = lock.secure
             if (lock.secure) {
                 marker.set(true)

@@ -27,7 +27,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'")   -- once more after the session has settled
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/lid-inhibit.sh")
-    hl.exec_cmd(os.getenv("HOME") .. "/.config/qylock/lock.sh --daemon")   -- lock screen process, kept ready so locking is instant
 
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")
     -- The wallpaper picker's daemon is a user service tied to graphical-session.target, which this

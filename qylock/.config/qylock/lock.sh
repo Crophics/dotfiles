@@ -1,25 +1,14 @@
 #!/usr/bin/env bash
-# qylock lock screen (Quickshell session lock; theme in ~/.config/qylock/theme, default clockwork/orbital).
-# A lock process stays running in the background from login, so locking is instant.
-#   lock.sh            lock now (starts the process first if it isn't running)
-#   lock.sh --wait     same, and wait (up to 3 s) until the lock covers every screen
-#   lock.sh --daemon   start the background process without locking (login autostart)
+# Lock the session with the qylock Quickshell lock (theme in ~/.config/qylock/theme,
+# default clockwork/orbital). Does nothing if already locked.
+#   lock.sh          start the lock and return at once
+#   lock.sh --wait   also wait (up to 3 s) until it covers every screen
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RUN="${XDG_RUNTIME_DIR:-/tmp}"
 MARK="$RUN/qylock.locked"
-QML="$DIR/lock_shell.qml"
-running() { pgrep -f "[q]uickshell -p $QML" >/dev/null 2>&1; }
 
 if [ "${1:-}" != "--run" ]; then
-    if [ "${1:-}" = "--daemon" ]; then
-        running || setsid -f "$0" --run >/dev/null 2>&1
-        exit 0
-    fi
-    if running; then
-        quickshell -p "$QML" ipc call lock engage >/dev/null 2>&1 || true
-    else
-        QYLOCK_START_LOCKED=1 setsid -f "$0" --run >/dev/null 2>&1
-    fi
+    pgrep -f "quickshell -p $DIR/lock_shell.qml" >/dev/null 2>&1 || setsid -f "$0" --run >/dev/null 2>&1
     if [ "${1:-}" = "--wait" ]; then
         for _ in $(seq 60); do [ -e "$MARK" ] && break; sleep 0.05; done
     fi
@@ -40,12 +29,12 @@ if [ ! -f "$QS_THEME_PATH/Main.qml" ]; then
     export QS_THEME=clockwork/orbital QS_THEME_PATH="$DIR/themes/clockwork/orbital"
 fi
 
-# If the lock process dies the compositor keeps the screen locked; start it again, locked.
+# If the lock client dies the compositor keeps the screen locked; start it again.
 fails=0
 while :; do
     start=$(date +%s)
-    (exec 9>&-; exec quickshell -p "$QML" >>"$RUN/qylock.log" 2>&1) && { rm -f "$MARK"; exit 0; }
-    if [ -e "$MARK" ]; then export QYLOCK_START_LOCKED=1; else unset QYLOCK_START_LOCKED; fi   # died while locked: lock again
+    (exec 9>&-; exec quickshell -p "$DIR/lock_shell.qml" >>"$RUN/qylock.log" 2>&1) && { rm -f "$MARK"; exit 0; }
+    rm -f "$MARK"
     [ $(( $(date +%s) - start )) -ge 3 ] && fails=0 || fails=$((fails + 1))
     [ "$fails" -ge 3 ] && sleep 2
 done
