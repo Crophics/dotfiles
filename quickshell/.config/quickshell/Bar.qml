@@ -769,44 +769,53 @@ Scope {
                 inSpecial = sp !== undefined && sp !== ""
             }
 
-            implicitWidth: root.vertical ? root.panelThick : (inSpecial ? specialLabel.width : wsLane.implicitWidth) + 8
-            implicitHeight: (inSpecial ? specialLabel.height : wsLane.implicitHeight) + (root.vertical ? 12 : 0)
+            implicitWidth: root.vertical ? root.panelThick : (inSpecial ? special.implicitWidth : wsLane.implicitWidth) + 8
+            implicitHeight: (inSpecial ? special.implicitHeight : wsLane.implicitHeight) + (root.vertical ? 12 : 0)
+
+            // What the sliding highlight sits on: the scratchpad label while it is open, else the focused workspace.
+            readonly property Item target: inSpecial ? special : focusItem
 
             // Sliding highlight behind the numbers (drawn first, so it sits under them).
             Rectangle {
                 id: wsPill
                 readonly property bool line: wsRoot.look === "underline"
-                visible: wsRoot.focusItem !== null && !wsRoot.inSpecial && wsRoot.drawnPill
+                visible: wsRoot.target !== null && wsRoot.drawnPill
                 radius: line ? 0 : Math.min(width, height) / 2
                 color: wsRoot.tint
-                x: wsRoot.focusItem ? wsLane.x + wsRoot.focusItem.x + (line ? 4 : 0) : 0
-                y: wsRoot.focusItem ? wsLane.y + wsRoot.focusItem.y + (line ? wsRoot.focusItem.height - 2 : 0) : 0
-                width: wsRoot.focusItem ? wsRoot.focusItem.width - (line ? 8 : 0) : 0
-                height: wsRoot.focusItem ? (line ? 2 : wsRoot.focusItem.height) : 0
+                // Workspace items live inside the lane; the scratchpad label sits directly in wsRoot.
+                readonly property real ox: wsRoot.inSpecial ? 0 : wsLane.x
+                readonly property real oy: wsRoot.inSpecial ? 0 : wsLane.y
+                x: wsRoot.target ? ox + wsRoot.target.x + (line ? 4 : 0) : 0
+                y: wsRoot.target ? oy + wsRoot.target.y + (line ? wsRoot.target.height - 2 : 0) : 0
+                width: wsRoot.target ? wsRoot.target.width - (line ? 8 : 0) : 0
+                height: wsRoot.target ? (line ? 2 : wsRoot.target.height) : 0
                 Behavior on x { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
                 Behavior on y { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
                 Behavior on width { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
                 Behavior on height { NumberAnimation { duration: Theme.animMed; easing.type: Easing.OutCubic } }
             }
 
-            // While the special workspace (scratchpad) is open, the numbers fold into one label pill.
-            Rectangle {
-                id: specialLabel
+            // While the special workspace (scratchpad) is open, the numbers fold into one label, drawn in the
+            // current workspace style (same font, colours and highlight as a focused workspace).
+            Item {
+                id: special
                 visible: wsRoot.inSpecial
                 anchors.centerIn: parent
-                width: specialText.implicitWidth + 20
-                height: 20
-                radius: height / 2
-                color: Theme.accent
+                implicitWidth: root.vertical ? root.panelThick - 8 : Math.max(22, specialText.implicitWidth + 12)
+                implicitHeight: 20
 
                 Text {
                     id: specialText
                     anchors.centerIn: parent
-                    text: root.vertical ? "\u2726" : "\u2726 scratchpad"
-                    color: Theme.bgPanel
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 12
-                    font.bold: true
+                    text: root.vertical ? "\u2726"
+                        : wsRoot.look === "brackets" ? "[\u2726 scratchpad]"
+                        : wsRoot.look === "squares" ? "\u25C6 scratchpad"
+                        : wsRoot.look === "dots" ? "\u25CF scratchpad"
+                        : "\u2726 scratchpad"
+                    color: wsRoot.look === "pill" ? Theme.bgPanel : wsRoot.tint
+                    font.family: Theme.iconFont
+                    font.pixelSize: root.sz.stat
+                    renderType: Text.NativeRendering
                 }
 
                 MouseArea {
