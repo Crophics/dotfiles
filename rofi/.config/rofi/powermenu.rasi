@@ -1,0 +1,21 @@
+/* Power menu: the launcher's look, no search bar, sized for 5 rows */
+@import "config.rasi"
+
+window {
+    width: 220px;
+    height: 284px;
+}
+mainbox {
+    children: [ listview ];
+}
+listview {
+    lines: 5;
+    fixed-height: false;
+    scrollbar: false;
+}
+element-text {
+    font: "JetBrainsMono Nerd Font 12";
+}
+element {
+    children: [ element-text ];
+}
