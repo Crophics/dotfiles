@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pick the power profile from a rofi menu (Super+Shift+P). Same setting as Settings > Power.
+# Pick the power profile from a rofi menu (Super+Ctrl+P). Same setting as Settings > Power.
 # Uses the power menu's compact theme; the current profile is ticked and pre-selected.
 check=$'\U000F012C'
 ids=(performance balanced power-saver)

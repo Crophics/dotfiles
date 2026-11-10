@@ -38,7 +38,7 @@
  {
   "id": "code",
   "group": "Apps",
-  "label": "VSCodium",
+  "label": "Code (nvim)",
   "mods": [
    "SUPER"
   ],
@@ -142,9 +142,18 @@
   "label": "Power profile menu",
   "mods": [
    "SUPER",
-   "SHIFT"
+   "CTRL"
   ],
   "key": "P"
+ },
+ {
+  "id": "keybinds",
+  "group": "Panels",
+  "label": "Keybind cheat sheet",
+  "mods": [
+   "SUPER"
+  ],
+  "key": "K"
  },
  {
   "id": "popupsettings",
