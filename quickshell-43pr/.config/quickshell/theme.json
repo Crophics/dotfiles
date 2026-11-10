@@ -1,0 +1,16 @@
+{
+  "bg": "#1e1e2e",
+  "bgAlpha": 1.0,
+  "text": "#cdd6f4",
+  "textDim": "#a6adc8",
+  "danger": "#f38ba8",
+  "accent": "#89b4fa",
+  "accent2": "#74c7ec",
+  "border": "#313244",
+  "bgPanel": "#181825",
+  "bgCard": "#313244",
+  "borderAccent": "#45475a",
+  "textFaint": "#585b70",
+  "ok": "#a6e3a1",
+  "trackBg": "#45475a"
+}

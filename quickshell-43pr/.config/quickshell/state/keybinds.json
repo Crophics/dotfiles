@@ -1,0 +1,11 @@
+{
+ "overrides": {
+  "terminal": {
+   "mods": [
+    "SUPER"
+   ],
+   "key": "T"
+  }
+ },
+ "custom": []
+}

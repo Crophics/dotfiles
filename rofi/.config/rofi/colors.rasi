@@ -1,0 +1,15 @@
+/* Catppuccin Mocha, values from 43pr's catppuccin-mocha.toml preset (same slots as 43pr's rofi template) */
+* {
+    bg:           #1e1e2eFF;
+    border-color: #89b4fa;
+    bg-alt:       #1e1e2e00;
+    bg-hover:     #585b70ff;
+    bg-selected:  #89b4fa00;
+    fg:           #bac2deff;
+    fg-muted:     #7f849cff;
+    fg-dark:      #45475a;
+    fg-selected:  #cdd6f4;
+    accent:       #74c7ecff;
+    accent-soft:  #74c7ec33;
+    urgent:       #eba0acff;
+}

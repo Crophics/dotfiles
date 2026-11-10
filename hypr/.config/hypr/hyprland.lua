@@ -1,47 +1,90 @@
--- This file sources other files in `hyprland` and `custom` folders
--- You wanna add your stuff in files in `custom`
+-- ~/.config/hypr/hyprland.lua
+-- Docs: https://wiki.hypr.land/Configuring/Start/
 
--- Internal stuff --
-require("hyprland.lib")
-require("hyprland.services")
+-- Cursor theme and size from Settings > Appearance (hypr/appearance.lua, written by scripts/appearance.py).
+local oka, appearance = pcall(require, "appearance")
+if not oka then appearance = {} end
+local cursorTheme = appearance.cursor_theme or "Adwaita"
+local cursorSize  = tostring(appearance.cursor_size or 24)
 
--- Environment variables --
-require("hyprland.env")
-if is_file_exists(HOME .. "/.config/hypr/custom/env.lua") then
-    require("custom.env")
-end
+---- MY PROGRAMS ----
 
--- Default configurations --
-require("hyprland.execs")
-require("hyprland.general")
-require("hyprland.rules")
-require("hyprland.colors")
-require("hyprland.keybinds")
+mainMod    = "SUPER"
+terminal   = "kitty"
+menu       = "rofi -show drun"
+fileManager = "nautilus"
+browser    = "zen-browser"
 
--- Custom configurations --
-if is_file_exists(HOME .. "/.config/hypr/custom/execs.lua") then
-    require("custom.execs")
-end
-if is_file_exists(HOME .. "/.config/hypr/custom/general.lua") then
-    require("custom.general")
-end
-if is_file_exists(HOME .. "/.config/hypr/custom/rules.lua") then
-    require("custom.rules")
-end
-if is_file_exists(HOME .. "/.config/hypr/custom/keybinds.lua") then
-    require("custom.keybinds")
-end
+---- AUTOSTART ----
 
--- nwg-displays support --
-if is_file_exists(HOME .. "/.config/hypr/workspaces.lua") then
-    require("workspaces")
-end
-if is_file_exists(HOME .. "/.config/hypr/monitors.lua") then
-    require("monitors")
-end
+hl.on("hyprland.start", function()
+    -- no notification daemon on purpose
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+    hl.exec_cmd("nm-applet")   -- Wi-Fi password prompts; the Settings panel steps aside while its dialog is open
+    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
+    hl.exec_cmd("hyprctl setcursor " .. cursorTheme .. " " .. cursorSize)
+    hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'")   -- once more after the session has settled
+    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")   -- idle lock/suspend + lock before sleep (hyprlock)
 
--- Shell overrides --
-require("hyprland.shellOverrides.main")
+    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")
+    -- one fixed wallpaper (no picker)
+    hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/Wallpapers/wallhaven-o3z85l.png'")
+    hl.exec_cmd("sleep 2 && qs")
+end)
 
--- HyprMod managed settings
-require("hyprland-gui")
+---- ENVIRONMENT VARIABLES ----
+
+hl.env("XCURSOR_THEME", cursorTheme)
+hl.env("XCURSOR_SIZE", cursorSize)
+hl.env("HYPRCURSOR_THEME", cursorTheme)
+hl.env("HYPRCURSOR_SIZE", cursorSize)
+
+-- Use plain X cursor themes (Adwaita etc.). With hyprcursor on, Hyprland draws the only hyprcursor theme
+-- installed (Bibata) at startup even when another theme is asked for, and the later `setcursor` can't
+-- redraw it until some window sets a cursor shape.
+hl.config({ cursor = { enable_hyprcursor = false } })
+hl.env("QT_QPA_PLATFORM", "wayland")
+hl.env("MOZ_ENABLE_WAYLAND", "1")
+
+---- INPUT ----
+
+hl.config({
+    input = {
+        kb_layout = "us",
+        follow_mouse = 1,
+        sensitivity = 0.5,
+        accel_profile = "flat",
+        touchpad = {
+            natural_scroll = true,
+            tap_to_click = true,
+            clickfinger_behavior = true,
+        },
+    },
+})
+
+-- LAYOUT
+hl.config({
+    dwindle = { preserve_split = true },
+})
+hl.config({
+    master = { new_status = "master" },
+})
+
+-- MISC
+hl.config({
+    misc = {
+        disable_hyprland_logo = true,
+        disable_splash_rendering = true,
+    },
+})
+
+---- SPLIT-OUT FILES ----
+
+require("monitors")
+require("keybinds")
+require("look")
+require("rules")
+pcall(require, "startup")   -- your own login apps (Settings > Apps, written by scripts/startup.py)
+pcall(require, "options")   -- Settings app changes (hypr/options.lua, written by scripts/options.py); loaded last so it wins
+
