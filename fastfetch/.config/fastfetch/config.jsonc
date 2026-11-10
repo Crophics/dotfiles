@@ -28,13 +28,9 @@
     },
     {
       "key": "\u001b[90m│\u001b[0m 󰣇  distro  \u001b[90m│\u001b[0m",
-      "type": "os",
-      "format": "\u001b[34mArch Linux\u001b[0m"
-    },
-    {
-      "key": "\u001b[90m│\u001b[0m   kernel  \u001b[90m│\u001b[0m",
-      "type": "kernel",
-      "format": "\u001b[34m{2}\u001b[0m"
+      "type": "command",
+      "text": "uname -r | cut -d- -f1",
+      "format": "\u001b[34mArch Linux {}\u001b[0m"
     },
     {
       "key": "\u001b[90m│\u001b[0m   uptime  \u001b[90m│\u001b[0m",
