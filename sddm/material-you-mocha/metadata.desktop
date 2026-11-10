@@ -1,0 +1,11 @@
+[SddmGreeterTheme]
+Name=Material-you-mocha
+Description=qylock's Material-you-dark (Darkkal44 & Kaonaci, MIT) recolored to Catppuccin Mocha
+Author=Darkkal44&Kaonaci
+Copyright=(c) 2026
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+QtVersion=6
