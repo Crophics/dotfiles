@@ -44,6 +44,7 @@ hl.env("HYPRCURSOR_SIZE", cursorSize)
 -- redraw it until some window sets a cursor shape.
 hl.config({ cursor = { enable_hyprcursor = false } })
 hl.env("QT_QPA_PLATFORM", "wayland")
+hl.env("QT_QPA_PLATFORMTHEME", "gtk3")   -- Qt/KDE apps (EasyEffects) take the Catppuccin GTK colors
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 
 ---- INPUT ----

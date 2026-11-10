@@ -13,6 +13,8 @@ test -r /usr/share/doc/pkgfile/command-not-found.fish
 and source /usr/share/doc/pkgfile/command-not-found.fish
 
 if status is-interactive
+    # Catppuccin Mocha colors for commands, errors, suggestions (fish built-in theme)
+    fish_config theme choose catppuccin-mocha
     set fish_greeting
 
     # Prompt, smarter cd (z), fuzzy finder (Ctrl+R history, Ctrl+T files)
