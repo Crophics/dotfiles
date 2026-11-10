@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Start Spotify with SpotX (ad-free): let spotify-launcher update Spotify, re-apply SpotX if the
+# version changed (an update replaces the patched files), then start it. Used by Super+S and the
+# Spotify launcher entry. SpotX copy is pinned (reviewed): ~/.local/share/spotx/spotx.sh
+inst="$HOME/.local/share/spotify-launcher/install/usr/share/spotify"
+dir="$HOME/.local/share/spotx"
+spotify-launcher --no-exec >/dev/null 2>&1
+ver=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' \
+      "$HOME/.local/share/spotify-launcher/state.json" 2>/dev/null)
+if [ -n "$ver" ] && [ "$(cat "$dir/patched-version" 2>/dev/null)" != "$ver" ]; then
+    if bash "$dir/spotx.sh" -P "$inst" -h -l -e --noninteractive --nocolor >"$dir/last-run.log" 2>&1; then
+        echo "$ver" > "$dir/patched-version"
+    fi
+fi
+exec spotify-launcher --skip-update "$@"
