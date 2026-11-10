@@ -137,6 +137,16 @@
   "key": "O"
  },
  {
+  "id": "powerprofile",
+  "group": "Panels",
+  "label": "Power profile menu",
+  "mods": [
+   "SUPER",
+   "SHIFT"
+  ],
+  "key": "P"
+ },
+ {
   "id": "popupsettings",
   "group": "Panels",
   "label": "Popup settings",

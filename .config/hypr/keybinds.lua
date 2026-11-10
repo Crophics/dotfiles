@@ -57,6 +57,7 @@ local actions = {
     ["settings"]       = { exec("qs ipc call settings toggle") },
     ["togglebar"]      = { exec("qs ipc call bar toggle") },
     ["opacity"]        = { exec(home .. "/.config/hypr/scripts/opacity.sh") },
+    ["powerprofile"]   = { exec(home .. "/.config/hypr/scripts/powerprofile.sh") },   -- rofi power profile menu
     ["popupsettings"]  = { exec("qs ipc call mediaosd settings") },
 
     -- Session

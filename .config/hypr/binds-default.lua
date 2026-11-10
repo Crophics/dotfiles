@@ -15,6 +15,7 @@ return {
     { id = "settings", mods = {"SUPER"}, key = "I", enabled = true },
     { id = "togglebar", mods = {"SUPER"}, key = "J", enabled = true },
     { id = "opacity", mods = {"SUPER"}, key = "O", enabled = true },
+    { id = "powerprofile", mods = {"SUPER", "SHIFT"}, key = "P", enabled = true },
     { id = "popupsettings", mods = {"SUPER", "SHIFT"}, key = "M", enabled = true },
     { id = "lock", mods = {"SUPER"}, key = "L", enabled = true },
     { id = "suspend", mods = {"SUPER", "SHIFT"}, key = "L", enabled = true },
