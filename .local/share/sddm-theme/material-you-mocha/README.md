@@ -3,7 +3,7 @@
 qylock's `material-you-dark` theme (Darkkal44 & Kaonaci, MIT, https://github.com/Darkkal44/qylock)
 recolored to Catppuccin Mocha. SDDM runs before login and can't read ~, so the theme is installed as a copy:
 
-    sudo cp -r ~/git/dotfiles/sddm/material-you-mocha /usr/share/sddm/themes/
+    sudo cp -r ~/.local/share/sddm-theme/material-you-mocha /usr/share/sddm/themes/
     # /etc/sddm.conf.d/theme.conf:  [Theme]  Current=material-you-mocha
 
 Not in git (see .gitignore):

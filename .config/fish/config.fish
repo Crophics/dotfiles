@@ -21,7 +21,7 @@ if status is-interactive
     if test "$TERM" != linux; and type -q starship
         starship init fish | source
     end
-    type -q zoxide; and zoxide init fish --cmd cd | source   # cd = zoxide: `cd dots` jumps to ~/git/dotfiles
+    type -q zoxide; and zoxide init fish --cmd cd | source   # cd = zoxide: `cd hypr` jumps to ~/.config/hypr once visited
     type -q fzf; and fzf --fish | source
 
     # Ctrl+Backspace deletes a word, Ctrl+Z undoes
