@@ -63,8 +63,8 @@ if status is-interactive
 
     alias .. 'cd ..'
 
-    # dotfiles: bare git repo in ~/.cfg, work tree = home (dots status / add / commit / push)
-    alias dots 'git --git-dir=$HOME/.cfg --work-tree=$HOME'
+    # dotfiles: bare git repo in ~/.dotfiles, work tree = home (dots status / add / commit / push)
+    alias dots 'git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
 
     # pacman
     alias rmpkg 'sudo pacman -Rsn'

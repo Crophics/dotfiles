@@ -15,4 +15,4 @@ __pycache__/
 *.pyc
 
 # the bare repo itself
-.cfg/
+.dotfiles/
