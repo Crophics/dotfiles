@@ -9,28 +9,28 @@ local cursorSize  = tostring(appearance.cursor_size or 24)
 
 ---- MY PROGRAMS ----
 
-mainMod    = "SUPER"
-terminal   = "kitty"
-menu       = "rofi -show drun"
-fileManager = "nautilus"
-browser    = "zen-browser"
+mainMod           = "SUPER"
+terminal          = "kitty"
+menu              = "rofi -show drun"
+fileManager       = "nautilus"
+browser           = "zen-browser"
 
 ---- AUTOSTART ----
 
 hl.on("hyprland.start", function()
     -- login handoff: Hyprland starts on black (the color the sign-in screen fades to),
     -- the wallpaper fades in first, then the bar slides down. One fixed wallpaper (no picker).
-    hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/Wallpapers/wallhaven-o3z85l.png'")
+    hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/Wallpapers/dark mountain.png'")
     -- no notification daemon on purpose
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("hyprctl setcursor " .. cursorTheme .. " " .. cursorSize)
-    hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'")   -- once more after the session has settled
-    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")   -- idle lock/suspend + lock before sleep (hyprlock)
+    hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'") -- once more after the session has settled
+    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")                  -- idle lock/suspend + lock before sleep (hyprlock)
 
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")
-    hl.exec_cmd("sleep 1.2 && qs")   -- bar slides down after the wallpaper has faded in (rules.lua)
+    hl.exec_cmd("sleep 1.2 && qs") -- bar slides down after the wallpaper has faded in (rules.lua)
 end)
 
 ---- ENVIRONMENT VARIABLES ----
@@ -45,7 +45,7 @@ hl.env("HYPRCURSOR_SIZE", cursorSize)
 -- redraw it until some window sets a cursor shape.
 hl.config({ cursor = { enable_hyprcursor = false } })
 hl.env("QT_QPA_PLATFORM", "wayland")
-hl.env("QT_QPA_PLATFORMTHEME", "gtk3")   -- Qt/KDE apps (EasyEffects) take the Catppuccin GTK colors
+hl.env("QT_QPA_PLATFORMTHEME", "gtk3") -- Qt/KDE apps (EasyEffects) take the Catppuccin GTK colors
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 
 ---- INPUT ----
@@ -87,6 +87,5 @@ require("monitors")
 require("keybinds")
 require("look")
 require("rules")
-pcall(require, "startup")   -- your own login apps (Settings > Apps, written by scripts/startup.py)
-pcall(require, "options")   -- Settings app changes (hypr/options.lua, written by scripts/options.py); loaded last so it wins
-
+pcall(require, "startup") -- your own login apps (Settings > Apps, written by scripts/startup.py)
+pcall(require, "options") -- Settings app changes (hypr/options.lua, written by scripts/options.py); loaded last so it wins

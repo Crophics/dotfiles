@@ -21,7 +21,7 @@ if status is-interactive
     if test "$TERM" != linux; and type -q starship
         starship init fish | source
     end
-    type -q zoxide; and zoxide init fish | source
+    type -q zoxide; and zoxide init fish --cmd cd | source   # cd = zoxide: `cd dots` jumps to ~/git/dotfiles
     type -q fzf; and fzf --fish | source
 
     # Ctrl+Backspace deletes a word, Ctrl+Z undoes
@@ -53,9 +53,6 @@ if status is-interactive
     # Clear (kitty needs the scrollback escape too)
     alias clear "printf '\033[2J\033[3J\033[1;1H'"
     alias c clear
-    alias cl clear
-    alias celar clear
-    alias claer clear
 
     # ls
     if test "$TERM" != linux; and type -q eza
@@ -64,27 +61,38 @@ if status is-interactive
         alias la 'eza -a --icons=auto'
     end
 
-    # git
-    alias g git
-    alias gs 'git status'
-    alias gp 'git pull'
     alias .. 'cd ..'
 
-    # pacman / yay
-    alias pamcan pacman
-    alias update 'yay -Syu'
+    # pacman
     alias rmpkg 'sudo pacman -Rsn'
-    alias cleanch 'sudo pacman -Scc'
     alias fixpacman 'sudo rm /var/lib/pacman/db.lck'
-    alias rip "expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
-    alias apt 'man pacman'
-    alias apt-get 'man pacman'
+
+    # cleancache: old package versions (keeps the newest of each for rollback), orphan packages (asks first),
+    # and yay's AUR build files
+    function cleancache
+        sudo paccache -rk1; and sudo paccache -ruk0
+        set -l orphans (pacman -Qdtq)
+        if test (count $orphans) -gt 0
+            sudo pacman -Rns $orphans
+        else
+            echo "No orphan packages."
+        end
+        rm -rf ~/.cache/yay
+        echo "Done."
+    end
+
+    # modern replacements (only when typed; scripts still get the originals, e.g. `command grep`)
+    type -q rg;    and alias grep rg
+    type -q fd;    and alias find fd
+    type -q bat;   and alias cat 'bat --paging=never'
+    type -q dust;  and alias du dust
+    type -q duf;   and alias df duf
+    type -q btop;  and alias top btop
 
     # misc
     alias make 'make -j(nproc)'
     alias ninja 'ninja -j(nproc)'
     alias n ninja
-    alias please sudo
     alias jctl 'journalctl -p 3 -xb'
     alias tb 'nc termbin.com 9999'
 end

@@ -1,0 +1,4 @@
+# tldr: refresh the example pages by itself once a week
+[updates]
+auto_update = true
+auto_update_interval_hours = 168

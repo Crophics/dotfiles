@@ -1,0 +1,4 @@
+# bat (cat replacement): Catppuccin Mocha, line numbers + git changes, no pager for short output
+--theme="Catppuccin Mocha"
+--style="numbers,changes,header"
+--paging=auto
