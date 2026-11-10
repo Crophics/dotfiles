@@ -13,3 +13,6 @@ id_ed25519*
 # Python bytecode (e.g. from kitty kittens)
 __pycache__/
 *.pyc
+
+# the bare repo itself
+.cfg/
