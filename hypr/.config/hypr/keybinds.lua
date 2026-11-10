@@ -43,8 +43,8 @@ local actions = {
     ["terminal"]  = { exec(terminal) },
     ["files"]     = { exec(fileManager) },
     ["browser"]   = { exec(browser) },
-    ["spotify"]   = { exec("spotify") },
-    ["code"]      = { exec("codium") },
+    ["spotify"]   = { exec("spotify-launcher") },
+    ["code"]      = { exec("kitty nvim") },
     ["bitwarden"] = { exec("bitwarden-desktop") },
     ["picker"]    = { exec("hyprpicker -a") },
     ["taskmgr"]   = { exec("kitty btop") },
@@ -146,9 +146,6 @@ hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURC
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/brightness.sh up"), { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(home .. "/.config/hypr/scripts/brightness.sh down"), { locked = true, repeating = true })
 
-hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
-hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })
 
 -- A submap with no real bindings. Settings > Keybinds switches to it while it records a new
 -- shortcut, so that pressing a combo that is already bound does not run its action. (A submap

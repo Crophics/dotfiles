@@ -1,7 +1,6 @@
 {
  "general.border_size": 0,
  "input.touchpad.tap_to_click": false,
- "windows.opacity": 1.0,
  "decoration.rounding": 0,
  "decoration.blur.enabled": false,
  "general.gaps_in": 2,
@@ -9,5 +8,6 @@
  "windows.gap_top": 3,
  "decoration.shadow.enabled": false,
  "decoration.dim_inactive": true,
- "decoration.dim_strength": 0.25
+ "decoration.dim_strength": 0.25,
+ "windows.opacity": 1.0
 }
