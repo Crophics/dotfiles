@@ -55,6 +55,10 @@ Rectangle {
     property real ui1: 0
     property real ui2: 0
     property string errorMessage: ""
+    // apollo: fade-out handoff to Hyprland (UI fades, then screen dims to Mocha crust, then login)
+    property real dim: 0
+    property bool leaving: false
+    property string pendingPass: ""
 
     // Fonts
     FontLoader {
@@ -103,7 +107,10 @@ Rectangle {
         function onLoginFailed() {
             root.errorMessage = "ACCESS DENIED";
             pwd.text = "";
-            shakeAnim.start();
+            root.pendingPass = "";
+            exitAnim.stop();
+            safetyTimer.stop();
+            returnAnim.start();
             errTimer.start();
         }
     }
@@ -126,6 +133,37 @@ Rectangle {
             NumberAnimation { target: root; property: "ui1"; from: 0; to: 1; duration: 900; easing.type: Easing.OutCubic }
             NumberAnimation { target: root; property: "ui2"; from: 0; to: 1; duration: 900; easing.type: Easing.OutCubic }
         }
+    }
+
+    SequentialAnimation {
+        id: exitAnim
+        ParallelAnimation {
+            NumberAnimation { target: root; property: "ui2"; to: 0; duration: 380; easing.type: Easing.InCubic }
+            SequentialAnimation {
+                PauseAnimation { duration: 80 }
+                NumberAnimation { target: root; property: "ui1"; to: 0; duration: 380; easing.type: Easing.InCubic }
+            }
+        }
+        NumberAnimation { target: root; property: "dim"; to: 1; duration: 550; easing.type: Easing.InOutQuad }
+        ScriptAction { script: sddm.login(root.getUserLogin(), root.pendingPass, root.sessionIndex) }
+        ScriptAction { script: safetyTimer.restart() }
+    }
+
+    // apollo: if a login neither succeeds nor fails within 8 s, fade the screen back in
+    Timer {
+        id: safetyTimer
+        interval: 8000
+        onTriggered: if (root.leaving) { root.pendingPass = ""; pwd.text = ""; returnAnim.start(); }
+    }
+
+    SequentialAnimation {
+        id: returnAnim
+        NumberAnimation { target: root; property: "dim"; to: 0; duration: 250; easing.type: Easing.OutQuad }
+        ParallelAnimation {
+            NumberAnimation { target: root; property: "ui1"; to: 1; duration: 350; easing.type: Easing.OutCubic }
+            NumberAnimation { target: root; property: "ui2"; to: 1; duration: 350; easing.type: Easing.OutCubic }
+        }
+        ScriptAction { script: { root.leaving = false; shakeAnim.start(); pwd.forceActiveFocus(); } }
     }
 
     SequentialAnimation {
@@ -639,9 +677,10 @@ Rectangle {
                             }
                             
                             onAccepted: {
-                                if (typeof sddm !== "undefined" && sddm && pwd.text !== "") {
-                                    let currentUser = root.getUserLogin();
-                                    sddm.login(currentUser, pwd.text, root.sessionIndex);
+                                if (typeof sddm !== "undefined" && sddm && pwd.text !== "" && !root.leaving) {
+                                    root.leaving = true;
+                                    root.pendingPass = pwd.text;
+                                    exitAnim.start();
                                 }
                             }
                         }
@@ -746,5 +785,14 @@ Rectangle {
                 }
             }
         }
+    }
+
+    // apollo: covers the screen at the end of the exit animation (pure black, like the gap before Hyprland draws, and Hyprland starts on it too)
+    Rectangle {
+        anchors.fill: parent
+        color: "#000000"
+        opacity: root.dim
+        visible: opacity > 0
+        z: 1000
     }
 }

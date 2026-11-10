@@ -1,156 +1,18 @@
 # dotfiles
 
-Personal CachyOS + Hyprland rice, built on the illogical-impulse / end-4 quickshell
-shell with matugen-driven Material You theming. Managed as a set of
-[GNU Stow](https://www.gnu.org/software/stow/) packages so each app's config lives
-in its own directory and gets symlinked into `$HOME` on install.
+Plain Arch + Hyprland on a ThinkPad (apollo). Catppuccin Mocha everywhere.
+Each folder mirrors `$HOME` and is symlinked into place (e.g. `hypr/.config/hypr` -> `~/.config/hypr`).
 
-**Goal: full-system recovery.** If this machine died today, `git clone` this repo
-onto a base CachyOS-Hyprland install and running `./install.sh` should get you
-back to (functionally) where you are now — packages, configs, wallpapers, and
-the services that make the rice actually run.
+| Folder | What |
+|---|---|
+| hypr | Hyprland (Lua config), hyprlock, hypridle, helper scripts |
+| quickshell-43pr | Bar, Settings window (Super+I), volume/brightness/screenshot popups |
+| rofi | Launcher, clipboard, power and opacity menus |
+| kitty, fish, zsh | Terminal, shell (fish), starship prompt (`zsh/.config/starship.toml`) |
+| nvim | Neovim config |
+| btop, yazi, fastfetch, gh | CLI tools |
+| gtk, kde-colors, fontconfig | Catppuccin GTK/Qt colors, subpixel font rendering |
+| desktop-apps, local-bin | Spotify (native Wayland + SpotX re-patch), desktop entries |
+| sddm | Sign-in theme `material-you-mocha` (qylock Material-you-dark recolored); copy to `/usr/share/sddm/themes/` |
 
-> **Branch `ii-return`** — back on this setup after trying Noctalia, Ryoku and Caelestia (their
-> branches are `noctalia`, `ryoku`, `caelestia`). Differences from the `ii` branch:
-> Luke Elrod's Neovim config (the old LazyVim one is `nvim-lazyvim`, `NVIM_APPNAME=nvim-lazyvim nvim`),
-> an ANSI-color starship prompt that follows the terminal palette, `tmux`, `local-bin` helpers
-> (`fuzzel-emoji`, `scratchpad-focus`), a `systemd-user` ydotool drop-in, Spotify Wayland flags,
-> and the NVIDIA lockout below. `archive/` (never stowed) holds the Noctalia/Ryoku/Caelestia-era configs.
-
-**NVIDIA:** the T550 dGPU must not load (it freezes suspend/resume); load it for games with
-`nvidia-on`. The blacklist only stops hardware-ID autoload — a Quickshell shell loads libcuda at
-login, which makes `nvidia-modprobe` load the module by name — so
-`/etc/modprobe.d/nvidia-lockout.conf` (`install nvidia /usr/bin/false`) blocks that and `nvidia-on`
-moves it aside just long enough to load the module.
-
-**Kitty search:** `kitty/.config/kitty/search.py` and `scroll_mark.py` are unmodified copies of
-[trygveaa/kitty-kitten-search](https://github.com/trygveaa/kitty-kitten-search) @ `992c1f3` (GPL-3.0,
-license alongside as `kitty-kitten-search.LICENSE`), reviewed before adding. Ctrl+F / Ctrl+Shift+F in kitty
-opens the search box (Up/Down = previous/next match, Tab = literal/regex, Enter keeps the position, Esc
-returns to the bottom). Note Ctrl+F no longer reaches the shell or editors inside kitty.
-
-**Terminal colors:** ii's color generator pulls every ANSI color toward the wallpaper's hue
-(`appearance.wallpaperTheming.terminalGenerationProps` in the shell config). With the default
-threshold that turns red violet and green/yellow teal, so `quickshell/.../end4-pC/scripts/colors/
-generate_colors_material.py` has a local patch: red/green/yellow (term1-3, 9-11) get their own cap,
-`--semantic_threshold` (default 12 degrees), while blue/magenta/cyan keep following the wallpaper
-(`harmonizeThreshold` 100). Re-apply it if that script is ever replaced from upstream.
-
-**Neovim colors:** the config follows the shell's palette. `nvim/.config/nvim/lua/ii_palette.lua` reads
-`colors.json` + `terminal/kitty-theme.conf` from the generated palette dir and watches it, and
-`colors/ii.lua` builds the colorscheme (interface from the Material roles, syntax from the same 16 ANSI colors
-as kitty), so Neovim recolors itself when the wallpaper/palette changes. gruvbox-material remains the fallback
-when no palette exists; lualine uses its `auto` theme. Test against a copy with `II_PALETTE_DIR=/some/dir nvim`.
-
-**Python environment:** the shell's color scripts need `~/.local/state/quickshell/.venv`
-(`ILLOGICAL_IMPULSE_VIRTUAL_ENV`); `install.sh` builds it from `packages/ii-python-requirements.txt`
-(end-4's pinned list, Python 3.12 via uv) and generates the first palette with `switchwall.sh`.
-
-
-## Layout
-
-Each top-level directory is a stow package mirroring its path under `$HOME`, e.g.
-`hypr/.config/hypr/...` symlinks to `~/.config/hypr/...`.
-
-- **Shell core**: `hypr`, `illogical-impulse`, `quickshell`, `dankmaterialshell`,
-  `matugen`, `kde-material-you-colors`, `skwd-wall` (installed but not
-  autostarted — wallpaper handling reverted to `illogical-impulse`'s own
-  native selector)
-- **Session/login wiring**: `session` (systemd user units, autostart,
-  xdg-desktop-portal, environment.d, mimeapps.list) — SDDM launches Hyprland
-  directly via `start-hyprland`, no UWSM involved
-- **UI toolkit theming**: `gtk`, `qt`, `kde-misc`, `fontconfig`, `wal`, `nwg-look`
-- **Launcher/lock**: `fuzzel`, `wlogout`, `satty`
-- **Terminal/CLI**: `fish` (the actual default shell — `chsh -s /usr/bin/fish`;
-  kitty always ran fish regardless of login shell), `zsh` (just `starship.toml`
-  now — fish reads the same file), `shell` (bash, kept as a fallback only),
-  `kitty`, `lazygit`, `btop`, `cava`, `fastfetch`, `yazi`, `micro`, `qalculate`,
-  `gh`, `yay`
-- **Editors**: `nvim` (LazyVim-based), `vscodium`
-- **Wallpapers**: `wallpapers` (`~/Pictures/Wallpapers`, ~105MB — the pool
-  `skwd-wall` was built to rotate through and `illogical-impulse` themes off of)
-- **Theming state**: `local-share-theming` (KDE Material You `.colors` schemes,
-  active cursor theme selector)
-- **Misc**: `nvidia`, `cachyos`, `desktop-apps`, `xdg-user-dirs`
-
-Note: no `git` package here on purpose — `.gitconfig` isn't tracked (it carried
-personal identity). Set your own `git config --global user.name/user.email`
-after installing.
-
-`packages/` holds manifests, not stow packages:
-- `pacman.txt` — explicitly installed native packages (`pacman -Qqe`)
-- `aur.txt` — foreign/AUR packages (`pacman -Qqem`)
-- `flatpak.txt` — installed flatpak app IDs
-- `systemd-user-enabled.txt` / `systemd-system-enabled.txt` — reference snapshot
-  of what's enabled on the source machine. `install.sh` explicitly re-enables the
-  two that are actually rice-critical (`skwd-daemon`, `ydotool`); the rest are
-  mostly CachyOS install defaults (NetworkManager, bluetooth, cups, timers, etc.)
-  — cross-check the system-level file if something's missing after a fresh install.
-
-## Install on a new machine
-
-```sh
-git clone <this-repo-url> ~/git/dotfiles
-cd ~/git/dotfiles
-./install.sh
-```
-
-This installs `stow`/`yay` if missing, installs everything in `packages/`, then
-stows every package into `$HOME`. Re-run any time — it's idempotent
-(`stow -R`), and safe even if a graphical session already ran once and
-auto-generated its own default configs (Hyprland does this) — `install.sh`
-backs those up automatically before linking the real ones in.
-
-**Best order on a truly fresh install**: pick no desktop environment / a
-minimal profile in the installer, boot to a plain TTY, and run `install.sh`
-from there *before* ever starting Hyprland for the first time. That way
-nothing auto-generates a conflicting config and Hyprland's normal
-autostart (which launches quickshell itself, see `hypr/.config/hypr/hyprland/execs.lua`)
-just works on the very first login. If you do end up logging into a bare
-graphical session first (e.g. to get a terminal), that's fine too — just
-run `install.sh` and then fully restart Hyprland once (log out/in, or
-`hyprctl dispatch exit`) so it picks up the real config and autostarts
-quickshell.
-
-To only (re)link configs without touching packages, run stow directly:
-
-```sh
-stow -d ~/git/dotfiles -t ~ hypr quickshell matugen   # etc.
-```
-
-## Not included, on purpose
-
-- `~/.config/quickshell/end4-pC` **is** included as plain files (it's a forked/
-  patched copy of the shell engine itself, not upstream-tracked here).
-- **qylock** (lockscreen) is *not* vendored — the working checkout is ~1.8GB
-  (mostly theme assets) and it's a separate forked/patched project. Clone and
-  build it separately:
-  ```sh
-  git clone https://github.com/Darkkal44/qylock.git ~/.config/qylock-src
-  ```
-  If you want your local qylock patches preserved on GitHub too, fork it under
-  your own account and push a branch there — that's a separate step from this repo.
-- Browser profiles, Discord/Vesktop, Spotify, LibreOffice, Bitwarden, and other
-  app-data-heavy directories are excluded — they're state/cache, not config, and
-  can contain sensitive data.
-- Secrets (`.ssh`, `.gnupg`, `.pki`, shell history, cookies) are never tracked here.
-
-## Theming pipeline
-
-Wallpaper → `matugen` extracts a Material You palette → colors are templated out
-to `hypr`, `gtk`, `qt`, `kitty`/etc., and `kde-material-you-colors`
-syncs the palette into KDE/Qt apps. `wal` config is also tracked for tools that
-still read pywal-style palettes.
-
-## Troubleshooting
-
-- **No audio, `pactl` says "Connection refused"**: `pipewire.service` and
-  `wireplumber.service` can be active while the `pipewire-pulse` package is
-  missing, which silently breaks every app that talks to PulseAudio (Firefox/Zen
-  included) even though native PipeWire clients (`wpctl`) work fine. Fix:
-  ```sh
-  sudo pacman -S --needed pipewire-pulse
-  systemctl --user restart pipewire pipewire-pulse wireplumber
-  ```
-  `pipewire-pulse` is now in `packages/pacman.txt` so a fresh `install.sh` run
-  won't hit this.
+Older setups (illogical-impulse, noctalia, caelestia, 43pr, ...) live on their own branches on GitHub.

@@ -1,8 +1,0 @@
-require("monitors")
-require("env")
-require("look")
-require("input")
-require("system")
-require("keybinds")
-require("rules")
-require("autostart")

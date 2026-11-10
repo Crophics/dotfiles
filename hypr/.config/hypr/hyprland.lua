@@ -18,6 +18,9 @@ browser    = "zen-browser"
 ---- AUTOSTART ----
 
 hl.on("hyprland.start", function()
+    -- login handoff: Hyprland starts on black (the color the sign-in screen fades to),
+    -- the wallpaper fades in first, then the bar slides down. One fixed wallpaper (no picker).
+    hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/Wallpapers/wallhaven-o3z85l.png'")
     -- no notification daemon on purpose
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
@@ -27,9 +30,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")   -- idle lock/suspend + lock before sleep (hyprlock)
 
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")
-    -- one fixed wallpaper (no picker)
-    hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/Wallpapers/wallhaven-o3z85l.png'")
-    hl.exec_cmd("sleep 2 && qs")
+    hl.exec_cmd("sleep 1.2 && qs")   -- bar slides down after the wallpaper has faded in (rules.lua)
 end)
 
 ---- ENVIRONMENT VARIABLES ----
@@ -75,6 +76,7 @@ hl.config({
 hl.config({
     misc = {
         disable_hyprland_logo = true,
+        background_color = 0xff000000, -- pure black: same as the sign-in fade and the gap before Hyprland draws
         disable_splash_rendering = true,
     },
 })

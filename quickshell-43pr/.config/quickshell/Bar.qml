@@ -997,6 +997,7 @@ Scope {
 
         PanelWindow {
             id: bar
+            WlrLayershell.namespace: "qs-bar"   // own layer name: Hyprland slides only the bar in at login
             required property var modelData
             screen: modelData
 
