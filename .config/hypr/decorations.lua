@@ -2,9 +2,6 @@
 -- Edit a value, save, and Hyprland reloads by itself. Docs: https://wiki.hypr.land/Configuring/Variables/
 -- (hl.config takes the same names as the wiki's sections: general, decoration, animations...)
 
--- Border colours. Fixed Catppuccin Mocha; the colours live in colors.lua.
-local palette = require("colors")
-
 hl.config({ render = { expand_undersized_textures = false } })
 
 hl.config({
@@ -17,7 +14,9 @@ hl.config({
             left = 0,
         },
         border_size = 0,         -- 0 = no border. Try 2 to see the coloured border again.
-        col = { active_border = palette.active, inactive_border = palette.inactive },
+        -- Border colours (Catppuccin Mocha blue). Format rgba(RRGGBBAA): the last two digits are opacity,
+        -- so "00" makes unfocused borders invisible. Only visible when border_size is above 0.
+        col = { active_border = "rgba(89b4faff)", inactive_border = "rgba(89b4fa00)" },
         resize_on_border = true, -- drag a window edge to resize it
         allow_tearing = false,
         layout = "dwindle",      -- "dwindle", "master" or "scrolling" (tiling style)

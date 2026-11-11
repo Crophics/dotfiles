@@ -6,7 +6,7 @@ choice="$(printf '%s\n' "$lock   Lock" "$suspend   Suspend" "$logout   Log out" 
     | rofi -dmenu -i -no-custom -p "" -theme "$HOME/.config/rofi/powermenu.rasi")"
 case "$choice" in
     *Lock)        loginctl lock-session ;;
-    *Suspend)     "$HOME/.config/hypr/scripts/suspend.sh" ;;
+    *Suspend)     systemctl suspend ;;
     *"Log out")   hyprctl dispatch 'hl.dsp.exit()' ;;
     *Reboot)      systemctl reboot ;;
     *"Shut down") systemctl poweroff ;;

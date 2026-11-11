@@ -58,7 +58,7 @@ hl.bind("SUPER + SHIFT + M",    exec("qs ipc call mediaosd settings"))   -- medi
 
 ---- Session ----
 hl.bind("SUPER + L",            exec("loginctl lock-session"))       -- lock the screen (hypridle runs hyprlock)
-hl.bind("SUPER + SHIFT + L",    exec(scripts .. "/suspend.sh"))   -- suspend
+hl.bind("SUPER + SHIFT + L",    exec("systemctl suspend"))   -- suspend
 
 ---- Windows ----
 hl.bind("SUPER + Q",            hl.dsp.window.close())   -- close window

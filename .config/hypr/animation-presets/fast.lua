@@ -1,6 +1,6 @@
 -- Fast
 -- From ML4W dotfiles (GPL-3.0): https://github.com/mylinuxforwork/dotfiles, .config/hypr/conf/animations
--- Used unchanged; Settings > Windows > Animation speed scales every speed in it.
+-- Used unchanged. To use it, set `preset` at the top of the animations section in decorations.lua.
 
 --------------------------------------------------------------------------------
 -- Animation Master Switch

@@ -21,13 +21,10 @@ fileManager       = "kitty -e yazi"
 browser           = "zen-browser"
 
 ---- CURSOR ----
--- The cursor theme and size come from Settings > Style, which writes appearance.lua (the one
--- generated file left here). Edit the fallbacks after `or` if you want to set it by hand.
+-- Theme and size. Themes are folders in /usr/share/icons or ~/.icons with a `cursors` folder inside.
 
-local oka, appearance = pcall(require, "appearance")
-if not oka then appearance = {} end
-local cursorTheme = appearance.cursor_theme or "Adwaita"
-local cursorSize  = tostring(appearance.cursor_size or 24)
+local cursorTheme = "Adwaita"
+local cursorSize  = "24"
 
 ---- AUTOSTART ----
 -- Each hl.exec_cmd("...") starts a program once, when Hyprland starts. Add your own at the bottom.

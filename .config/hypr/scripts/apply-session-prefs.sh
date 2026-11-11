@@ -34,7 +34,7 @@ CONF
         printf '\nlistener {\n    timeout = %s\n    on-timeout = loginctl lock-session\n}\n' "$((lock * 60))"
     fi
     if [ "$suspend" -gt 0 ]; then
-        printf '\nlistener {\n    timeout = %s\n    on-timeout = ~/.config/hypr/scripts/suspend.sh\n}\n' "$((suspend * 60))"
+        printf '\nlistener {\n    timeout = %s\n    on-timeout = systemctl suspend\n}\n' "$((suspend * 60))"
     fi
 } > "$out"
 

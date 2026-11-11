@@ -138,6 +138,6 @@ SetPage {
     SetRow {
         label: "Suspend the laptop"
         hint: "Locks first. Wake it with a key or the touchpad"
-        SetButton { label: "Suspend"; onClicked: Quickshell.execDetached([page.home + "/.config/hypr/scripts/suspend.sh"]) }
+        SetButton { label: "Suspend"; onClicked: Quickshell.execDetached(["systemctl", "suspend"]) }
     }
 }

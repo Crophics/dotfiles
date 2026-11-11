@@ -16,11 +16,11 @@ Docs for everything: https://wiki.hypr.land (the Lua pages are under *Configurin
 | which app a key opens (terminal, browser, file manager) | `hyprland.lua`, the "MY PROGRAMS" block at the top |
 | a keyboard shortcut                                   | `keybinds.lua` (one `hl.bind` per line) |
 | programs that start at login                          | `hyprland.lua`, inside `hl.on("hyprland.start", ...)` |
+| cursor theme and size                                 | `hyprland.lua`, the CURSOR block |
 | touchpad, mouse, keyboard behaviour                   | `hyprland.lua`, the INPUT block |
-| gaps, borders, rounding, blur, shadow, animations     | `decorations.lua` |
+| gaps, borders, border colours, rounding, blur, shadow, animations | `decorations.lua` |
 | window opacity, per-app rules (always float, etc.)    | `rules.lua` |
 | screen resolution, scale, second monitor              | `monitors.lua` |
-| border colours                                        | `colors.lua` |
 | lock screen / idle timers                             | `hyprlock.conf`, `hypridle.conf` |
 
 ## Reading the Lua
@@ -36,11 +36,10 @@ Docs for everything: https://wiki.hypr.land (the Lua pages are under *Configurin
 
 ## What Settings (Super+I) still controls
 
-Settings now covers the shell only: bar, popups, style (fonts, icons, cursor), network, bluetooth, audio,
+Settings now covers the shell only: bar, popups, style (fonts and icon theme), network, bluetooth, audio,
 power (idle lock/suspend) and storage. The Advanced page opens the config files in nvim.
 
 Generated files (do not edit by hand; the Settings app overwrites them):
-- `appearance.lua`: cursor theme and size, from Settings > Style.
 - `hypridle-user.conf`: idle timers, from Settings > Power.
 - `~/.config/quickshell/state/*.json`: what the shell pages saved.
 
