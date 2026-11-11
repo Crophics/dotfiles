@@ -1,0 +1,9 @@
+# ~/.config/yazi/keymap.toml  --  your own yazi keys, added on top of yazi's defaults.
+
+# c then y: copy the selected files (or the file under the cursor) to the system clipboard,
+# so you can paste the actual file(s) into another app (browser upload, Nautilus, chat...).
+# Plain `c c` only copies the path as text; `y` / `p` only copy inside yazi.
+[[mgr.prepend_keymap]]
+on   = [ "c", "y" ]
+run  = 'shell -- python3 -c "import sys, pathlib; [print(pathlib.Path(p).resolve().as_uri()) for p in sys.argv[1:]]" "$@" | wl-copy -t text/uri-list'
+desc = "Copy the file itself to the system clipboard"
