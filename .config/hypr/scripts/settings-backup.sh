@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Export or import the Settings app's saved choices (quickshell/state).
+# Export or import the Settings app's saved choices (quickshell/state: bar, popups, power, night light).
+# Hyprland config files (hypr/*.lua) are plain files and are not part of this; back them up with the dotfiles repo.
 #   settings-backup.sh export [file]   default ~/Documents/settings-backup-<date>.tar.gz
 #   settings-backup.sh import <file>   current settings are saved to state.bak-<time>.tar.gz first
 set -euo pipefail
@@ -24,9 +25,6 @@ import)
     tar czf "$cfg/quickshell/state.bak-$(date +%H%M%S).tar.gz" -C "$cfg/quickshell" state 2>/dev/null || true
     tar xzf "$file" -C "$cfg/quickshell" --no-same-owner state
     # Rebuild everything generated from those files.
-    "$cfg/hypr/scripts/options.py" build
-    "$cfg/hypr/scripts/startup.py"
-    "$cfg/hypr/scripts/apply-keybinds.sh" >/dev/null 2>&1 || true
     "$cfg/hypr/scripts/apply-session-prefs.sh" >/dev/null 2>&1 || true
     "$cfg/hypr/scripts/nightlight.py" apply >/dev/null 2>&1 || true
     hyprctl reload >/dev/null

@@ -1,5 +1,8 @@
-local okp, prefs = pcall(require, "prefs")
-if not okp then prefs = {} end
+-- ~/.config/hypr/rules.lua  --  per-app rules (opacity, floating) and layer rules (rofi blur, bar animation).
+
+-- Window opacity: 1.0 = solid, 0.9 = a little see-through. Super+O (rofi menu) rewrites THIS line,
+-- so keep it as a single `local opacity = <number>` line.
+local opacity = 1.0
 
 -- Docs: https://wiki.hypr.land/Configuring/Basics/Window-Rules/
 -- To check class name, open the app and run:
@@ -14,7 +17,7 @@ hl.layer_rule({
 -- Opacity rules for all windows except fullscreen
 hl.window_rule({
     match = { class = ".*" },
-    opacity = string.format("%.2f override", prefs.opacity or 0.9),
+    opacity = string.format("%.2f override", opacity),
 })
 hl.window_rule({
     match = { class = ".*", fullscreen = true },

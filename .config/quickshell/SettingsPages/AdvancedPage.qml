@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../"
 
-// Backup and restore your settings, reset them, and open the underlying config files.
+// Backup and restore the shell settings, restart the shell, and open the config files in nvim.
 SetPage {
     id: page
     title: "ADVANCED"
@@ -11,7 +11,6 @@ SetPage {
     readonly property string home: Quickshell.env("HOME")
     readonly property string hyprScripts: home + "/.config/hypr/scripts"
     property string message: ""
-    property bool confirmReset: false
     property string backupPath: home + "/Documents/settings-backup-" + Qt.formatDate(new Date(), "yyyy-MM-dd") + ".tar.gz"
     property string importPath: ""
 
@@ -19,10 +18,9 @@ SetPage {
         id: run
         onFinished: ok => page.message = ok ? "Done" : run.error
     }
-    Timer { id: confirmTimer; interval: 4000; onTriggered: page.confirmReset = false }
 
     function edit(path) {
-        Quickshell.execDetached(["sh", "-c", "command -v codium >/dev/null && exec codium \"$1\" || exec xdg-open \"$1\"", "sh", path.replace(/^~/, home)])
+        Quickshell.execDetached(["kitty", "nvim", path.replace(/^~/, home)])
     }
 
     Text {
@@ -51,19 +49,7 @@ SetPage {
         }
     }
 
-    SetSection { text: "Reset" }
-    SetRow {
-        label: "Reset window and input settings"
-        hint: "Puts every option on the Windows, Input, Layout and Behavior pages back to its default"
-        SetButton {
-            label: page.confirmReset ? "Click again to confirm" : "Reset"
-            onClicked: {
-                if (!page.confirmReset) { page.confirmReset = true; confirmTimer.restart(); return }
-                page.confirmReset = false
-                run.run([[page.hyprScripts + "/options.py", "reset-all"]])
-            }
-        }
-    }
+    SetSection { text: "Shell" }
     SetRow {
         label: "Restart the shell"
         hint: "Reloads the bar, popups and this window. Fixes most display glitches"
@@ -73,9 +59,11 @@ SetPage {
     SetSection { text: "Config files" }
     Repeater {
         model: [
-            { label: "Hyprland", path: "~/.config/hypr/hyprland.lua", hint: "Autostart, environment, general setup" },
-            { label: "Appearance", path: "~/.config/hypr/look.lua", hint: "Animations and colours" },
-            { label: "Window rules", path: "~/.config/hypr/rules.lua", hint: "Per-app behaviour" },
+            { label: "Hyprland", path: "~/.config/hypr/hyprland.lua", hint: "Programs, input, autostart, environment" },
+            { label: "Keybinds", path: "~/.config/hypr/keybinds.lua", hint: "Every keyboard shortcut" },
+            { label: "Decorations", path: "~/.config/hypr/decorations.lua", hint: "Borders, gaps, rounding, blur, animations" },
+            { label: "Window rules", path: "~/.config/hypr/rules.lua", hint: "Per-app behaviour and window opacity" },
+            { label: "Monitors", path: "~/.config/hypr/monitors.lua", hint: "Screen resolution and scale" },
             { label: "Lock screen", path: "~/.config/hypr/hyprlock.conf", hint: "How the lock screen looks (hyprlock)" },
             { label: "Launcher", path: "~/.config/rofi/config.rasi", hint: "" },
             { label: "Shell theme", path: "~/.config/quickshell/Theme.qml", hint: "Fonts, sizes and animation timing for the bar and popups" }
@@ -90,7 +78,7 @@ SetPage {
     Text {
         width: parent.width
         wrapMode: Text.WordWrap
-        text: "Most of what is in these files can be changed from the other pages. Edit them only if you know what you are after. Settings changes are saved separately, so they survive edits here."
+        text: "These files are the real Hyprland config, with comments. Edit them directly (they open in nvim); Hyprland reloads when you save. See ~/.config/hypr/README.md."
         color: Theme.textFaint
         font.family: Theme.fontFamily
         font.pixelSize: 10

@@ -1,35 +1,25 @@
 #!/usr/bin/env bash
-# Keybind cheat sheet (Super+K): every shortcut with its current keys, grouped and searchable.
-# Reads the live binds (binds.lua, written by Settings > Keybinds) and the labels from keybind-defaults.json,
-# so it always matches what's actually bound. Reference only: Enter or Esc closes it.
-rows=$(python3 -I - "$HOME/.config/hypr" <<'EOF'
-import json, re, sys, html
-d = sys.argv[1]
-labels = {x["id"]: (x["group"], x["label"]) for x in json.load(open(d + "/keybind-defaults.json"))}
-try:
-    src = open(d + "/binds.lua").read()
-except OSError:
-    src = open(d + "/binds-default.lua").read()
+# Keybind cheat sheet (Super+K): every shortcut with its keys, grouped and searchable.
+# Reads ~/.config/hypr/keybinds.lua directly: each hl.bind("KEYS", ...) line is a shortcut, the
+# trailing "-- comment" is its description, and "---- Heading ----" lines make the groups.
+# Reference only: Enter or Esc closes it.
+rows=$(python3 -I - "$HOME/.config/hypr/keybinds.lua" <<'EOF'
+import re, sys, html
 names = {"SUPER": "Super", "CTRL": "Ctrl", "SHIFT": "Shift", "ALT": "Alt"}
 keys = {"Return": "Enter", "Grave": "`", "Escape": "Esc", "Space": "Space", "Print": "PrtSc"}
-def combo(mods, key):
-    return " + ".join([names.get(m, m) for m in mods] + ([keys.get(key, key)] if key else []))
-rows = []
-for m in re.finditer(r'\{\s*id = "([^"]+)",\s*mods = \{([^}]*)\},\s*key = "([^"]*)",\s*enabled = (true|false)(.*?)\}', src):
-    bid, mods, key, on, rest = m.groups()
-    if on != "true":
+rows, group = [], ""
+for line in open(sys.argv[1]):
+    h = re.match(r'-{4}\s*(.*?)\s*(\(.*\))?\s*-*\s*$', line)
+    if h:
+        group = h.group(1).split(":")[0].strip()
         continue
-    mods = re.findall(r'"([^"]+)"', mods)
-    group, label = labels.get(bid, ("Custom", bid))
-    cmd = re.search(r'command = "([^"]*)"', rest)
-    if cmd and bid not in labels:
-        label = cmd.group(1)
-    if bid in ("ws-focus", "ws-move"):
-        key = "1-0"
-    if not key and bid not in ("ws-focus", "ws-move"):
+    m = re.match(r'hl\.bind\("([^"]+)",.*?(?:--\s*(.*))?$', line.rstrip())
+    if not m or "mouse:" in m.group(1) or "XF86" in m.group(1):
         continue
-    rows.append((group, label, combo(mods, key)))
+    combo = " + ".join(names.get(p, keys.get(p, p)) for p in m.group(1).split(" + "))
+    rows.append((group, m.group(2) or "", combo))
 rows += [("Mouse", "Move window", "Super + left drag"), ("Mouse", "Resize window", "Super + right drag"),
+         ("Workspaces", "Go to workspace 1-10", "Super + 1-0"), ("Workspaces", "Send window to workspace 1-10", "Super + Shift + 1-0"),
          ("Media", "Volume / brightness", "media keys")]
 w = max(len(r[1]) for r in rows) + 2
 for g, l, k in rows:

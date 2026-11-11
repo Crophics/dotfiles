@@ -22,14 +22,9 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.2 })
 -- hl.monitor({ output = "HDMI-A-1", mode = "preferred", position = "0x0", scale = 1.2 })
 -- hl.monitor({ output = "eDP-1", mode = "preferred", position = "1920x0", scale = 1, transform = 1 })
 
-pcall(function()
-    local path = os.getenv("HOME") .. "/.config/quickshell/state/display.lua"
-    local f = io.open(path, "r")
-    if f then
-        f:close()
-        dofile(path)
-    end
-end)
+-- Your laptop screen. This line wins over the generic rule above because it comes later.
+-- scale 1.2 makes everything 20% bigger; mode is "WIDTHxHEIGHT@REFRESH".
+hl.monitor({ output = "eDP-1", mode = "1920x1200@60.00", position = "0x0", scale = 1.2 })
 
 -- WORKSPACE RULES
 -- https://wiki.hypr.land/Configuring/Workspace-Rules/
