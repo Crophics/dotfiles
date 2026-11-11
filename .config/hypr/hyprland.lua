@@ -30,6 +30,10 @@ local cursorSize  = "24"
 -- Each hl.exec_cmd("...") starts a program once, when Hyprland starts. Add your own at the bottom.
 
 hl.on("hyprland.start", function()
+    -- Autologin at boot (/etc/sddm.conf.d/autologin.conf): lock the screen before anything else.
+    -- Only for the autologin session; signing in with a password on the SDDM screen doesn't lock again.
+    -- (`test`, not `[ ... ]`: a command starting with "[" is read by Hyprland as window rules and never runs)
+    hl.exec_cmd([[test "$(loginctl show-session "$XDG_SESSION_ID" -p Service --value)" = sddm-autologin && exec "$HOME/.config/qylock/lock.sh"]])
     -- login handoff: Hyprland starts on black (the color the sign-in screen fades to),
     -- the wallpaper fades in first, then the bar slides down. One fixed wallpaper (no picker).
     hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/Wallpapers/dark mountain.png'")
@@ -39,7 +43,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")   -- password prompts for admin actions
     hl.exec_cmd("hyprctl setcursor " .. cursorTheme .. " " .. cursorSize)
     hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'") -- once more after the session has settled
-    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")                  -- idle lock/suspend + lock before sleep (hyprlock)
+    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")                  -- idle lock/suspend + lock before sleep (qylock)
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")               -- night light
     hl.exec_cmd("sleep 1.2 && qs") -- the quickshell bar; starts late so it slides down after the wallpaper fades in (rules.lua)
 
@@ -101,7 +105,7 @@ hl.config({
         disable_hyprland_logo = true,
         background_color = 0xff000000,     -- pure black: same as the sign-in fade and the gap before Hyprland draws
         disable_splash_rendering = true,
-        allow_session_lock_restore = true, -- a hung/crashed hyprlock can be replaced by a new one (run `hyprlock` from a TTY)
+        allow_session_lock_restore = true, -- a crashed lock screen can be replaced by a new one (qylock restarts itself; backup: run `hyprlock` from a TTY)
     },
 })
 

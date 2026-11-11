@@ -57,8 +57,8 @@ hl.bind("SUPER + J",            exec("qs ipc call bar toggle"))      -- show/hid
 hl.bind("SUPER + SHIFT + M",    exec("qs ipc call mediaosd settings"))   -- media popup settings
 
 ---- Session ----
-hl.bind("SUPER + L",            exec("loginctl lock-session"))       -- lock the screen (hypridle runs hyprlock)
-hl.bind("SUPER + SHIFT + L",    exec("systemctl suspend"))   -- suspend
+hl.bind("SUPER + L",            exec("loginctl lock-session"))       -- lock the screen (hypridle runs qylock)
+hl.bind("SUPER + SHIFT + L",    exec(home .. "/.config/qylock/suspend.sh"))   -- suspend (screen off, lock, then sleep)
 
 ---- Windows ----
 hl.bind("SUPER + Q",            hl.dsp.window.close())   -- close window

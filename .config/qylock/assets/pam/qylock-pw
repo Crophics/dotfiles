@@ -1,0 +1,12 @@
+#%PAM-1.0
+# qylock lock screen: password check. Loaded by the lock itself (PamContext.configDirectory),
+# so nothing in /etc/pam.d is needed.
+#   pam_unix           the typed password
+#   pam_gnome_keyring  also unlocks the login keyring with it (needed after autologin,
+#                      where no password was typed at boot). optional: never blocks unlocking.
+
+auth        required    pam_unix.so
+auth        optional    pam_gnome_keyring.so
+account     required    pam_unix.so
+password    required    pam_deny.so
+session     required    pam_unix.so

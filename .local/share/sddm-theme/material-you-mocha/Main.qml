@@ -7,6 +7,9 @@ Rectangle {
     id: root
     width: Screen.width
     height: Screen.height
+    // apollo: true when running as the lock screen (qylock) instead of the SDDM sign-in screen
+    readonly property bool inLock: typeof sddm !== "undefined" && sddm && sddm.inLock === true
+    readonly property bool pwdHasFocus: pwd.activeFocus   // qylock: stop its refocus clicks once typing works
     color: "#11111b"
 
     // Background
@@ -55,10 +58,11 @@ Rectangle {
     property real ui1: 0
     property real ui2: 0
     property string errorMessage: ""
-    // apollo: fade-out handoff to Hyprland (UI fades, then screen dims to Mocha crust, then login)
+    // apollo: the password is checked first (box dims while checking); only a correct password fades the
+    // screen to black for the handoff to Hyprland. A wrong one just shakes, no fade.
     property real dim: 0
     property bool leaving: false
-    property string pendingPass: ""
+    property bool checking: false
 
     // Fonts
     FontLoader {
@@ -102,15 +106,40 @@ Rectangle {
         onTriggered: pwd.forceActiveFocus()
     }
 
+    // apollo: typing always goes to the password box, no click needed. The lock before suspend is
+    // drawn while the screen is off, and on wake the window gets keyboard focus later, so:
+    // focus the box whenever the window becomes active, and pass any key that lands elsewhere to it.
+    Connections {
+        target: root.Window.window
+        function onActiveChanged() {
+            if (root.Window.window && root.Window.window.active) pwd.forceActiveFocus();
+        }
+    }
+    focus: true
+    Keys.onPressed: (event) => {
+        if (pwd.activeFocus || root.leaving) return;
+        pwd.forceActiveFocus();
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { pwd.accepted(); event.accepted = true; }
+        else if (event.text !== "" && event.text.charCodeAt(0) >= 32) { pwd.insert(pwd.cursorPosition, event.text); event.accepted = true; }
+    }
+
     Connections {
         target: typeof sddm !== "undefined" ? sddm : null
+        function onLoginSucceeded() {
+            root.checking = false;
+            // as the lock screen (qylock): fade the UI off the wallpaper, then the lock lets go
+            // and the desktop (same wallpaper) is there. As the sign-in screen: fade to black.
+            if (root.inLock) unlockAnim.start();
+            else exitAnim.start();
+        }
         function onLoginFailed() {
             root.errorMessage = "ACCESS DENIED";
             pwd.text = "";
-            root.pendingPass = "";
-            exitAnim.stop();
+            root.checking = false;
+            root.leaving = false;
             safetyTimer.stop();
-            returnAnim.start();
+            shakeAnim.start();
+            pwd.forceActiveFocus();
             errTimer.start();
         }
     }
@@ -122,7 +151,8 @@ Rectangle {
     }
 
     Component.onCompleted: {
-        fadeAnim.start();
+        if (root.inLock && sddm.instant === true) { root.ui1 = 1; root.ui2 = 1; }   // lock before suspend: no fade-in
+        else fadeAnim.start();
         if (typeof keyboard !== "undefined") keyboard.numLock = true;
     }
 
@@ -137,23 +167,25 @@ Rectangle {
 
     SequentialAnimation {
         id: exitAnim
+        // short: SDDM closes the greeter soon after a successful login, so this has to finish quickly
         ParallelAnimation {
-            NumberAnimation { target: root; property: "ui2"; to: 0; duration: 380; easing.type: Easing.InCubic }
-            SequentialAnimation {
-                PauseAnimation { duration: 80 }
-                NumberAnimation { target: root; property: "ui1"; to: 0; duration: 380; easing.type: Easing.InCubic }
-            }
+            NumberAnimation { target: root; property: "ui2"; to: 0; duration: 220; easing.type: Easing.InCubic }
+            NumberAnimation { target: root; property: "ui1"; to: 0; duration: 260; easing.type: Easing.InCubic }
+            NumberAnimation { target: root; property: "dim"; to: 1; duration: 350; easing.type: Easing.InOutQuad }
         }
-        NumberAnimation { target: root; property: "dim"; to: 1; duration: 550; easing.type: Easing.InOutQuad }
-        ScriptAction { script: sddm.login(root.getUserLogin(), root.pendingPass, root.sessionIndex) }
-        ScriptAction { script: safetyTimer.restart() }
     }
 
-    // apollo: if a login neither succeeds nor fails within 8 s, fade the screen back in
+    ParallelAnimation {
+        id: unlockAnim
+        NumberAnimation { target: root; property: "ui2"; to: 0; duration: 220; easing.type: Easing.InCubic }
+        NumberAnimation { target: root; property: "ui1"; to: 0; duration: 280; easing.type: Easing.InCubic }
+    }
+
+    // apollo: if a login neither succeeds nor fails within 8 s, bring the screen back
     Timer {
         id: safetyTimer
         interval: 8000
-        onTriggered: if (root.leaving) { root.pendingPass = ""; pwd.text = ""; returnAnim.start(); }
+        onTriggered: if (root.leaving) { root.checking = false; pwd.text = ""; exitAnim.stop(); returnAnim.start(); }
     }
 
     SequentialAnimation {
@@ -611,6 +643,8 @@ Rectangle {
                         height: 52 * s
                         radius: 26 * s
                         color: "#313244"
+                        opacity: root.checking ? 0.5 : 1
+                        Behavior on opacity { NumberAnimation { duration: 150 } }
                         border.color: root.errorMessage !== "" ? "#f38ba8" : (pwd.activeFocus ? "#89b4fa" : "transparent")
                         border.width: pwd.activeFocus ? 2 * s : 0
                         Behavior on border.color { ColorAnimation { duration: 150 } }
@@ -679,8 +713,9 @@ Rectangle {
                             onAccepted: {
                                 if (typeof sddm !== "undefined" && sddm && pwd.text !== "" && !root.leaving) {
                                     root.leaving = true;
-                                    root.pendingPass = pwd.text;
-                                    exitAnim.start();
+                                    root.checking = true;
+                                    sddm.login(root.getUserLogin(), pwd.text, root.sessionIndex);
+                                    safetyTimer.restart();
                                 }
                             }
                         }

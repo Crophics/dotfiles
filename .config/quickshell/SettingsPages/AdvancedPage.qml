@@ -64,7 +64,7 @@ SetPage {
             { label: "Decorations", path: "~/.config/hypr/decorations.lua", hint: "Borders, gaps, rounding, blur, animations" },
             { label: "Window rules", path: "~/.config/hypr/rules.lua", hint: "Per-app behaviour and window opacity" },
             { label: "Monitors", path: "~/.config/hypr/monitors.lua", hint: "Screen resolution and scale" },
-            { label: "Lock screen", path: "~/.config/hypr/hyprlock.conf", hint: "How the lock screen looks (hyprlock)" },
+            { label: "Lock screen", path: "~/.local/share/sddm-theme/material-you-mocha/Main.qml", hint: "How the lock and sign-in screen look (one theme for both)" },
             { label: "Launcher", path: "~/.config/rofi/config.rasi", hint: "" },
             { label: "Shell theme", path: "~/.config/quickshell/Theme.qml", hint: "Fonts, sizes and animation timing for the bar and popups" }
         ]
