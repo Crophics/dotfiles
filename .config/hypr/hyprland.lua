@@ -44,6 +44,9 @@ hl.env("HYPRCURSOR_SIZE", cursorSize)
 -- installed (Bibata) at startup even when another theme is asked for, and the later `setcursor` can't
 -- redraw it until some window sets a cursor shape.
 hl.config({ cursor = { enable_hyprcursor = false } })
+-- Draw only on the Intel iGPU (/dev/dri/igpu = udev symlink, /etc/udev/rules.d/71-igpu-symlink.rules).
+-- The NVIDIA dGPU stays asleep unless an app is started with `prime-run`.
+hl.env("AQ_DRM_DEVICES", "/dev/dri/igpu")
 hl.env("QT_QPA_PLATFORM", "wayland")
 hl.env("QT_QPA_PLATFORMTHEME", "gtk3") -- Qt/KDE apps (EasyEffects) take the Catppuccin GTK colors
 hl.env("MOZ_ENABLE_WAYLAND", "1")
@@ -78,6 +81,7 @@ hl.config({
         disable_hyprland_logo = true,
         background_color = 0xff000000, -- pure black: same as the sign-in fade and the gap before Hyprland draws
         disable_splash_rendering = true,
+        allow_session_lock_restore = true, -- a hung/crashed hyprlock can be replaced by a new one (run `hyprlock` from a TTY)
     },
 })
 

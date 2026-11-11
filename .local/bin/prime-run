@@ -1,0 +1,4 @@
+#!/bin/bash
+# Run an app on the NVIDIA dGPU. ~/.profile hides NVIDIA's EGL from the desktop; give it back to this app only.
+unset __EGL_VENDOR_LIBRARY_FILENAMES
+exec /usr/bin/prime-run "$@"
