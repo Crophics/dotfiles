@@ -1,3 +1,8 @@
+# Start Hyprland automatically when logging into TTY1
+if status is-login; and test (tty) = /dev/tty1
+    exec start-hyprland
+end
+
 # ~/.local/bin on PATH for every fish shell
 fish_add_path -g ~/.local/bin
 
