@@ -9,6 +9,12 @@ GAP=900000          # µs: a longer pause means the key was released (must excee
 RAMP_EVERY=4        # steps per speed level
 MAX_MULT=3          # biggest multiple of the base step
 
+osd() {   # show the current volume in the osd popup (red when muted)
+  local v; v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
+  "$HOME/.config/hypr/scripts/osd.sh" vol "$(awk '{printf "%d", $2*100+0.5}' <<<"$v")" "$([[ $v == *MUTED* ]] && echo muted)"
+}
+if [[ $1 == mute ]]; then wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; osd; exit 0; fi
+
 F=${XDG_RUNTIME_DIR:-/tmp}/volume-hold
 now=${EPOCHREALTIME/./}
 last=0; lastapply=0; dir=""; n=0
@@ -27,6 +33,7 @@ mult=$(( 1 + n / RAMP_EVERY )); (( mult > MAX_MULT )) && mult=$MAX_MULT
 amount=$(( step * mult ))
 [[ -n $DRY ]] && { echo "$1 ${amount}%"; exit 0; }
 case "$1" in
-up)   exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ "${amount}%+" ;;
-down) exec wpctl set-volume @DEFAULT_AUDIO_SINK@ "${amount}%-" ;;
+up)   wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ "${amount}%+" ;;
+down) wpctl set-volume @DEFAULT_AUDIO_SINK@ "${amount}%-" ;;
 esac
+osd

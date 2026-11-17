@@ -21,6 +21,7 @@ mult=$(( 1 + n / RAMP_EVERY )); (( mult > MAX_MULT )) && mult=$MAX_MULT
 amount=$(( step * mult ))
 [[ -n $DRY ]] && { echo "$1 ${amount}%"; exit 0; }
 case "$1" in
-up)   exec brightnessctl -q -n set "${amount}%+" ;;
-down) exec brightnessctl -q -n set "${amount}%-" ;;
+up)   brightnessctl -q -n set "${amount}%+" ;;
+down) brightnessctl -q -n set "${amount}%-" ;;
 esac
+"$HOME/.config/hypr/scripts/osd.sh" bri "$(brightnessctl -m | cut -d, -f4 | tr -d %)"
