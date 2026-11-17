@@ -32,12 +32,6 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name = "float-pavucontrol",
-    match = { class = "^(pavucontrol)$" },
-    float = true,
-})
-
-hl.window_rule({
     name = "float-open-file",
     match = { title = "^(Open File)$" },
     float = true,

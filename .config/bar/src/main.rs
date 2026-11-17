@@ -1453,7 +1453,7 @@ fn main() {
                 Act::Ws(id) => hypr_dispatch(&mut children, &format!("hl.dsp.focus({{workspace=\"{id}\"}})")),
                 Act::WsScroll => hypr_dispatch(&mut children, &format!("hl.dsp.focus({{workspace=\"e{}\"}})", if dir == 1 { "+1" } else { "-1" })),
                 Act::Special => spawn(&mut children, &format!("{home}/.config/hypr/scripts/scratchpad.sh"), &["toggle"]),
-                Act::Pavu => spawn(&mut children, "pavucontrol", &[]),
+                Act::Pavu => spawn(&mut children, "kitty", &["-e", "wiremix"]),
                 Act::Mute => {
                     spawn(&mut children, "wpctl", &["set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]);
                     last_vol = Instant::now() - Duration::from_millis(900);

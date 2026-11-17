@@ -43,7 +43,7 @@ hl.bind("SUPER + C",            exec("kitty nvim"))   -- nvim
 hl.bind("SUPER + B",            exec("bitwarden-desktop"))   -- Bitwarden
 hl.bind("SUPER + P",            exec("hyprpicker -a"))               -- colour picker, copies the colour
 hl.bind("CTRL + SHIFT + Escape", exec("kitty btop"))                 -- task manager
-hl.bind("CTRL + SUPER + V",     exec("pavucontrol"))                 -- volume mixer
+hl.bind("CTRL + SUPER + V",     exec("kitty -e wiremix"))              -- volume mixer (TUI)
 
 ---- Menus ----
 hl.bind("SUPER + Space",        rofi(menu))                          -- app launcher
