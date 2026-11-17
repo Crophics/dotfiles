@@ -1,6 +1,13 @@
 /* Power menu: the launcher's look, no search bar, sized for 5 rows */
 @import "config.rasi"
 
+/* Vim keys for these no-typing menus: j down, k up, l select */
+configuration {
+    kb-row-down: "Down,Control+n,j";
+    kb-row-up: "Up,Control+p,k";
+    kb-accept-entry: "Control+j,Control+m,Return,KP_Enter,l";
+}
+
 window {
     width: 220px;
     height: 284px;
