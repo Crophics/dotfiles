@@ -41,7 +41,8 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'") -- once more after the session has settled
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")                  -- idle lock/suspend + lock before sleep (hyprlock)
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")               -- night light
-    hl.exec_cmd("sleep 1.2 && qs")                                                               -- the quickshell bar; starts late so it slides down after the wallpaper fades in (rules.lua)
+    hl.exec_cmd(os.getenv("HOME") .. "/.local/bin/osd")                                          -- volume/brightness popup (source: ~/.config/osd)
+    hl.exec_cmd("sh -c 'sleep 1.2; exec " .. os.getenv("HOME") .. "/.local/bin/bar'")             -- the bar (source: ~/.config/bar); starts late so it slides down after the wallpaper fades in (rules.lua)
 
     -- Your own apps, one line each, for example:
     -- hl.exec_cmd("spotify-launcher")

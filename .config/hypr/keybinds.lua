@@ -52,9 +52,7 @@ hl.bind("SUPER + Escape",       rofi(scripts .. "/powermenu.sh"))   -- power men
 hl.bind("SUPER + K",            rofi(scripts .. "/keybinds.sh"))     -- cheat sheet of these keys
 hl.bind("SUPER + O",            exec(scripts .. "/opacity.sh"))      -- window opacity menu
 hl.bind("SUPER + CTRL + P",     exec(scripts .. "/powerprofile.sh")) -- power profile menu
-hl.bind("SUPER + I",            exec("qs ipc call settings toggle")) -- Settings window
-hl.bind("SUPER + J",            exec("qs ipc call bar toggle"))      -- show/hide the bar
-hl.bind("SUPER + SHIFT + M",    exec("qs ipc call mediaosd settings"))   -- media popup settings
+hl.bind("SUPER + J",            exec("sh -c 'pkill -x bar || " .. home .. "/.local/bin/bar'")) -- show/hide the bar (stops or starts it)
 
 ---- Session ----
 hl.bind("SUPER + L",            exec("loginctl lock-session"))       -- lock the screen (hypridle runs hyprlock)
@@ -97,9 +95,9 @@ hl.bind("SUPER + ALT + Down",               exec(scripts .. "/scratchpad.sh retu
 hl.bind("SUPER + CTRL + SHIFT + Up",        exec(scripts .. "/scratchpad.sh send follow"))   -- scratchpad: send window and follow
 hl.bind("SUPER + CTRL + SHIFT + Down",      exec(scripts .. "/scratchpad.sh return follow"))   -- scratchpad: bring back and follow
 
----- Screenshots (saved to ~/Pictures and copied to the clipboard) ----
-hl.bind("Print",         exec("sh -c 'file=" .. home .. "/Pictures/$(date +%s).png; grim -g \"$(slurp)\" \"$file\"; wl-copy < \"$file\"; qs ipc call screenshot notify \"$file\"'"))   -- drag an area
-hl.bind("SUPER + Print", exec("sh -c 'file=" .. home .. "/Pictures/$(date +%s).png; grim \"$file\"; wl-copy < \"$file\"; qs ipc call screenshot notify \"$file\"'"))              -- whole screen
+---- Screenshots (saved to ~/Pictures/Screenshots and copied to the clipboard) ----
+hl.bind("Print",         exec("sh -c 'file=" .. home .. "/Pictures/Screenshots/$(date +%s).png; grim -g \"$(slurp)\" \"$file\"; wl-copy < \"$file\"'"))   -- drag an area
+hl.bind("SUPER + Print", exec("sh -c 'file=" .. home .. "/Pictures/Screenshots/$(date +%s).png; grim \"$file\"; wl-copy < \"$file\"'"))              -- whole screen
 
 ---- Mouse: Super + left drag moves a window, Super + right drag resizes it ----
 hl.bind("SUPER + mouse:272", hl.dsp.window.drag(),   { mouse = true })
@@ -109,7 +107,7 @@ hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- { locked = true } makes them work on the lock screen too.
 hl.bind("XF86AudioRaiseVolume",    exec(scripts .. "/volume.sh up"),   { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume",    exec(scripts .. "/volume.sh down"), { locked = true, repeating = true })
-hl.bind("XF86AudioMute",           exec("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),   { locked = true })
+hl.bind("XF86AudioMute",           exec(scripts .. "/volume.sh mute"),   { locked = true })
 hl.bind("XF86AudioMicMute",        exec("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
 hl.bind("XF86MonBrightnessUp",     exec(scripts .. "/brightness.sh up"),   { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown",   exec(scripts .. "/brightness.sh down"), { locked = true, repeating = true })
