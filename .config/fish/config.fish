@@ -104,3 +104,6 @@ if status is-interactive
     alias jctl 'journalctl -p 3 -xb'
     alias tb 'nc termbin.com 9999'
 end
+
+# Wi-Fi TUI
+alias wifitui impala

@@ -136,8 +136,8 @@ Scope {
         { id: "media",    l: "Media" },
         { id: "volume",   l: "Volume" },
         { id: "battery",  l: "Battery" },
-        { id: "net",      l: "Network",       cmd: "qs ipc call settings network",
-                                              hint: "Open network settings" },
+        { id: "net",      l: "Network",       cmd: "kitty -e impala",
+                                              hint: "Open Wi-Fi (impala)" },
         { id: "settings", l: "Settings",      cmd: "qs ipc call settings toggle", g: "\uDB81\uDC93",
                                               tip: "Settings", hint: "Open settings" },
         { id: "power",    l: "Power",         cmd: "~/.config/hypr/scripts/powermenu.sh", g: "\u23FB",
@@ -317,7 +317,8 @@ Scope {
 
     Process {
         id: netProc
-        command: ["nmcli", "-t", "-f", "TYPE,STATE", "device"]
+        // iwd owns Wi-Fi (nmcli shows it as "unmanaged"), so read wlan0's link state directly; nmcli still reports ethernet.
+        command: ["sh", "-c", "nmcli -t -f TYPE,STATE device; [ \"$(cat /sys/class/net/wlan0/operstate 2>/dev/null)\" = up ] && echo wifi:connected; true"]
         stdout: StdioCollector {
             onStreamFinished: {
                 let st = "disconnected";
@@ -962,11 +963,11 @@ Scope {
             disabled: !ready
             disabledReason: "No audio output available"
             tip: !ready ? "Volume" : muted ? "Volume: muted" : "Volume: " + Math.round(vol * 100) + "%"
-            primaryHint: "Open sound settings"
+            primaryHint: "Open volume mixer"
             secondaryHint: "Mute / unmute"
             scrollHint: "Adjust volume"
 
-            onPrimary: root.run("qs ipc call settings sound")
+            onPrimary: root.run("pavucontrol")
             onSecondary: root.run("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
             onScrolled: delta => {
                 if (!ready) return;

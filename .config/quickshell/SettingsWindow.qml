@@ -201,12 +201,6 @@ PanelWindow {
         function hide(): void {
             root.hide()
         }
-        function sound(): void {
-            root.openPage("AudioPage")
-        }
-        function network(): void {
-            root.openPage("NetworkPage")
-        }
         function page(name: string): void {
             root.openPage(name)
         }
@@ -259,15 +253,12 @@ PanelWindow {
         { group: "Appearance", name: "Style", icon: "󰏘", page: "AppearancePage" },
         { group: "Appearance", name: "Bar", icon: "󰕮", page: "BarPage" },
         { group: "Appearance", name: "Popups", icon: "󰍡", page: "PopupsPage" },
-        { group: "Devices", name: "Network", icon: "\uf1eb", page: "NetworkPage" },
-        { group: "Devices", name: "Bluetooth", icon: "󰂯", page: "BluetoothPage" },
-        { group: "Devices", name: "Audio", icon: "\uf028", page: "AudioPage" },
         { group: "System", name: "Power", icon: "󰐥", page: "PowerPage" },
         { group: "System", name: "Storage", icon: "󰋊", page: "StoragePage" },
         { group: "System", name: "Advanced", icon: "󰧮", page: "AdvancedPage" }
     ]
     // Old page names still resolve (IPC, bar buttons).
-    readonly property var pageAliases: ({ ConfigsPage: "AdvancedPage", Configs: "AdvancedPage", SessionPage: "PowerPage", Session: "PowerPage", ConnectionsPage: "NetworkPage", Connections: "NetworkPage", SystemPage: "StoragePage", System: "StoragePage" })
+    readonly property var pageAliases: ({ ConfigsPage: "AdvancedPage", Configs: "AdvancedPage", SessionPage: "PowerPage", Session: "PowerPage", SystemPage: "StoragePage", System: "StoragePage" })
 
     property int selectedIndex: 0
     // Keep the chosen page's entry in view when the sidebar is longer than the window.

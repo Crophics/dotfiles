@@ -1,0 +1,10 @@
+# impala: Catppuccin Mocha (theme keys take hex colors)
+esc_quit = true
+
+[theme]
+border = "#b4befe"         # lavender
+text_color = "#cdd6f4"     # text
+hidden_color = "#6c7086"   # overlay0
+info_color = "#a6e3a1"     # green
+warning_color = "#f9e2af"  # yellow
+error_color = "#f38ba8"    # red

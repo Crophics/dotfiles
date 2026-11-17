@@ -36,7 +36,7 @@ Docs for everything: https://wiki.hypr.land (the Lua pages are under *Configurin
 
 ## What Settings (Super+I) still controls
 
-Settings now covers the shell only: bar, popups, style (fonts and icon theme), network, bluetooth, audio,
+Settings now covers the shell only: bar, popups, style (fonts and icon theme),
 power (idle lock/suspend) and storage. The Advanced page opens the config files in nvim.
 
 Generated files (do not edit by hand; the Settings app overwrites them):
