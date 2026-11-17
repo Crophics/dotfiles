@@ -39,6 +39,13 @@ use wayland_protocols_wlr::layer_shell::v1::client::{
 // ---- look (the old quickshell bar: strip, 20 px, Catppuccin Mocha) --------------------------------
 const BAR_H: f64 = 22.0;
 const FONT_FAMILY: &str = "MesloLGS Nerd Font";
+// One set of sizes for the whole bar. Everything (text, icons, spacing, corners, colours) comes from these.
+const TEXT_PX: f64 = 13.0; // every piece of text, bar and tooltips, regular weight
+const ICON_PX: f64 = 15.0; // every icon
+const ICON_GAP: f64 = 6.0; // between an icon and its value
+const MOD_PAD: f64 = 16.0; // total side padding of every item (half on each side)
+const EDGE_GAP: f64 = 2.0; // bar edge to the first/last item
+const RADIUS: f64 = 0.0; // hover/press shapes and tooltips: square, like the rest of the rice
 type Col = (f64, f64, f64);
 const fn hex(r: u8, g: u8, b: u8) -> Col {
     (r as f64 / 255., g as f64 / 255., b as f64 / 255.)
@@ -46,8 +53,8 @@ const fn hex(r: u8, g: u8, b: u8) -> Col {
 const BG: Col = hex(0x1e, 0x1e, 0x2e);
 const TEXT: Col = hex(0xcd, 0xd6, 0xf4);
 const FAINT: Col = hex(0x58, 0x5b, 0x70);
+const EDGE: Col = hex(0x31, 0x32, 0x44); // the faint outline rofi uses too
 const DANGER: Col = hex(0xf3, 0x8b, 0xa8);
-const ACCENT: Col = hex(0x89, 0xb4, 0xfa);
 const MARQUEE_W: f64 = 130.0;
 const MARQUEE_GAP: f64 = 20.0;
 const WINDOW_MAX_W: f64 = 260.0;
@@ -194,9 +201,7 @@ fn layout(cr: &cairo::Context, s: &str, px: f64, bold: bool, max_w: Option<f64>)
     l
 }
 
-// Qt lays icons out in slots of a fixed width (an icon's ink is centred in its slot) and does not round
-// character widths, so the old quickshell bar was spaced slightly differently from plain pango. These are
-// Qt's measured widths for each icon at each size the bar uses, so spacing matches the old bar exactly.
+// Icons are measured with the same font as the text, so every item is spaced by one rule.
 enum Seg<'a> {
     Text(&'a str),
     Glyph(char),
@@ -204,25 +209,16 @@ enum Seg<'a> {
 
 fn is_glyph(ch: char) -> bool {
     let c = ch as u32;
-    (0xE000..0xF900).contains(&c) || c >= 0xF0000 || c == 0x23FB || c == 0x2726 || ch == '%'
+    (0xE000..0xF900).contains(&c) || c >= 0xF0000 || c == 0x23FB || c == 0x2726
 }
 
-fn glyph_adv(ch: char, px: f64) -> f64 {
-    match (ch as u32, px.round() as i32) {
-        (0xF061A, 14) | (0xF035B, 14) => 11.390625,
-        (0xF050F, 14) => 8.390625,
-        (0xF057E, 16) => 11.59375,
-        (0xF075F, 16) => 12.59375,
-        (0xF05A9, 16) | (0xF05AA, 16) => 14.59375,
-        (0xF0200, 16) => 13.59375,
-        (0xF040A, 11) | (0xF03E4, 11) => 6.59375,
-        (0xF0E7, 13) => 7.8,
-        (0xF240..=0xF244, 13) => 13.796875,
-        (0x23FB, 13) => 10.796875,
-        (0x2726, 12) => 7.21875,
-        _ if ch == '%' => 0.6823 * px,
-        _ => 0.75 * px,
-    }
+fn glyph_adv(cr: &cairo::Context, ch: char, px: f64) -> f64 {
+    // The wider of the font's reserved width and the icon's drawn width (some icons overhang their slot).
+    let mut buf = [0u8; 4];
+    let l = layout(cr, ch.encode_utf8(&mut buf), px, false, None);
+    let (ink, logical) = l.extents();
+    let s = pango::SCALE as f64;
+    (logical.width() as f64 / s).max((ink.x() + ink.width()) as f64 / s)
 }
 
 fn segs(s: &str) -> Vec<Seg<'_>> {
@@ -251,7 +247,7 @@ fn text_w(cr: &cairo::Context, s: &str, px: f64, bold: bool) -> f64 {
     segs(s)
         .iter()
         .map(|g| match g {
-            Seg::Glyph(c) => glyph_adv(*c, px),
+            Seg::Glyph(c) => glyph_adv(cr, *c, px),
             Seg::Text(t) => pango_w(&layout(cr, t, px, bold, None)),
         })
         .sum::<f64>()
@@ -270,15 +266,10 @@ fn draw_text(cr: &cairo::Context, s: &str, x: f64, cy: f64, px: f64, bold: bool,
     for g in segs(s) {
         match g {
             Seg::Glyph(ch) => {
-                let adv = glyph_adv(ch, px);
                 let mut buf = [0u8; 4];
                 let l = layout(cr, ch.encode_utf8(&mut buf), px, bold, None);
-                let mut dx = if ch == '%' { 0.0 } else { (adv - pango_w(&l)) / 2.0 };
-                if ch == '\u{f0e7}' {
-                    dx += 3.0; // Qt draws the charging bolt further right inside its slot
-                }
-                paint(cr, &l, cx + dx, cy, c, a);
-                cx += adv;
+                paint(cr, &l, cx, cy, c, a);
+                cx += glyph_adv(cr, ch, px);
             }
             Seg::Text(t) => {
                 let remain = max_w.map(|m| (m - (cx - x)).max(0.0));
@@ -321,7 +312,7 @@ struct ModSpec {
 }
 impl ModSpec {
     fn new(id: u32) -> Self {
-        ModSpec { id, glyph: String::new(), gpx: 16.0, text: String::new(), tpx: 12.0, bold: false, spacing: 12.0, pad: 20.0, color: TEXT, warn: false, l: Act::None, r: Act::None, m: Act::None, scroll: Act::None, yoff: 0.0 }
+        ModSpec { id, glyph: String::new(), gpx: ICON_PX, text: String::new(), tpx: TEXT_PX, bold: false, spacing: ICON_GAP, pad: MOD_PAD, color: TEXT, warn: false, l: Act::None, r: Act::None, m: Act::None, scroll: Act::None, yoff: 0.0 }
     }
     fn width(&self, cr: &cairo::Context) -> f64 {
         let gw = text_w(cr, &self.glyph, self.gpx, false);
@@ -342,7 +333,7 @@ struct El {
 }
 
 fn ws_item_w(cr: &cairo::Context, label: &str) -> f64 {
-    (text_w(cr, label, 12.0, false) + 12.0).max(22.0)
+    (text_w(cr, label, TEXT_PX, false) + MOD_PAD).max(24.0)
 }
 
 fn pretty(app: &str) -> String {
@@ -377,10 +368,7 @@ fn build_elements(cr: &cairo::Context, d: &Data, width: f64) -> (Vec<El>, Vec<El
     for (id, glyph, val, unit) in stats {
         let mut m = ModSpec::new(id);
         m.glyph = glyph.into();
-        m.gpx = 14.0;
         m.text = format!("{val}{unit}");
-        m.spacing = 4.0;
-        m.pad = 12.0;
         m.warn = val >= 85;
         let w = m.width(cr);
         push(&mut start, Kind::Mod(m), w);
@@ -396,20 +384,19 @@ fn build_elements(cr: &cairo::Context, d: &Data, width: f64) -> (Vec<El>, Vec<El
     push(&mut start, Kind::Ws, ws_w);
     // active window
     if let Some(name) = d.win.clone() {
-        let w = text_w_clamped(cr, &name, 11.0, WINDOW_MAX_W) + 8.0;
+        let w = text_w_clamped(cr, &name, TEXT_PX, WINDOW_MAX_W) + MOD_PAD;
         push(&mut start, Kind::Win(name), w);
     }
 
     // clock
     let mut clock = ModSpec::new(13);
     clock.text = d.time.clone();
-    clock.bold = true;
     let w = clock.width(cr);
     push(&mut center, Kind::Mod(clock), w);
 
     // media
     if let Some(media) = d.media.clone() {
-        let w = text_w(cr, &media_text(&media), 11.0, false).min(MARQUEE_W) + 20.0;
+        let w = text_w(cr, &media_text(&media), TEXT_PX, false).min(MARQUEE_W) + MOD_PAD;
         push(&mut end, Kind::Media(media), w);
     }
     // volume
@@ -430,7 +417,6 @@ fn build_elements(cr: &cairo::Context, d: &Data, width: f64) -> (Vec<El>, Vec<El
         let icon = icons[if b >= 90 { 4 } else if b >= 65 { 3 } else if b >= 40 { 2 } else if b >= 15 { 1 } else { 0 }];
         let mut m = ModSpec::new(15);
         m.glyph = format!("{}{}", if d.charging { "\u{f0e7} " } else { "" }, icon);
-        m.gpx = 13.0;
         m.text = format!("{b}%");
         m.warn = !d.charging && b <= 15;
         let w = m.width(cr);
@@ -446,15 +432,12 @@ fn build_elements(cr: &cairo::Context, d: &Data, width: f64) -> (Vec<El>, Vec<El
     .into();
     n.warn = d.net == 0;
     n.l = Act::Net;
-    n.yoff = 1.0;
     let w = n.width(cr);
     push(&mut end, Kind::Mod(n), w);
     // power
     let mut p = ModSpec::new(12);
     p.glyph = "\u{23FB}".into();
-    p.gpx = 13.0;
     p.l = Act::Power;
-    p.yoff = 1.0;
     let w = p.width(cr);
     push(&mut end, Kind::Mod(p), w);
 
@@ -462,10 +445,10 @@ fn build_elements(cr: &cairo::Context, d: &Data, width: f64) -> (Vec<El>, Vec<El
     // when a title is longer than that.
     let clock_w: f64 = center.iter().map(|e| e.w).sum();
     let others: f64 = end.iter().filter(|e| !matches!(e.kind, Kind::Media(_))).map(|e| e.w).sum();
-    let media_max = ((width - 2.8 - others) - (width / 2.0 + clock_w / 2.0) - 12.0 - 20.0).max(MARQUEE_W);
+    let media_max = ((width - EDGE_GAP - others) - (width / 2.0 + clock_w / 2.0) - 12.0 - 20.0).max(MARQUEE_W);
     for e in end.iter_mut() {
         if let Kind::Media(m) = &e.kind {
-            e.w = text_w(cr, &media_text(m), 11.0, false).min(media_max) + 20.0;
+            e.w = text_w(cr, &media_text(m), TEXT_PX, false).min(media_max) + MOD_PAD;
         }
     }
     (start, center, end, media_max)
@@ -487,7 +470,7 @@ fn render(d: &Data, ui: &Ui, pw: i32, ph: i32, width: f64, ul_cur: Option<(f64, 
         let (start, center, end, mm) = build_elements(&cr, d, width);
         media_max = mm;
         let sum = |v: &Vec<El>| v.iter().map(|e| e.w).sum::<f64>();
-        let sections = [(2.0, &start), ((width - sum(&center)) / 2.0, &center), (width - 2.8 - sum(&end), &end)];
+        let sections = [(EDGE_GAP, &start), ((width - sum(&center)) / 2.0, &center), (width - EDGE_GAP - sum(&end), &end)];
 
         for (x0, els) in sections {
             let mut x = x0;
@@ -498,19 +481,19 @@ fn render(d: &Data, ui: &Ui, pw: i32, ph: i32, width: f64, ul_cur: Option<(f64, 
                         let hovered = ui.hover == Some(m.id) && interactive;
                         let pressed = ui.pressed == Some(m.id) && hovered;
                         let tint = if pressed {
-                            Some((ACCENT, 0.35))
+                            Some((TEXT, 0.18))
                         } else if m.warn {
                             Some((DANGER, 0.16))
                         } else {
                             None
                         };
                         if let Some((c, a)) = tint {
-                            rounded(&cr, x + 1.0, 2.0, el.w - 2.0, BAR_H - 4.0, 10.0);
+                            rounded(&cr, x + 1.0, 2.0, el.w - 2.0, BAR_H - 4.0, RADIUS);
                             cr.set_source_rgba(c.0, c.1, c.2, a);
                             let _ = cr.fill();
                         }
                         if hovered {
-                            rounded(&cr, x + 1.0, 2.0, el.w - 2.0, BAR_H - 4.0, 10.0);
+                            rounded(&cr, x + 1.0, 2.0, el.w - 2.0, BAR_H - 4.0, RADIUS);
                             cr.set_source_rgba(TEXT.0, TEXT.1, TEXT.2, 0.1);
                             let _ = cr.fill();
                         }
@@ -533,8 +516,8 @@ fn render(d: &Data, ui: &Ui, pw: i32, ph: i32, width: f64, ul_cur: Option<(f64, 
                         if d.special {
                             let label = "\u{2726} scratchpad";
                             let w = ws_item_w(&cr, label);
-                            let tw = text_w(&cr, label, 12.0, false);
-                            draw_text(&cr, label, ix + (w - tw) / 2.0, cy, 12.0, false, TEXT, 1.0, None);
+                            let tw = text_w(&cr, label, TEXT_PX, false);
+                            draw_text(&cr, label, ix + (w - tw) / 2.0, cy, TEXT_PX, false, TEXT, 1.0, None);
                             ul_target = Some((ix + 4.0, w - 8.0));
                             hits.push(Hit { x0: ix, x1: ix + w, id: 98, l: Act::Special, r: Act::None, m: Act::None, scroll: Act::WsScroll });
                         } else {
@@ -552,8 +535,8 @@ fn render(d: &Data, ui: &Ui, pw: i32, ph: i32, width: f64, ul_cur: Option<(f64, 
                                 } else {
                                     ((bc.0 + (TEXT.0 - bc.0) * f, bc.1 + (TEXT.1 - bc.1) * f, bc.2 + (TEXT.2 - bc.2) * f), ba + (1.0 - ba) * f)
                                 };
-                                let tw = text_w(&cr, &label, 12.0, false);
-                                draw_text(&cr, &label, ix + (w - tw) / 2.0, cy, 12.0, false, c, a, None);
+                                let tw = text_w(&cr, &label, TEXT_PX, false);
+                                draw_text(&cr, &label, ix + (w - tw) / 2.0, cy, TEXT_PX, false, c, a, None);
                                 if focused {
                                     ul_target = Some((ix + 4.0, w - 8.0));
                                 }
@@ -563,30 +546,30 @@ fn render(d: &Data, ui: &Ui, pw: i32, ph: i32, width: f64, ul_cur: Option<(f64, 
                         }
                     }
                     Kind::Win(name) => {
-                        draw_text(&cr, name, x + 4.0, cy, 11.0, false, TEXT, 1.0, Some(WINDOW_MAX_W));
+                        draw_text(&cr, name, x + MOD_PAD / 2.0, cy, TEXT_PX, false, TEXT, 1.0, Some(WINDOW_MAX_W));
                         hits.push(Hit { x0: x, x1: x + el.w, id: 16, l: Act::None, r: Act::None, m: Act::None, scroll: Act::None });
                     }
                     Kind::Media(media) => {
                         if ui.hover == Some(14) {
-                            rounded(&cr, x + 1.0, 2.0, el.w - 2.0, BAR_H - 4.0, 10.0);
+                            rounded(&cr, x + 1.0, 2.0, el.w - 2.0, BAR_H - 4.0, RADIUS);
                             cr.set_source_rgba(TEXT.0, TEXT.1, TEXT.2, 0.1);
                             let _ = cr.fill();
                         }
                         let s = media_text(media);
-                        let full = text_w(&cr, &s, 11.0, false);
+                        let full = text_w(&cr, &s, TEXT_PX, false);
                         media_text_w = full;
                         let vis = full.min(media_max);
-                        let tx = x + 10.0;
+                        let tx = x + MOD_PAD / 2.0;
                         let animating = media.playing && full > media_max;
                         cr.save().ok();
                         cr.rectangle(tx, 0.0, vis, BAR_H);
                         cr.clip();
                         if animating {
                             let ox = ui.mq_x as f64;
-                            draw_text(&cr, &s, tx + ox, cy + 1.0, 11.0, false, TEXT, 1.0, None);
-                            draw_text(&cr, &s, tx + ox + full + MARQUEE_GAP, cy + 1.0, 11.0, false, TEXT, 1.0, None);
+                            draw_text(&cr, &s, tx + ox, cy, TEXT_PX, false, TEXT, 1.0, None);
+                            draw_text(&cr, &s, tx + ox + full + MARQUEE_GAP, cy, TEXT_PX, false, TEXT, 1.0, None);
                         } else {
-                            draw_text(&cr, &s, tx, cy + 1.0, 11.0, false, TEXT, 1.0, Some(media_max));
+                            draw_text(&cr, &s, tx, cy, TEXT_PX, false, TEXT, 1.0, Some(media_max));
                         }
                         cr.restore().ok();
                         hits.push(Hit { x0: x, x1: x + el.w, id: 14, l: Act::MediaToggle, r: Act::MediaNext, m: Act::MediaPrev, scroll: Act::None });
@@ -649,14 +632,14 @@ fn render_tip(text: &str, w: f64, h: f64, pw: i32, ph: i32) -> Vec<u8> {
     {
         let cr = cairo::Context::new(&surface).expect("context");
         cr.scale(pw as f64 / w, ph as f64 / h);
-        rounded(&cr, 0.5, 0.5, w - 1.0, h - 1.0, 6.0);
+        rounded(&cr, 0.5, 0.5, w - 1.0, h - 1.0, RADIUS);
         cr.set_source_rgb(BG.0, BG.1, BG.2);
         let _ = cr.fill_preserve();
-        cr.set_source_rgba(ACCENT.0, ACCENT.1, ACCENT.2, 0.25);
+        cr.set_source_rgb(EDGE.0, EDGE.1, EDGE.2);
         cr.set_line_width(1.0);
         let _ = cr.stroke();
-        let tw = text_w(&cr, text, 12.0, true);
-        draw_text(&cr, text, (w - tw) / 2.0, h / 2.0, 12.0, true, TEXT, 1.0, None);
+        let tw = text_w(&cr, text, TEXT_PX, false);
+        draw_text(&cr, text, (w - tw) / 2.0, h / 2.0, TEXT_PX, false, TEXT, 1.0, None);
     }
     surface.flush();
     let pixels = surface.data().expect("data").to_vec();
@@ -757,7 +740,7 @@ impl State {
         let (Some(comp), Some(ls), Some(vpr)) = (self.compositor.clone(), self.layer_shell.clone(), self.viewporter.clone()) else { return };
         let Ok(ms) = cairo::ImageSurface::create(cairo::Format::ARgb32, 1, 1) else { return };
         let Ok(mcr) = cairo::Context::new(&ms) else { return };
-        let w = (text_w(&mcr, &text, 12.0, true) + 20.0).ceil();
+        let w = (text_w(&mcr, &text, TEXT_PX, false) + 20.0).ceil();
         let h = 30.0;
         let x = ((x0 + x1) / 2.0 - w / 2.0).clamp(0.0, (self.width as f64 - w).max(0.0));
         let surface = comp.create_surface(qh, ());
