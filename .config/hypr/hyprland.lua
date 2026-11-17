@@ -43,8 +43,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")               -- night light
     hl.exec_cmd("sleep 1.2 && qs")                                                               -- the quickshell bar; starts late so it slides down after the wallpaper fades in (rules.lua)
 
-    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/zen-preload.sh")                     -- Zen runs hidden in special:preload so opening it is instant
-
     -- Your own apps, one line each, for example:
     -- hl.exec_cmd("spotify-launcher")
 end)
