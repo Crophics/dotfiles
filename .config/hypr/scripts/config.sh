@@ -41,6 +41,6 @@ for it in "${items[@]}"; do
 done
 
 i=$(printf '%s\n' "${labels[@]}" | rofi -dmenu -i -no-custom -format i -p "" \
-    -theme-str 'element-icon { enabled: false; }')
+    -theme-str 'element-icon { enabled: false; } window { height: 316px; } listview { lines: 5; }')
 [ -n "$i" ] || exit 0
 exec kitty nvim "${paths[$i]}"
