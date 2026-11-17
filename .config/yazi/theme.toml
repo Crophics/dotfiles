@@ -2,3 +2,12 @@
 [flavor]
 dark  = "catppuccin-mocha"
 light = "catppuccin-mocha"
+
+# Pointy powerline arrows like lualine in nvim (yazi's default is rounded bubbles).
+[status]
+sep_left  = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+# Selected row ends in lualine-style arrows (instead of yazi's rounded pill).
+[indicator]
+padding = { open = "\ue0b2", close = "\ue0b0" }
