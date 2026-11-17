@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Config
+Comment=Pick a config file to edit in Neovim
+Exec=/home/jp/.config/hypr/scripts/config.sh
+Icon=preferences-system
+Terminal=false
+Categories=Settings;
