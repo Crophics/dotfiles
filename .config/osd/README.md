@@ -1,6 +1,6 @@
 # osd
 
-Tiny volume/brightness popup for Wayland (Catppuccin Mocha, same size as the old quickshell one), written in Rust.
+Tiny volume/brightness popup for Wayland (Catppuccin Mocha), written in Rust.
 It draws with cairo + pango on a wlr-layer-shell overlay, at the display's fractional scale so it stays sharp.
 
 - Build + install: `sh ~/.config/osd/build.sh`  (installs `~/.local/bin/osd`; the binary is not tracked).

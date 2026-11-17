@@ -37,8 +37,8 @@ use wayland_protocols_wlr::layer_shell::v1::client::{
 };
 
 // ---- look (the old quickshell bar: strip, 20 px, Catppuccin Mocha) --------------------------------
-const BAR_H: f64 = 20.0;
-const FONT_FAMILY: &str = "JetBrainsMono Nerd Font";
+const BAR_H: f64 = 22.0;
+const FONT_FAMILY: &str = "MesloLGS Nerd Font";
 type Col = (f64, f64, f64);
 const fn hex(r: u8, g: u8, b: u8) -> Col {
     (r as f64 / 255., g as f64 / 255., b as f64 / 255.)
@@ -273,7 +273,10 @@ fn draw_text(cr: &cairo::Context, s: &str, x: f64, cy: f64, px: f64, bold: bool,
                 let adv = glyph_adv(ch, px);
                 let mut buf = [0u8; 4];
                 let l = layout(cr, ch.encode_utf8(&mut buf), px, bold, None);
-                let dx = if ch == '%' { 0.0 } else { (adv - pango_w(&l)) / 2.0 };
+                let mut dx = if ch == '%' { 0.0 } else { (adv - pango_w(&l)) / 2.0 };
+                if ch == '\u{f0e7}' {
+                    dx += 3.0; // Qt draws the charging bolt further right inside its slot
+                }
                 paint(cr, &l, cx + dx, cy, c, a);
                 cx += adv;
             }
@@ -762,7 +765,7 @@ impl State {
         let layer = ls.get_layer_surface(&surface, None, Layer::Overlay, "rbar-tip".into(), qh, 1u8);
         layer.set_size(w as u32, h as u32);
         layer.set_anchor(Anchor::Top | Anchor::Left);
-        layer.set_margin(25, 0, 0, x as i32);
+        layer.set_margin(BAR_H as i32 + 5, 0, 0, x as i32);
         layer.set_exclusive_zone(-1);
         layer.set_keyboard_interactivity(KeyboardInteractivity::None);
         let region = comp.create_region(qh, ());

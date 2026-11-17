@@ -9,7 +9,7 @@ configuration {
 
     drun-display-format: "{name}";
     window-format: "{t:45}  ·  {c}";
-    font: "JetBrainsMono Nerd Font 13";
+    font: "MesloLGS Nerd Font 13";
 
     location: 0;
     fixed-num-lines: true;
@@ -45,7 +45,7 @@ window {
     background-color: @bg;
     border: 1px;
     border-color: @border-color;
-    border-radius: 10px;
+    border-radius: 0px;
     padding: 10;
 }
 
@@ -59,7 +59,7 @@ inputbar {
     background-color: @bg-alt;
     border: 1px;
     border-color: transparent;
-    border-radius: 10px;
+    border-radius: 0px;
     padding: 5px 15px;
     spacing: 12px;
     children: [prompt, entry];
@@ -68,16 +68,16 @@ inputbar {
 prompt {
     enabled: true;
     background-color: transparent;
-    text-color: @border-color;
-    font: "JetBrainsMono Nerd Font 12";
+    text-color: @lavender;
+    font: "MesloLGS Nerd Font 12";
     padding: 0;
     vertical-align: 0.5;
 }
 
 entry {
     background-color: transparent;
-    text-color: @border-color;
-    font: "JetBrainsMono Nerd Font 12";
+    text-color: @fg-selected;
+    font: "MesloLGS Nerd Font 12";
     placeholder: "";
     placeholder-color: @fg-muted;
     padding: 0;
@@ -99,7 +99,7 @@ listview {
 element {
     background-color: transparent;
     border: 0;
-    border-radius: 10px;
+    border-radius: 0px;
     padding: 10px 14px;
     spacing: 14px;
 }
@@ -114,7 +114,7 @@ element-text {
     background-color: transparent;
     text-color: inherit;
     vertical-align: 0.5;
-    font: "JetBrainsMono Nerd Font 11";
+    font: "MesloLGS Nerd Font 11";
 }
 
 element normal.normal,
@@ -126,7 +126,7 @@ element alternate.normal {
 element normal.active,
 element alternate.active {
     background-color: transparent;
-    text-color: @border-color;
+    text-color: @green;
 }
 
 element normal.urgent,
@@ -138,9 +138,8 @@ element alternate.urgent {
 element selected.normal,
 element selected.active {
     background-color: @bg-selected;
-    border: 1px;
-    border-color: @border-color;
-    text-color: @border-color;
+    border: 0;
+    text-color: @blue;
 }
 
 element selected.urgent {
@@ -172,7 +171,7 @@ button {
     text-color: @fg-muted;
     border: 1px;
     border-color: @border-color;
-    border-radius: 10px;
+    border-radius: 0px;
     padding: 10px 14px;
     margin: 2px;
 }
@@ -186,7 +185,7 @@ button selected {
 scrollbar {
     width: 4px;
     border: 0;
-    handle-color: @accent;
+    handle-color: @fg-dark;
     handle-width: 4px;
     padding: 0;
 }

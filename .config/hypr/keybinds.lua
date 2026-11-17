@@ -50,7 +50,6 @@ hl.bind("SUPER + Space",        rofi(menu))                          -- app laun
 hl.bind("SUPER + V",            rofi("cliphist list | rofi -dmenu -p '' | cliphist decode | wl-copy"))   -- clipboard history
 hl.bind("SUPER + Escape",       rofi(scripts .. "/powermenu.sh"))   -- power menu
 hl.bind("SUPER + K",            rofi(scripts .. "/keybinds.sh"))     -- cheat sheet of these keys
-hl.bind("SUPER + O",            exec(scripts .. "/opacity.sh"))      -- window opacity menu
 hl.bind("SUPER + CTRL + P",     exec(scripts .. "/powerprofile.sh")) -- power profile menu
 hl.bind("SUPER + J",            exec("sh -c 'pkill -x bar || " .. home .. "/.local/bin/bar'")) -- show/hide the bar (stops or starts it)
 

@@ -11,14 +11,13 @@ symlinks, and only files that were added on purpose are tracked.
 | Path | What |
 |---|---|
 | `.config/hypr` | Hyprland (Lua config), hyprlock, hypridle, helper scripts |
-| `.config/quickshell` | Bar, Settings window (Super+I), volume/brightness/screenshot popups |
-| `.config/rofi` | Launcher, clipboard, power and opacity menus |
+| `.config/bar`, `.config/osd` | The bar and the volume/brightness popup (small Rust programs; build with `build.sh`) |
+| `.config/rofi` | Launcher, clipboard, power and power-profile menus, keybind cheat sheet |
 | `.config/kitty`, `.config/fish`, `.config/starship.toml` | Terminal, shell (aliases, `dots`, `cleancache`), prompt |
 | `.config/nvim` | Neovim config |
 | `.config/btop`, `yazi`, `fastfetch`, `gh`, `bat`, `tealdeer` | CLI tools |
 | `.config/gtk-3.0`, `gtk-4.0`, `kdeglobals`, `fontconfig` | Catppuccin GTK/Qt colors, subpixel font rendering |
 | `.config/spotify-launcher.conf`, `.local/bin`, `.local/share/applications` | Spotify (native Wayland + SpotX re-patch), desktop entries |
-| `.local/share/sddm-theme/material-you-mocha` | Sign-in theme (qylock Material-you-dark recolored to Catppuccin) |
 | `.gitignore` | Safety net: keys, tokens, shell history, etc. can never be added |
 | `.github/README.md` | This file |
 
@@ -111,13 +110,11 @@ layout of this setup) are kept as branches.
    dots status
    ```
 
-5. Install the sign-in theme (system folder, needs sudo):
+5. Build the bar and popup (the binaries aren't in git; needs the `rust` package):
 
    ```fish
-   sudo cp -r ~/.local/share/sddm-theme/material-you-mocha /usr/share/sddm/themes/
+   sh ~/.config/bar/build.sh; sh ~/.config/osd/build.sh
    ```
-
-   The theme's `bg.png` (wallpaper copy) and `font/` folder aren't in git. See that folder's README.
 
 From bash (before fish is set up) the alias is:
 

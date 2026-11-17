@@ -31,8 +31,8 @@ const W: i32 = 320;
 const H: i32 = 32;
 const MARGIN_TOP: i32 = 30;
 const BORDER: f64 = 2.0;
-const FONT_TEXT: &str = "JetBrains Mono Bold 10";
-const FONT_ICON: &str = "JetBrainsMono Nerd Font 13";
+const FONT_TEXT: &str = "MesloLGS Nerd Font Bold 10";
+const FONT_ICON: &str = "MesloLGS Nerd Font 13";
 
 // Catppuccin Mocha
 const BASE: (f64, f64, f64) = (0x1e as f64 / 255., 0x1e as f64 / 255., 0x2e as f64 / 255.);

@@ -1,15 +1,19 @@
-/* Catppuccin Mocha, values from 43pr's catppuccin-mocha.toml preset (same slots as 43pr's rofi template) */
+/* Catppuccin Mocha, flat and neutral like the bar, tooltips and popup: no accent border.
+   bg/fg tones are the same ones the bar uses (#1e1e2e, #cdd6f4, #a6adc8, #585b70). */
 * {
     bg:           #1e1e2eFF;
-    border-color: #89b4fa;
+    border-color: #313244;
     bg-alt:       #1e1e2e00;
-    bg-hover:     #585b70ff;
-    bg-selected:  #89b4fa00;
-    fg:           #bac2deff;
-    fg-muted:     #7f849cff;
+    bg-hover:     #313244ff;
+    bg-selected:  #313244ff;
+    fg:           #a6adc8ff;
+    fg-muted:     #585b70ff;
     fg-dark:      #45475a;
     fg-selected:  #cdd6f4;
-    accent:       #74c7ecff;
-    accent-soft:  #74c7ec33;
-    urgent:       #eba0acff;
+    accent:       #89b4faff;
+    blue:         #89b4faff;
+    lavender:     #b4befeff;
+    green:        #a6e3a1ff;
+    accent-soft:  #31324488;
+    urgent:       #f38ba8ff;
 }

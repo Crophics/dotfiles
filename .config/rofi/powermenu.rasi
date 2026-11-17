@@ -21,7 +21,7 @@ listview {
     scrollbar: false;
 }
 element-text {
-    font: "JetBrainsMono Nerd Font 12";
+    font: "MesloLGS Nerd Font 12";
 }
 element {
     children: [ element-text ];
