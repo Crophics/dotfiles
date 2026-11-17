@@ -62,3 +62,6 @@ vim.keymap.set("n", "<leader>mm", "<cmd>make<CR>")
 vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")
 end)
+
+-- clear search highlight with Esc
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { silent = true })

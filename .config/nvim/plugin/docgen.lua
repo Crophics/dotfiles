@@ -138,9 +138,9 @@ end
 
 -- Python style: """docstring"""
 local function generate_python_doc(bufnr, row, line)
-    local name, params = line:match("^%s*def%s+([%w_]+)%s*%((.-)%)%s*:?%s*$")
+    local name, params = line:match("^%s*def%s+([%w_]+)%s*%((.-)%)%s*[^)]-:%s*$")
     if not name then
-        name, params = line:match("^%s*async%s+def%s+([%w_]+)%s*%((.-)%)%s*:?%s*$")
+        name, params = line:match("^%s*async%s+def%s+([%w_]+)%s*%((.-)%)%s*[^)]-:%s*$")
     end
 
     if not name then
@@ -173,7 +173,8 @@ local function generate_python_doc(bufnr, row, line)
     table.insert(doc, indent .. "        ")
     table.insert(doc, indent .. '    """')
 
-    return doc, nil
+    -- a docstring goes inside the function, so insert after the def line
+    return doc, nil, true
 end
 
 -- filetype to generator mapping
@@ -198,20 +199,21 @@ function M.generate_doc()
         return
     end
 
-    local doc, err = generator(bufnr, row, line)
+    local doc, err, insert_after = generator(bufnr, row, line)
     if err then
         vim.notify(err, vim.log.levels.ERROR)
         return
     end
 
-    vim.api.nvim_buf_set_lines(bufnr, row - 1, row - 1, false, doc)
+    local start = insert_after and row or row - 1
+    vim.api.nvim_buf_set_lines(bufnr, start, start, false, doc)
 
     -- position cursor at first empty description spot
-    local cursor_row = row
+    local cursor_row = start + 1
     local cursor_col = #doc[1]
     for i, docline in ipairs(doc) do
         if docline:match("%s$") or docline:match(":%s*$") or docline:match("%-%s*$") then
-            cursor_row = row + i - 1
+            cursor_row = start + i
             cursor_col = #docline
             break
         end

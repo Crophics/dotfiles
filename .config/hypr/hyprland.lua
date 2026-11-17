@@ -32,16 +32,16 @@ local cursorSize  = "24"
 hl.on("hyprland.start", function()
     -- login handoff: Hyprland starts on black (the color the sign-in screen fades to),
     -- the wallpaper fades in first, then the bar slides down. One fixed wallpaper (no picker).
-    hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/Wallpapers/dark mountain.png'")
+    hl.exec_cmd("swaybg -m fill -i '" .. os.getenv("HOME") .. "/Pictures/catppuccin/bluehour.jpg'")
     -- no notification daemon on purpose
-    hl.exec_cmd("wl-paste --type text --watch cliphist store")    -- remember copied text (clipboard history)
-    hl.exec_cmd("wl-paste --type image --watch cliphist store")   -- ...and copied images
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")   -- password prompts for admin actions
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")                                   -- remember copied text (clipboard history)
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")                                  -- ...and copied images
+    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")                     -- password prompts for admin actions
     hl.exec_cmd("hyprctl setcursor " .. cursorTheme .. " " .. cursorSize)
     hl.exec_cmd("sh -c 'sleep 5; hyprctl setcursor " .. cursorTheme .. " " .. cursorSize .. "'") -- once more after the session has settled
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/start-hypridle.sh")                  -- idle lock/suspend + lock before sleep (hyprlock)
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/nightlight.py daemon")               -- night light
-    hl.exec_cmd("sleep 1.2 && qs") -- the quickshell bar; starts late so it slides down after the wallpaper fades in (rules.lua)
+    hl.exec_cmd("sleep 1.2 && qs")                                                               -- the quickshell bar; starts late so it slides down after the wallpaper fades in (rules.lua)
 
     -- Your own apps, one line each, for example:
     -- hl.exec_cmd("spotify-launcher")
@@ -73,13 +73,13 @@ hl.env("MOZ_ENABLE_WAYLAND", "1")
 hl.config({
     input = {
         kb_layout = "us",
-        follow_mouse = 1,             -- focus follows the mouse
-        sensitivity = 0.5,            -- -1.0 (slowest) to 1.0 (fastest)
-        accel_profile = "flat",       -- no mouse acceleration
+        follow_mouse = 1,       -- focus follows the mouse
+        sensitivity = 0.5,      -- -1.0 (slowest) to 1.0 (fastest)
+        accel_profile = "flat", -- no mouse acceleration
         touchpad = {
             natural_scroll = true,
-            tap_to_click = false,     -- true = tapping the touchpad clicks
-            clickfinger_behavior = true,  -- two-finger click = right click, three = middle
+            tap_to_click = false,        -- true = tapping the touchpad clicks
+            clickfinger_behavior = true, -- two-finger click = right click, three = middle
         },
     },
 })
